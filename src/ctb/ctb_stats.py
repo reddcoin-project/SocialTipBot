@@ -18,10 +18,14 @@
     along with ALTcointip.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import logging, re, time
+import logging
+import re
+import time
 import ctb_misc
 
+
 lg = logging.getLogger('cointipbot')
+
 
 def update_stats(ctb=None):
     """
@@ -39,23 +43,23 @@ def update_stats(ctb=None):
         stats += "\n\n### %s\n\n" % ctb.conf.db.sql.globalstats[s].name
         stats += "%s\n\n" % ctb.conf.db.sql.globalstats[s].desc
 
-        mysqlexec = ctb.db.execute(sql)
-        if mysqlexec.rowcount <= 0:
+        sqlexec = ctb.db.execute(sql)
+        if sqlexec.rowcount <= 0:
             lg.warning("update_stats(): query <%s> returned nothing" % ctb.conf.db.sql.globalstats[s].query)
             continue
 
         if ctb.conf.db.sql.globalstats[s].type == "line":
-            m = mysqlexec.fetchone()
-            k = mysqlexec.keys()[0]
+            m = sqlexec.fetchone()
+            k = sqlexec.keys()[0]
             value = format_value(m, k, '', ctb)
             stats += "%s = **%s**\n" % (k, value)
 
         elif ctb.conf.db.sql.globalstats[s].type == "table":
-            stats += ("|".join(mysqlexec.keys())) + "\n"
-            stats += ("|".join([":---"] * len(mysqlexec.keys()))) + "\n"
-            for m in mysqlexec:
+            stats += ("|".join(sqlexec.keys())) + "\n"
+            stats += ("|".join([":---"] * len(sqlexec.keys()))) + "\n"
+            for m in sqlexec:
                 values = []
-                for k in mysqlexec.keys():
+                for k in sqlexec.keys():
                     values.append(format_value(m, k, '', ctb))
                 stats += ("|".join(values)) + "\n"
 
@@ -65,8 +69,11 @@ def update_stats(ctb=None):
 
         stats += "\n"
 
-    lg.debug("update_stats(): updating subreddit '%s', page '%s'" % (ctb.conf.reddit.stats.subreddit, ctb.conf.reddit.stats.page))
-    return ctb_misc.praw_call(ctb.reddit.edit_wiki_page, ctb.conf.reddit.stats.subreddit, ctb.conf.reddit.stats.page, stats, "Update by ALTcointip bot")
+    lg.debug("update_stats(): updating subreddit '%s', page '%s'" % (
+        ctb.conf.reddit.stats.subreddit, ctb.conf.reddit.stats.page))
+    return ctb_misc.praw_call(ctb.reddit.edit_wiki_page, ctb.conf.reddit.stats.subreddit, ctb.conf.reddit.stats.page,
+                              stats, "Update by ALTcointip bot")
+
 
 def update_tips(ctb=None):
     """
@@ -80,7 +87,7 @@ def update_tips(ctb=None):
     tip_list = "### All Completed Tips\n\n"
 
     q = ctb.db.execute(ctb.conf.db.sql.tips.sql_set)
-    tips = ctb.db.execute(ctb.conf.db.sql.tips.sql_list, (ctb.conf.db.sql.tips.limit))
+    tips = ctb.db.execute(ctb.conf.db.sql.tips.sql_list, ctb.conf.db.sql.tips.limit)
     tip_list += ("|".join(tips.keys())) + "\n"
     tip_list += ("|".join([":---"] * len(tips.keys()))) + "\n"
 
@@ -91,10 +98,13 @@ def update_tips(ctb=None):
             values.append(format_value(t, k, '', ctb, compact=True))
         tip_list += ("|".join(values)) + "\n"
 
-    lg.debug("update_tips(): updating subreddit '%s', page '%s'" % (ctb.conf.reddit.stats.subreddit, ctb.conf.reddit.stats.page_tips))
-    ctb_misc.praw_call(ctb.reddit.edit_wiki_page, ctb.conf.reddit.stats.subreddit, ctb.conf.reddit.stats.page_tips, tip_list, "Update by ALTcointip bot")
+    lg.debug("update_tips(): updating subreddit '%s', page '%s'" % (
+        ctb.conf.reddit.stats.subreddit, ctb.conf.reddit.stats.page_tips))
+    ctb_misc.praw_call(ctb.reddit.edit_wiki_page, ctb.conf.reddit.stats.subreddit, ctb.conf.reddit.stats.page_tips,
+                       tip_list, "Update by ALTcointip bot")
 
     return True
+
 
 def update_all_user_stats(ctb=None):
     """
@@ -108,6 +118,7 @@ def update_all_user_stats(ctb=None):
     users = ctb.db.execute(ctb.conf.db.sql.userstats.users)
     for u in users:
         update_user_stats(ctb=ctb, username=u['username'])
+
 
 def update_user_stats(ctb=None, username=None):
     """
@@ -138,9 +149,9 @@ def update_user_stats(ctb=None, username=None):
     user_stats += "fiat|total\n:---|---:\n"
     total_tipped = []
     for f in fiat:
-        mysqlexec = ctb.db.execute(ctb.conf.db.sql.userstats.total_tipped_fiat, (username, f))
-        total_tipped_fiat = mysqlexec.fetchone()
-        if total_tipped_fiat['total_fiat'] != None:
+        sqlexec = ctb.db.execute(ctb.conf.db.sql.userstats.total_tipped_fiat, (username, f))
+        total_tipped_fiat = sqlexec.fetchone()
+        if total_tipped_fiat['total_fiat'] is not None:
             user_stats += "**%s**|%s %.2f\n" % (f, ctb.conf.fiat[f].symbol, total_tipped_fiat['total_fiat'])
             total_tipped.append("%s%.2f" % (ctb.conf.fiat[f].symbol, total_tipped_fiat['total_fiat']))
     user_stats += "\n"
@@ -148,9 +159,9 @@ def update_user_stats(ctb=None, username=None):
     user_stats += "#### Total Tipped (Coins)\n\n"
     user_stats += "coin|total\n:---|---:\n"
     for c in coins:
-        mysqlexec = ctb.db.execute(ctb.conf.db.sql.userstats.total_tipped_coin, (username, c))
-        total_tipped_coin = mysqlexec.fetchone()
-        if total_tipped_coin['total_coin'] != None:
+        sqlexec = ctb.db.execute(ctb.conf.db.sql.userstats.total_tipped_coin, (username, c))
+        total_tipped_coin = sqlexec.fetchone()
+        if total_tipped_coin['total_coin'] is not None:
             user_stats += "**%s**|%s %.6f\n" % (c, ctb.conf.coins[c].symbol, total_tipped_coin['total_coin'])
     user_stats += "\n"
 
@@ -159,9 +170,9 @@ def update_user_stats(ctb=None, username=None):
     user_stats += "fiat|total\n:---|---:\n"
     total_received = []
     for f in fiat:
-        mysqlexec = ctb.db.execute(ctb.conf.db.sql.userstats.total_received_fiat, (username, f))
-        total_received_fiat = mysqlexec.fetchone()
-        if total_received_fiat['total_fiat'] != None:
+        sqlexec = ctb.db.execute(ctb.conf.db.sql.userstats.total_received_fiat, (username, f))
+        total_received_fiat = sqlexec.fetchone()
+        if total_received_fiat['total_fiat'] is not None:
             user_stats += "**%s**|%s %.2f\n" % (f, ctb.conf.fiat[f].symbol, total_received_fiat['total_fiat'])
             total_received.append("%s%.2f" % (ctb.conf.fiat[f].symbol, total_received_fiat['total_fiat']))
     user_stats += "\n"
@@ -169,9 +180,9 @@ def update_user_stats(ctb=None, username=None):
     user_stats += "#### Total Received (Coins)\n\n"
     user_stats += "coin|total\n:---|---:\n"
     for c in coins:
-        mysqlexec = ctb.db.execute(ctb.conf.db.sql.userstats.total_received_coin, (username, c))
-        total_received_coin = mysqlexec.fetchone()
-        if total_received_coin['total_coin'] != None:
+        sqlexec = ctb.db.execute(ctb.conf.db.sql.userstats.total_received_coin, (username, c))
+        total_received_coin = sqlexec.fetchone()
+        if total_received_coin['total_coin'] is not None:
             user_stats += "**%s**|%s %.6f\n" % (c, ctb.conf.coins[c].symbol, total_received_coin['total_coin'])
     user_stats += "\n"
 
@@ -197,7 +208,8 @@ def update_user_stats(ctb=None, username=None):
 
     # Submit changes
     lg.debug("update_user_stats(): updating subreddit '%s', page '%s'" % (ctb.conf.reddit.stats.subreddit, page))
-    ctb_misc.praw_call(ctb.reddit.edit_wiki_page, ctb.conf.reddit.stats.subreddit, page, user_stats, "Update by ALTcointip bot")
+    ctb_misc.praw_call(ctb.reddit.edit_wiki_page, ctb.conf.reddit.stats.subreddit, page, user_stats,
+                       "Update by ALTcointip bot")
 
     # Update user flair on subreddit
     if ctb.conf.reddit.stats.userflair and ( len(total_tipped) > 0 or len(total_received) > 0 ):
@@ -216,6 +228,7 @@ def update_user_stats(ctb=None, username=None):
         lg.debug(res)
 
     return True
+
 
 def format_value(m, k, username, ctb, compact=False):
     """
@@ -237,14 +250,15 @@ def format_value(m, k, username, ctb, compact=False):
         return "%s&nbsp;%.2f" % (fiat_symbol, m[k])
 
     # Format username
-    elif k.find("user") > -1 and type( m[k] ) in [str, unicode]:
+    elif k.find("user") > -1 and type(m[k]) in [str, unicode]:
         if compact:
             return ("**/u/%s**" % m[k]) if m[k].lower() == username.lower() else ("/u/%s" % m[k])
         else:
             un = ("**%s**" % m[k]) if m[k].lower() == username.lower() else m[k]
             toreturn = "[%s](/u/%s)" % (un, re.escape(m[k]))
             if m[k].lower() != username.lower():
-                toreturn += "^[[stats]](/r/%s/wiki/%s_%s)" % (ctb.conf.reddit.stats.subreddit, ctb.conf.reddit.stats.page, m[k])
+                toreturn += "^[[stats]](/r/%s/wiki/%s_%s)" % (
+                    ctb.conf.reddit.stats.subreddit, ctb.conf.reddit.stats.page, m[k])
             return toreturn
 
     # Format address

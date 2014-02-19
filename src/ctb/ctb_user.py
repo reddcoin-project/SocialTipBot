@@ -21,21 +21,22 @@ import logging, time, praw, re
 
 lg = logging.getLogger('cointipbot')
 
+
 class CtbUser(object):
     """
     User class for cointip bot
     """
 
     # Basic properties
-    name=None
-    giftamount=None
-    joindate=None
-    addr={}
-    banned=False
+    name = None
+    giftamount = None
+    joindate = None
+    addr = {}
+    banned = False
 
     # Objects
-    prawobj=None
-    ctb=None
+    prawobj = None
+    ctb = None
 
     def __init__(self, name=None, redditobj=None, ctb=None):
         """
@@ -65,7 +66,8 @@ class CtbUser(object):
                     if self.name.lower() == u.lower():
                         self.banned = True
             else:
-                lg.warning("CtbUser::__init__(): invalid method '%s' in banned_users config" % ctb.conf.reddit.banned_users.method)
+                lg.warning(
+                    "CtbUser::__init__(): invalid method '%s' in banned_users config" % ctb.conf.reddit.banned_users.method)
 
         lg.debug("< CtbUser::__init__(%s) DONE", name)
 
@@ -103,12 +105,12 @@ class CtbUser(object):
             return self.addr[coin]
 
         sql = "SELECT address from t_addrs WHERE username = %s AND coin = %s"
-        mysqlrow = self.ctb.db.execute(sql, (self.name.lower(), coin.lower())).fetchone()
-        if not mysqlrow:
+        sqlrow = self.ctb.db.execute(sql, (self.name.lower(), coin.lower())).fetchone()
+        if not sqlrow:
             lg.debug("< CtbUser::get_addr(%s, %s) DONE (no)", self.name, coin)
             return None
         else:
-            self.addr[coin] = mysqlrow['address']
+            self.addr[coin] = sqlrow['address']
             lg.debug("< CtbUser::get_addr(%s, %s) DONE (%s)", self.name, coin, self.addr[coin])
             return self.addr[coin]
 
@@ -133,7 +135,7 @@ class CtbUser(object):
             else:
                 return False
 
-        except Exception as e:
+        except Exception:
             lg.debug("< CtbUser::is_on_reddit(%s) DONE (no)", self.name)
             return False
 
@@ -149,38 +151,40 @@ class CtbUser(object):
         try:
             # First, check t_users table
             sql = "SELECT * FROM t_users WHERE username = %s"
-            mysqlrow = self.ctb.db.execute(sql, (self.name.lower())).fetchone()
+            sqlrow = self.ctb.db.execute(sql, (self.name.lower())).fetchone()
 
-            if not mysqlrow:
+            if not sqlrow:
                 lg.debug("< CtbUser::is_registered(%s) DONE (no)", self.name)
                 return False
 
             else:
                 # Next, check t_addrs table for whether  user has correct number of coin addresses
                 sql_coins = "SELECT COUNT(*) AS count FROM t_addrs WHERE username = %s"
-                mysqlrow_coins = self.ctb.db.execute(sql_coins, (self.name.lower())).fetchone()
+                sqlrow_coins = self.ctb.db.execute(sql_coins, (self.name.lower())).fetchone()
 
-                if int(mysqlrow_coins['count']) != len(self.ctb.coins):
-                    if int(mysqlrow_coins['count']) == 0:
+                if int(sqlrow_coins['count']) != len(self.ctb.coins):
+                    if int(sqlrow_coins['count']) == 0:
                         # Bot probably crashed during user registration process
                         # Delete user
                         lg.warning("CtbUser::is_registered(%s): deleting user, incomplete registration", self.name)
                         sql_delete = "DELETE FROM t_users WHERE username = %s"
-                        mysql_res = self.ctb.db.execute(sql_delete, (self.name.lower()))
+                        sql_res = self.ctb.db.execute(sql_delete, (self.name.lower()))
                         # User is not registered
                         return False
                     else:
-                        raise Exception("CtbUser::is_registered(%s): user has %s coins but %s active" % (self.name, mysqlrow_coins['count'], len(self.ctb.coins)))
+                        raise Exception("CtbUser::is_registered(%s): user has %s coins but %s active" % (
+                            self.name, sqlrow_coins['count'], len(self.ctb.coins)))
 
                 # Set some properties
-                self.giftamount = mysqlrow['giftamount']
+                self.giftamount = sqlrow['giftamount']
 
                 # Done
                 lg.debug("< CtbUser::is_registered(%s) DONE (yes)", self.name)
                 return True
 
         except Exception, e:
-            lg.error("CtbUser::is_registered(%s): error while executing <%s>: %s", self.name, sql % self.name.lower(), e)
+            lg.error("CtbUser::is_registered(%s): error while executing <%s>: %s", self.name, sql % self.name.lower(),
+                     e)
             raise
 
         lg.warning("< CtbUser::is_registered(%s): returning None (shouldn't happen)", self.name)
@@ -217,11 +221,13 @@ class CtbUser(object):
         # Add user to database
         try:
             sql_adduser = "INSERT INTO t_users (username) VALUES (%s)"
-            mysqlexec = self.ctb.db.execute(sql_adduser, (self.name.lower()))
-            if mysqlexec.rowcount <= 0:
-                raise Exception("CtbUser::register(%s): rowcount <= 0 while executing <%s>" % ( self.name, sql_adduser % (self.name.lower()) ))
+            sqlexec = self.ctb.db.execute(sql_adduser, (self.name.lower()))
+            if sqlexec.rowcount <= 0:
+                raise Exception("CtbUser::register(%s): rowcount <= 0 while executing <%s>" % (
+                    self.name, sql_adduser % (self.name.lower()) ))
         except Exception, e:
-            lg.error("CtbUser::register(%s): exception while executing <%s>: %s", self.name, sql_adduser % (self.name.lower()), e)
+            lg.error("CtbUser::register(%s): exception while executing <%s>: %s", self.name,
+                     sql_adduser % (self.name.lower()), e)
             raise
 
         # Get new coin addresses
@@ -234,11 +240,12 @@ class CtbUser(object):
         for c in new_addrs:
             try:
                 sql_addr = "REPLACE INTO t_addrs (username, coin, address) VALUES (%s, %s, %s)"
-                mysqlexec = self.ctb.db.execute(sql_addr, (self.name.lower(), c, new_addrs[c]))
-                if mysqlexec.rowcount <= 0:
+                sqlexec = self.ctb.db.execute(sql_addr, (self.name.lower(), c, new_addrs[c]))
+                if sqlexec.rowcount <= 0:
                     # Undo change to database
                     delete_user(_username=self.name.lower(), _db=self.ctb.db)
-                    raise Exception("CtbUser::register(%s): rowcount <= 0 while executing <%s>" % (self.name, sql_addr % (self.name.lower(), c, new_addrs[c])))
+                    raise Exception("CtbUser::register(%s): rowcount <= 0 while executing <%s>" % (
+                        self.name, sql_addr % (self.name.lower(), c, new_addrs[c])))
 
             except Exception, e:
                 # Undo change to database
@@ -312,8 +319,8 @@ def delete_user(_username=None, _db=None):
         sql_arr = ["DELETE FROM t_users WHERE username = %s",
                    "DELETE FROM t_addrs WHERE username = %s"]
         for sql in sql_arr:
-            mysqlexec = _db.execute(sql, _username.lower())
-            if mysqlexec.rowcount <= 0:
+            sqlexec = _db.execute(sql, _username.lower())
+            if sqlexec.rowcount <= 0:
                 lg.warning("delete_user(%s): rowcount <= 0 while executing <%s>", _username, sql % _username.lower())
 
     except Exception, e:

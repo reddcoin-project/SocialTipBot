@@ -22,36 +22,39 @@ from random import randint
 
 lg = logging.getLogger('cointipbot')
 
+
 class CtbActionExc(Exception):
     pass
+
 
 class CtbAction(object):
     """
     Action class for cointip bot
     """
 
-    type=None           # 'accept', 'decline', 'history', 'info', 'register', 'givetip', 'withdraw', 'redeem', 'rates'
-    state=None          # 'completed', 'pending', 'failed', 'declined'
-    txid=None           # cryptocoin transaction id, a 64-char string, if applicable
+    type = None           # 'accept', 'decline', 'history', 'info', 'register', 'givetip', 'withdraw', 'redeem', 'rates'
+    state = None          # 'completed', 'pending', 'failed', 'declined'
+    txid = None           # cryptocoin transaction id, a 64-char string, if applicable
 
-    u_from=None         # CtbUser instance
-    u_to=None           # CtbUser instance, if applicable
-    addr_to=None        # destination cryptocoin address of 'givetip' and 'withdraw' actions, if applicable
+    u_from = None         # CtbUser instance
+    u_to = None           # CtbUser instance, if applicable
+    addr_to = None        # destination cryptocoin address of 'givetip' and 'withdraw' actions, if applicable
 
-    coin=None           # coin for this action (for example, 'ltc')
-    fiat=None           # fiat for this action (for example, 'usd'), if applicable
-    coinval=None        # coin value of 'givetip' and 'withdraw' actions
-    fiatval=None        # fiat value of the 'givetip' or 'withdraw' action
-    keyword=None        # keyword that's used instead of coinval/fiatval
+    coin = None           # coin for this action (for example, 'ltc')
+    fiat = None           # fiat for this action (for example, 'usd'), if applicable
+    coinval = None        # coin value of 'givetip' and 'withdraw' actions
+    fiatval = None        # fiat value of the 'givetip' or 'withdraw' action
+    keyword = None        # keyword that's used instead of coinval/fiatval
 
-    subreddit=None      # subreddit that originated the action, if applicable
+    subreddit = None      # subreddit that originated the action, if applicable
 
-    msg=None            # Reddit object pointing to originating message/comment
-    msg_id=None         #
-    ctb=None            # CointipBot instance
+    msg = None            # Reddit object pointing to originating message/comment
+    msg_id = None         #
+    ctb = None            # CointipBot instance
 
 
-    def __init__(self, atype=None, msg=None, msg_id=None, from_user=None, to_user=None, to_addr=None, coin=None, fiat=None, coin_val=None, fiat_val=None, keyword=None, subr=None, ctb=None):
+    def __init__(self, atype=None, msg=None, msg_id=None, from_user=None, to_user=None, to_addr=None, coin=None,
+                 fiat=None, coin_val=None, fiat_val=None, keyword=None, subr=None, ctb=None):
         """
         Initialize CtbAction object with given parameters and run basic checks
         """
@@ -72,7 +75,8 @@ class CtbAction(object):
 
         self.addr_to = to_addr
         self.u_to = ctb_user.CtbUser(name=to_user, ctb=ctb) if to_user else None
-        self.u_from = ctb_user.CtbUser(name=msg.author.name, redditobj=msg.author, ctb=ctb) if (msg and hasattr(msg, 'author') and msg.author) else ctb_user.CtbUser(name=from_user, ctb=ctb)
+        self.u_from = ctb_user.CtbUser(name=msg.author.name, redditobj=msg.author, ctb=ctb) if (
+        msg and hasattr(msg, 'author') and msg.author) else ctb_user.CtbUser(name=from_user, ctb=ctb)
         self.subreddit = subr
 
         # Do some checks
@@ -80,17 +84,24 @@ class CtbAction(object):
             raise Exception("CtbAction::__init__(type=?): type not set")
         if not self.ctb:
             raise Exception("CtbAction::__init__(type=%s): no reference to CointipBot", self.type)
-        #if not self.msg:
+            #if not self.msg:
         #    raise Exception("CtbAction::__init__(type=%s): no reference to Reddit message/comment", self.type)
         if self.type in ['givetip', 'withdraw']:
             if not (bool(self.u_to) ^ bool(self.addr_to)):
-                raise Exception("CtbAction::__init__(atype=%s, from_user=%s): u_to xor addr_to must be set" % (self.type, self.u_from.name))
+                raise Exception("CtbAction::__init__(atype=%s, from_user=%s): u_to xor addr_to must be set" % (
+                self.type, self.u_from.name))
             if not (bool(self.coin) or bool(self.fiat) or bool(self.keyword)):
-                raise Exception("CtbAction::__init__(atype=%s, from_user=%s): coin or fiat or keyword must be set" % (self.type, self.u_from.name))
+                raise Exception("CtbAction::__init__(atype=%s, from_user=%s): coin or fiat or keyword must be set" % (
+                self.type, self.u_from.name))
             if not (bool(self.coinval) or bool(self.fiatval) or bool(self.keyword)):
-                raise Exception("CtbAction::__init__(atype=%s, from_user=%s): coinval or fiatval or keyword must be set" % (self.type, self.u_from.name))
-            if (not self.coinval or not float(self.coinval) > 0.0) and (not self.fiatval or not float(self.fiatval) > 0.0) and (not self.keyword):
-                raise CtbActionExc("CtbAction::__init__(type=%s, from_user=%s, to_user=%s): no (coinval or fiatval or keyword) given" % (self.type, self.u_from, self.u_to))
+                raise Exception(
+                    "CtbAction::__init__(atype=%s, from_user=%s): coinval or fiatval or keyword must be set" % (
+                    self.type, self.u_from.name))
+            if (not self.coinval or not float(self.coinval) > 0.0) and (
+                not self.fiatval or not float(self.fiatval) > 0.0) and (not self.keyword):
+                raise CtbActionExc(
+                    "CtbAction::__init__(type=%s, from_user=%s, to_user=%s): no (coinval or fiatval or keyword) given" % (
+                    self.type, self.u_from, self.u_to))
 
         # Convert coinval and fiat to float, if necesary
         if self.coinval and type(self.coinval) == unicode and self.coinval.replace('.', '').isnumeric():
@@ -129,9 +140,13 @@ class CtbAction(object):
                     lg.debug("CtbAction::__init__(): evaluating '%s'", val)
                     self.fiatval = eval(val)
                     if not type(self.fiatval) == float:
-                        raise CtbActionExc("CtbAction::__init__(atype=%s, from_user=%s): couldn't determine fiatval from keyword '%s' (not float)" % (self.type, self.u_from.name, self.keyword))
+                        raise CtbActionExc(
+                            "CtbAction::__init__(atype=%s, from_user=%s): couldn't determine fiatval from keyword '%s' (not float)" % (
+                            self.type, self.u_from.name, self.keyword))
                 else:
-                    raise CtbActionExc("CtbAction::__init__(atype=%s, from_user=%s): couldn't determine fiatval from keyword '%s' (not float or str)" % (self.type, self.u_from.name, self.keyword))
+                    raise CtbActionExc(
+                        "CtbAction::__init__(atype=%s, from_user=%s): couldn't determine fiatval from keyword '%s' (not float or str)" % (
+                        self.type, self.u_from.name, self.keyword))
 
             elif self.keyword and self.coin and not ( type(self.coinval) in [float, int] and self.coinval > 0.0 ):
                 # Determine coin value
@@ -143,29 +158,38 @@ class CtbAction(object):
                     lg.debug("CtbAction::__init__(): evaluating '%s'", val)
                     self.coinval = eval(val)
                     if not type(self.coinval) == float:
-                        raise CtbActionExc("CtbAction::__init__(atype=%s, from_user=%s): couldn't determine coinval from keyword '%s' (not float)" % (self.type, self.u_from.name, self.keyword))
+                        raise CtbActionExc(
+                            "CtbAction::__init__(atype=%s, from_user=%s): couldn't determine coinval from keyword '%s' (not float)" % (
+                            self.type, self.u_from.name, self.keyword))
                 else:
-                    raise CtbActionExc("CtbAction::__init__(atype=%s, from_user=%s): couldn't determine coinval from keyword '%s' (not float or str)" % (self.type, self.u_from.name, self.keyword))
+                    raise CtbActionExc(
+                        "CtbAction::__init__(atype=%s, from_user=%s): couldn't determine coinval from keyword '%s' (not float or str)" % (
+                        self.type, self.u_from.name, self.keyword))
 
             # By this point we should have a proper coinval or fiatval
             if not type(self.coinval) in [float, int] and not type(self.fiatval) in [float, int]:
-                raise CtbActionExc("CtbAction::__init__(atype=%s, from_user=%s): coinval or fiatval isn't determined" % (self.type, self.u_from.name))
+                raise CtbActionExc(
+                    "CtbAction::__init__(atype=%s, from_user=%s): coinval or fiatval isn't determined" % (
+                    self.type, self.u_from.name))
 
         # Determine coin, if given only fiat, using exchange rates
         if self.type in ['givetip']:
             if self.fiat and not self.coin:
-                lg.debug("CtbAction::__init__(atype=%s, from_user=%s): determining coin..." % (self.type, self.u_from.name))
+                lg.debug(
+                    "CtbAction::__init__(atype=%s, from_user=%s): determining coin..." % (self.type, self.u_from.name))
                 if not self.u_from.is_registered():
                     # Can't proceed, abort
-                    raise CtbActionExc("CtbAction::__init__(): can't determine coin for un-registered user %s", self.u_from.name)
-                # Choose a coin based on from_user's available balance (pick first one that can satisfy the amount)
+                    raise CtbActionExc("CtbAction::__init__(): can't determine coin for un-registered user %s",
+                                       self.u_from.name)
+                    # Choose a coin based on from_user's available balance (pick first one that can satisfy the amount)
                 cc = self.ctb.conf.coins
                 for c in sorted(self.ctb.coins):
-                    lg.debug("CtbAction::__init__(atype=%s, from_user=%s): considering %s" % (self.type, self.u_from.name, c))
+                    lg.debug("CtbAction::__init__(atype=%s, from_user=%s): considering %s" % (
+                    self.type, self.u_from.name, c))
                     # First, check if we have a ticker value for this coin and fiat
                     if not self.ctb.coin_value(cc[c].unit, self.fiat) > 0.0:
                         continue
-                    # Compare available and needed coin balances
+                        # Compare available and needed coin balances
                     coin_balance_avail = self.u_from.get_balance(coin=cc[c].unit, kind='givetip')
                     coin_balance_need = self.fiatval / self.ctb.coin_value(cc[c].unit, self.fiat)
                     if coin_balance_avail > coin_balance_need or abs(coin_balance_avail - coin_balance_need) < 0.000001:
@@ -191,7 +215,8 @@ class CtbAction(object):
         # Final check to make sure coin value is determined
         if self.type in ['givetip', 'withdraw']:
             if not self.coinval or not type(self.coinval) in [float, int]:
-                raise CtbActionExc("CtbAction::__init__(): couldn't determine coin value, giving up. CtbAction: <%s>", self)
+                raise CtbActionExc("CtbAction::__init__(): couldn't determine coin value, giving up. CtbAction: <%s>",
+                                   self)
 
         lg.debug("< CtbAction::__init__(atype=%s, from_user=%s) DONE", self.type, self.u_from.name)
 
@@ -200,7 +225,9 @@ class CtbAction(object):
         Return string representation of self
         """
         me = "<CtbAction: type=%s, msg.body=%s, from_user=%s, to_user=%s, to_addr=%s, coin=%s, fiat=%s, coin_val=%s, fiat_val=%s, subreddit=%s>"
-        me = me % (self.type, self.msg.body if self.msg else '', self.u_from, self.u_to, self.addr_to, self.coin, self.fiat, self.coinval, self.fiatval, self.subreddit)
+        me = me % (
+        self.type, self.msg.body if self.msg else '', self.u_from, self.u_to, self.addr_to, self.coin, self.fiat,
+        self.coinval, self.fiatval, self.subreddit)
         return me
 
     def update(self, state=None):
@@ -222,7 +249,8 @@ class CtbAction(object):
             if mysqlexec.rowcount <= 0:
                 raise Exception("query didn't affect any rows")
         except Exception as e:
-            lg.error("CtbAction::update(%s): error executing query <%s>: %s", state, sql % (state, self.type, self.msg_id))
+            lg.error("CtbAction::update(%s): error executing query <%s>: %s", state,
+                     sql % (state, self.type, self.msg_id))
             raise
 
         lg.debug("< CtbAction::update() DONE")
@@ -246,20 +274,20 @@ class CtbAction(object):
 
         try:
             mysqlexec = conn.execute(sql,
-                    (self.type,
-                     state,
-                     self.msg.created_utc,
-                     self.u_from.name.lower(),
-                     self.u_to.name.lower() if self.u_to else None,
-                     self.addr_to,
-                     self.coinval,
-                     self.fiatval,
-                     self.txid,
-                     self.coin,
-                     self.fiat,
-                     self.subreddit,
-                     self.msg.id,
-                     self.msg.permalink if hasattr(self.msg, 'permalink') else None))
+                                     (self.type,
+                                      state,
+                                      self.msg.created_utc,
+                                      self.u_from.name.lower(),
+                                      self.u_to.name.lower() if self.u_to else None,
+                                      self.addr_to,
+                                      self.coinval,
+                                      self.fiatval,
+                                      self.txid,
+                                      self.coin,
+                                      self.fiat,
+                                      self.subreddit,
+                                      self.msg.id,
+                                      self.msg.permalink if hasattr(self.msg, 'permalink') else None))
             if mysqlexec.rowcount <= 0:
                 raise Exception("query didn't affect any rows")
         except Exception as e:
@@ -290,10 +318,10 @@ class CtbAction(object):
         lg.debug("> CtbAction::do()")
 
         if not self.ctb.conf.regex.actions[self.type].enabled:
-	        msg = self.ctb.jenv.get_template('command-disabled.tpl').render(a=self, ctb=self.ctb)
-	        lg.info("CtbAction::do(): action %s is disabled", self.type)
-	        ctb_misc.praw_call(self.msg.reply, msg)
-	        return False
+            msg = self.ctb.jenv.get_template('command-disabled.tpl').render(a=self, ctb=self.ctb)
+            lg.info("CtbAction::do(): action %s is disabled", self.type)
+            ctb_misc.praw_call(self.msg.reply, msg)
+            return False
 
         if self.type == 'accept':
             return self.accept()
@@ -348,7 +376,8 @@ class CtbAction(object):
             history.append(history_entry)
 
         # Send message to user
-        msg = self.ctb.jenv.get_template('history.tpl').render(history=history, keys=mysqlexec.keys(), limit=limit, a=self, ctb=self.ctb)
+        msg = self.ctb.jenv.get_template('history.tpl').render(history=history, keys=mysqlexec.keys(), limit=limit,
+                                                               a=self, ctb=self.ctb)
         lg.debug("CtbAction::history(): %s", msg)
         ctb_misc.praw_call(self.msg.reply, msg)
 
@@ -380,7 +409,7 @@ class CtbAction(object):
                 a.givetip(is_pending=True)
                 # Update u_from (tip action) stats
                 ctb_stats.update_user_stats(ctb=a.ctb, username=a.u_from.name)
-            # Update u_from (accept action) stats
+                # Update u_from (accept action) stats
             ctb_stats.update_user_stats(ctb=a.ctb, username=self.u_from.name)
             # Save this action
             self.save('completed')
@@ -388,7 +417,8 @@ class CtbAction(object):
         else:
 
             # No pending actions found, reply with error message
-            msg = self.ctb.jenv.get_template('no-pending-tips.tpl').render(user_from=self.u_from.name, a=self, ctb=self.ctb)
+            msg = self.ctb.jenv.get_template('no-pending-tips.tpl').render(user_from=self.u_from.name, a=self,
+                                                                           ctb=self.ctb)
             lg.debug("CtbAction::accept(): %s", msg)
             ctb_misc.praw_call(self.msg.reply, msg)
             # Save this action
@@ -407,8 +437,10 @@ class CtbAction(object):
         if actions:
             for a in actions:
                 # Move coins back into a.u_from account
-                lg.info("CtbAction::decline(): moving %.9f %s from %s to %s", a.coinval, a.coin.upper(), self.ctb.conf.reddit.auth.user, a.u_from.name)
-                if not self.ctb.coins[a.coin].sendtouser(_userfrom=self.ctb.conf.reddit.auth.user, _userto=a.u_from.name, _amount=a.coinval):
+                lg.info("CtbAction::decline(): moving %.9f %s from %s to %s", a.coinval, a.coin.upper(),
+                        self.ctb.conf.reddit.auth.user, a.u_from.name)
+                if not self.ctb.coins[a.coin].sendtouser(_userfrom=self.ctb.conf.reddit.auth.user,
+                                                         _userto=a.u_from.name, _amount=a.coinval):
                     raise Exception("CtbAction::decline(): failed to sendtouser()")
 
                 # Update transaction as declined
@@ -418,7 +450,8 @@ class CtbAction(object):
                 ctb_stats.update_user_stats(ctb=a.ctb, username=a.u_from.name)
 
                 # Respond to tip comment
-                msg = self.ctb.jenv.get_template('confirmation.tpl').render(title='Declined', a=a, ctb=a.ctb, source_link=a.msg.permalink if a.msg else None)
+                msg = self.ctb.jenv.get_template('confirmation.tpl').render(title='Declined', a=a, ctb=a.ctb,
+                                                                            source_link=a.msg.permalink if a.msg else None)
                 lg.debug("CtbAction::decline(): " + msg)
                 if self.ctb.conf.reddit.messages.declined:
                     if not ctb_misc.praw_call(a.msg.reply, msg):
@@ -430,7 +463,8 @@ class CtbAction(object):
             ctb_stats.update_user_stats(ctb=a.ctb, username=self.u_from.name)
 
             # Notify self.u_from
-            msg = self.ctb.jenv.get_template('pending-tips-declined.tpl').render(user_from=self.u_from.name, ctb=self.ctb)
+            msg = self.ctb.jenv.get_template('pending-tips-declined.tpl').render(user_from=self.u_from.name,
+                                                                                 ctb=self.ctb)
             lg.debug("CtbAction::decline(): %s", msg)
             ctb_misc.praw_call(self.msg.reply, msg)
 
@@ -456,8 +490,10 @@ class CtbAction(object):
         lg.debug("> CtbAction::expire()")
 
         # Move coins back into self.u_from account
-        lg.info("CtbAction::expire(): moving %.9f %s from %s to %s", self.coinval, self.coin.upper(), self.ctb.conf.reddit.auth.user, self.u_from.name)
-        if not self.ctb.coins[self.coin].sendtouser(_userfrom=self.ctb.conf.reddit.auth.user, _userto=self.u_from.name, _amount=self.coinval):
+        lg.info("CtbAction::expire(): moving %.9f %s from %s to %s", self.coinval, self.coin.upper(),
+                self.ctb.conf.reddit.auth.user, self.u_from.name)
+        if not self.ctb.coins[self.coin].sendtouser(_userfrom=self.ctb.conf.reddit.auth.user, _userto=self.u_from.name,
+                                                    _amount=self.coinval):
             raise Exception("CtbAction::expire(): sendtouser() failed")
 
         # Update transaction as expired
@@ -468,7 +504,8 @@ class CtbAction(object):
         ctb_stats.update_user_stats(ctb=self.ctb, username=self.u_to.name)
 
         # Respond to tip comment
-        msg = self.ctb.jenv.get_template('confirmation.tpl').render(title='Expired', a=self, ctb=self.ctb, source_link=self.msg.permalink if self.msg else None)
+        msg = self.ctb.jenv.get_template('confirmation.tpl').render(title='Expired', a=self, ctb=self.ctb,
+                                                                    source_link=self.msg.permalink if self.msg else None)
         lg.debug("CtbAction::expire(): " + msg)
         if self.ctb.conf.reddit.messages.expired:
             if not ctb_misc.praw_call(self.msg.reply, msg):
@@ -518,7 +555,8 @@ class CtbAction(object):
             # Verify minimum transaction size
             txkind = 'givetip' if self.u_to else 'withdraw'
             if self.coinval < self.ctb.conf.coins[self.coin].txmin[txkind]:
-                msg = self.ctb.jenv.get_template('tip-below-minimum.tpl').render(min_value=self.ctb.conf.coins[self.coin].txmin[txkind], a=self, ctb=self.ctb)
+                msg = self.ctb.jenv.get_template('tip-below-minimum.tpl').render(
+                    min_value=self.ctb.conf.coins[self.coin].txmin[txkind], a=self, ctb=self.ctb)
                 lg.debug("CtbAction::validate(): " + msg)
                 self.u_from.tell(subj="+tip failed", msg=msg)
                 self.save('failed') if not is_pending else self.update('failed')
@@ -529,7 +567,9 @@ class CtbAction(object):
                 # Tip to user (requires less confirmations)
                 balance_avail = self.u_from.get_balance(coin=self.coin, kind='givetip')
                 if not ( balance_avail > self.coinval or abs(balance_avail - self.coinval) < 0.000001 ):
-                    msg = self.ctb.jenv.get_template('tip-low-balance.tpl').render(balance=balance_avail, action_name='tip', a=self, ctb=self.ctb)
+                    msg = self.ctb.jenv.get_template('tip-low-balance.tpl').render(balance=balance_avail,
+                                                                                   action_name='tip', a=self,
+                                                                                   ctb=self.ctb)
                     lg.debug("CtbAction::validate(): " + msg)
                     self.u_from.tell(subj="+tip failed", msg=msg)
                     self.save('failed') if not is_pending else self.update('failed')
@@ -541,7 +581,9 @@ class CtbAction(object):
                 # Add mandatory network transaction fee
                 balance_need += self.ctb.conf.coins[self.coin].txfee
                 if not ( balance_avail > balance_need or abs(balance_avail - balance_need) < 0.000001 ):
-                    msg = self.ctb.jenv.get_template('tip-low-balance.tpl').render(balance=balance_avail, action_name='withdraw', a=self, ctb=self.ctb)
+                    msg = self.ctb.jenv.get_template('tip-low-balance.tpl').render(balance=balance_avail,
+                                                                                   action_name='withdraw', a=self,
+                                                                                   ctb=self.ctb)
                     lg.debug("CtbAction::validate(): " + msg)
                     self.u_from.tell(subj="+tip failed", msg=msg)
                     self.save('failed') if not is_pending else self.update('failed')
@@ -549,7 +591,8 @@ class CtbAction(object):
 
             # Check if u_to has any pending coin tips from u_from
             if self.u_to and not is_pending:
-                if check_action(atype='givetip', state='pending', to_user=self.u_to.name, from_user=self.u_from.name, coin=self.coin, ctb=self.ctb):
+                if check_action(atype='givetip', state='pending', to_user=self.u_to.name, from_user=self.u_from.name,
+                                coin=self.coin, ctb=self.ctb):
                     # Send notice to u_from
                     msg = self.ctb.jenv.get_template('tip-already-pending.tpl').render(a=self, ctb=self.ctb)
                     lg.debug("CtbAction::validate(): " + msg)
@@ -566,8 +609,11 @@ class CtbAction(object):
 
                 # Move coins into pending account
                 minconf = self.ctb.coins[self.coin].conf.minconf.givetip
-                lg.info("CtbAction::validate(): moving %.9f %s from %s to %s (minconf=%s)...", self.coinval, self.coin.upper(), self.u_from.name, self.ctb.conf.reddit.auth.user, minconf)
-                if not self.ctb.coins[self.coin].sendtouser(_userfrom=self.u_from.name, _userto=self.ctb.conf.reddit.auth.user, _amount=self.coinval, _minconf=minconf):
+                lg.info("CtbAction::validate(): moving %.9f %s from %s to %s (minconf=%s)...", self.coinval,
+                        self.coin.upper(), self.u_from.name, self.ctb.conf.reddit.auth.user, minconf)
+                if not self.ctb.coins[self.coin].sendtouser(_userfrom=self.u_from.name,
+                                                            _userto=self.ctb.conf.reddit.auth.user,
+                                                            _amount=self.coinval, _minconf=minconf):
                     raise Exception("CtbAction::validate(): sendtouser() failed")
 
                 # Save action as pending
@@ -626,12 +672,16 @@ class CtbAction(object):
             res = False
             if is_pending:
                 # This is accept() of pending transaction, so move coins from pending account to receiver
-                lg.info("CtbAction::givetip(): moving %.9f %s from %s to %s...", self.coinval, self.coin.upper(), self.ctb.conf.reddit.auth.user, self.u_to.name)
-                res = self.ctb.coins[self.coin].sendtouser(_userfrom=self.ctb.conf.reddit.auth.user, _userto=self.u_to.name, _amount=self.coinval)
+                lg.info("CtbAction::givetip(): moving %.9f %s from %s to %s...", self.coinval, self.coin.upper(),
+                        self.ctb.conf.reddit.auth.user, self.u_to.name)
+                res = self.ctb.coins[self.coin].sendtouser(_userfrom=self.ctb.conf.reddit.auth.user,
+                                                           _userto=self.u_to.name, _amount=self.coinval)
             else:
                 # This is not accept() of pending transaction, so move coins from tipper to receiver
-                lg.info("CtbAction::givetip(): moving %.9f %s from %s to %s...", self.coinval, self.coin.upper(), self.u_from.name, self.u_to.name)
-                res = self.ctb.coins[self.coin].sendtouser(_userfrom=self.u_from.name, _userto=self.u_to.name, _amount=self.coinval)
+                lg.info("CtbAction::givetip(): moving %.9f %s from %s to %s...", self.coinval, self.coin.upper(),
+                        self.u_from.name, self.u_to.name)
+                res = self.ctb.coins[self.coin].sendtouser(_userfrom=self.u_from.name, _userto=self.u_to.name,
+                                                           _amount=self.coinval)
 
             if not res:
                 # Tx failed
@@ -669,7 +719,8 @@ class CtbAction(object):
             # Process tip to address
             try:
                 lg.info("CtbAction::givetip(): sending %.9f %s to %s...", self.coinval, self.coin, self.addr_to)
-                self.txid = self.ctb.coins[self.coin].sendtoaddr(_userfrom=self.u_from.name, _addrto=self.addr_to, _amount=self.coinval)
+                self.txid = self.ctb.coins[self.coin].sendtoaddr(_userfrom=self.u_from.name, _addrto=self.addr_to,
+                                                                 _amount=self.coinval)
 
             except Exception as e:
 
@@ -722,7 +773,8 @@ class CtbAction(object):
             coininfo.coin = c
             try:
                 # Get tip balance
-                coininfo.balance = self.ctb.coins[c].getbalance(_user=self.u_from.name, _minconf=self.ctb.conf.coins[c].minconf.givetip)
+                coininfo.balance = self.ctb.coins[c].getbalance(_user=self.u_from.name,
+                                                                _minconf=self.ctb.conf.coins[c].minconf.givetip)
                 info.append(coininfo)
             except Exception as e:
                 lg.error("CtbAction::info(%s): error retrieving %s coininfo: %s", self.u_from.name, c, e)
@@ -738,14 +790,16 @@ class CtbAction(object):
 
         # Get coin addresses from MySQL
         for i in info:
-            sql = "SELECT address FROM t_addrs WHERE username = '%s' AND coin = '%s'" % (self.u_from.name.lower(), i.coin)
+            sql = "SELECT address FROM t_addrs WHERE username = '%s' AND coin = '%s'" % (
+            self.u_from.name.lower(), i.coin)
             mysqlrow = self.ctb.db.execute(sql).fetchone()
             if not mysqlrow:
                 raise Exception("CtbAction::info(%s): no result from <%s>" % (self.u_from.name, sql))
             i.address = mysqlrow['address']
 
         # Format and send message
-        msg = self.ctb.jenv.get_template('info.tpl').render(info=info, fiat_symbol=self.ctb.conf.fiat.usd.symbol, fiat_total=fiat_total, a=self, ctb=self.ctb)
+        msg = self.ctb.jenv.get_template('info.tpl').render(info=info, fiat_symbol=self.ctb.conf.fiat.usd.symbol,
+                                                            fiat_total=fiat_total, a=self, ctb=self.ctb)
         ctb_misc.praw_call(self.msg.reply, msg)
 
         # Save action to database
@@ -802,12 +856,15 @@ class CtbAction(object):
         has_redeemed = False
         if self.ctb.conf.reddit.redeem.multicoin:
             # Check if self.coin has been redeemed
-            has_redeemed = check_action(atype='redeem', from_user=self.u_from.name, state='completed', coin=self.coin, ctb=self.ctb)
+            has_redeemed = check_action(atype='redeem', from_user=self.u_from.name, state='completed', coin=self.coin,
+                                        ctb=self.ctb)
         else:
             # Check if any coin has been redeemed
             has_redeemed = check_action(atype='redeem', from_user=self.u_from.name, state='completed', ctb=self.ctb)
         if has_redeemed:
-            msg = self.ctb.jenv.get_template('redeem-already-done.tpl').render(coin=self.ctb.conf.coins[self.coin].name if self.ctb.conf.reddit.redeem.multicoin else None, a=self, ctb=self.ctb)
+            msg = self.ctb.jenv.get_template('redeem-already-done.tpl').render(
+                coin=self.ctb.conf.coins[self.coin].name if self.ctb.conf.reddit.redeem.multicoin else None, a=self,
+                ctb=self.ctb)
             lg.debug("CtbAction::redeem(): %s", msg)
             ctb_misc.praw_call(self.msg.reply, msg)
             self.save('failed')
@@ -845,7 +902,8 @@ class CtbAction(object):
             return False
 
         # Transfer coins
-        if self.ctb.coins[self.coin].sendtouser(_userfrom=self.ctb.conf.reddit.redeem.account, _userto=self.u_from.name, _amount=self.coinval, _minconf=1):
+        if self.ctb.coins[self.coin].sendtouser(_userfrom=self.ctb.conf.reddit.redeem.account, _userto=self.u_from.name,
+                                                _amount=self.coinval, _minconf=1):
             # Success, send confirmation
             msg = self.ctb.jenv.get_template('redeem-confirmation.tpl').render(a=self, ctb=self.ctb)
             lg.debug("CtbAction::redeem(): %s", msg)
@@ -875,13 +933,16 @@ class CtbAction(object):
                 try:
                     rates[coin][exchange] = {}
                     if self.ctb.exchanges[exchange].supports_pair(_name1=coin, _name2='btc'):
-                        rates[coin][exchange]['btc'] = self.ctb.exchanges[exchange].get_ticker_value(_name1=coin, _name2='btc')
+                        rates[coin][exchange]['btc'] = self.ctb.exchanges[exchange].get_ticker_value(_name1=coin,
+                                                                                                     _name2='btc')
                         if coin == 'btc' and self.ctb.exchanges[exchange].supports_pair(_name1='btc', _name2=fiat):
                             # Use exchange value to calculate btc's fiat value
-                            rates[coin][exchange][fiat] = rates[coin][exchange]['btc'] * self.ctb.exchanges[exchange].get_ticker_value(_name1='btc', _name2=fiat)
+                            rates[coin][exchange][fiat] = rates[coin][exchange]['btc'] * self.ctb.exchanges[
+                                exchange].get_ticker_value(_name1='btc', _name2=fiat)
                         else:
                             # Use average value to calculate coin's fiat value
-                            rates[coin][exchange][fiat] = rates[coin][exchange]['btc'] * self.ctb.runtime['ev']['btc'][fiat]
+                            rates[coin][exchange][fiat] = rates[coin][exchange]['btc'] * self.ctb.runtime['ev']['btc'][
+                                fiat]
                     else:
                         rates[coin][exchange]['btc'] = None
                         rates[coin][exchange][fiat] = None
@@ -898,11 +959,13 @@ class CtbAction(object):
         lg.debug("CtbAction::rates(): %s", rates)
 
         # Send message
-        msg = self.ctb.jenv.get_template('rates.tpl').render(coins=sorted(coins), exchanges=sorted(exchanges), rates=rates, fiat=fiat, a=self, ctb=self.ctb)
+        msg = self.ctb.jenv.get_template('rates.tpl').render(coins=sorted(coins), exchanges=sorted(exchanges),
+                                                             rates=rates, fiat=fiat, a=self, ctb=self.ctb)
         lg.debug("CtbAction::rates(): %s", msg)
         ctb_misc.praw_call(self.msg.reply, msg)
         self.save('completed')
         return True
+
 
 def init_regex(ctb):
     """
@@ -921,15 +984,15 @@ def init_regex(ctb):
             # Add simple message actions (info, register, accept, decline, history, rates)
 
             entry = ctb_misc.DotDict(
-                {'regex':       actions[a].regex,
-                 'action':      a,
-                 'rg_amount':   0,
-                 'rg_keyword':  0,
-                 'rg_address':  0,
-                 'rg_to_user':  0,
-                 'coin':        None,
-                 'fiat':        None,
-                 'keyword':     None
+                {'regex': actions[a].regex,
+                 'action': a,
+                 'rg_amount': 0,
+                 'rg_keyword': 0,
+                 'rg_address': 0,
+                 'rg_to_user': 0,
+                 'coin': None,
+                 'fiat': None,
+                 'keyword': None
                 })
             lg.debug("init_regex(): ADDED %s: %s", entry.action, entry.regex)
             ctb.runtime['regex'].append(entry)
@@ -952,7 +1015,7 @@ def init_regex(ctb):
 
                         if not cc[c].enabled:
                             continue
-                        # lg.debug("init_regex(): processing coin %s", c)
+                            # lg.debug("init_regex(): processing coin %s", c)
 
                         rval2 = rval1.replace('{REGEX_COIN}', cc[c].regex.units)
                         rval2 = rval2.replace('{REGEX_ADDRESS}', cc[c].regex.address)
@@ -963,18 +1026,18 @@ def init_regex(ctb):
 
                                 if not fiat[f].enabled:
                                     continue
-                                # lg.debug("init_regex(): processing fiat %s", f)
+                                    # lg.debug("init_regex(): processing fiat %s", f)
 
                                 rval3 = rval2.replace('{REGEX_FIAT}', fiat[f].regex.units)
                                 entry = ctb_misc.DotDict(
-                                    {'regex':           rval3,
-                                     'action':          a,
-                                     'rg_amount':       actions[a].regex[r].rg_amount,
-                                     'rg_keyword':      actions[a].regex[r].rg_keyword,
-                                     'rg_address':      actions[a].regex[r].rg_address,
-                                     'rg_to_user':      actions[a].regex[r].rg_to_user,
-                                     'coin':            cc[c].unit,
-                                     'fiat':            fiat[f].unit
+                                    {'regex': rval3,
+                                     'action': a,
+                                     'rg_amount': actions[a].regex[r].rg_amount,
+                                     'rg_keyword': actions[a].regex[r].rg_keyword,
+                                     'rg_address': actions[a].regex[r].rg_address,
+                                     'rg_to_user': actions[a].regex[r].rg_to_user,
+                                     'coin': cc[c].unit,
+                                     'fiat': fiat[f].unit
                                     })
                                 lg.debug("init_regex(): ADDED %s: %s", entry.action, entry.regex)
                                 ctb.runtime['regex'].append(entry)
@@ -982,14 +1045,14 @@ def init_regex(ctb):
                         else:
 
                             entry = ctb_misc.DotDict(
-                                {'regex':           rval2,
-                                 'action':          a,
-                                 'rg_amount':       actions[a].regex[r].rg_amount,
-                                 'rg_keyword':      actions[a].regex[r].rg_keyword,
-                                 'rg_address':      actions[a].regex[r].rg_address,
-                                 'rg_to_user':      actions[a].regex[r].rg_to_user,
-                                 'coin':            cc[c].unit,
-                                 'fiat':            None
+                                {'regex': rval2,
+                                 'action': a,
+                                 'rg_amount': actions[a].regex[r].rg_amount,
+                                 'rg_keyword': actions[a].regex[r].rg_keyword,
+                                 'rg_address': actions[a].regex[r].rg_address,
+                                 'rg_to_user': actions[a].regex[r].rg_to_user,
+                                 'coin': cc[c].unit,
+                                 'fiat': None
                                 })
                             lg.debug("init_regex(): ADDED %s: %s", entry.action, entry.regex)
                             ctb.runtime['regex'].append(entry)
@@ -1000,18 +1063,18 @@ def init_regex(ctb):
 
                         if not fiat[f].enabled:
                             continue
-                        # lg.debug("init_regex(): processing fiat %s", f)
+                            # lg.debug("init_regex(): processing fiat %s", f)
 
                         rval2 = rval1.replace('{REGEX_FIAT}', fiat[f].regex.units)
                         entry = ctb_misc.DotDict(
-                            {'regex':           rval2,
-                             'action':          a,
-                             'rg_amount':       actions[a].regex[r].rg_amount,
-                             'rg_keyword':      actions[a].regex[r].rg_keyword,
-                             'rg_address':      actions[a].regex[r].rg_address,
-                             'rg_to_user':      actions[a].regex[r].rg_to_user,
-                             'coin':            None,
-                             'fiat':            fiat[f].unit
+                            {'regex': rval2,
+                             'action': a,
+                             'rg_amount': actions[a].regex[r].rg_amount,
+                             'rg_keyword': actions[a].regex[r].rg_keyword,
+                             'rg_address': actions[a].regex[r].rg_address,
+                             'rg_to_user': actions[a].regex[r].rg_to_user,
+                             'coin': None,
+                             'fiat': fiat[f].unit
                             })
                         lg.debug("init_regex(): ADDED %s: %s", entry.action, entry.regex)
                         ctb.runtime['regex'].append(entry)
@@ -1019,20 +1082,21 @@ def init_regex(ctb):
                 elif actions[a].regex[r].rg_keyword > 0:
 
                     entry = ctb_misc.DotDict(
-                        {'regex':           rval1,
-                         'action':          a,
-                         'rg_amount':       actions[a].regex[r].rg_amount,
-                         'rg_keyword':      actions[a].regex[r].rg_keyword,
-                         'rg_address':      actions[a].regex[r].rg_address,
-                         'rg_to_user':      actions[a].regex[r].rg_to_user,
-                         'coin':            None,
-                         'fiat':            None
+                        {'regex': rval1,
+                         'action': a,
+                         'rg_amount': actions[a].regex[r].rg_amount,
+                         'rg_keyword': actions[a].regex[r].rg_keyword,
+                         'rg_address': actions[a].regex[r].rg_address,
+                         'rg_to_user': actions[a].regex[r].rg_to_user,
+                         'coin': None,
+                         'fiat': None
                         })
                     lg.debug("init_regex(): ADDED %s: %s", entry.action, entry.regex)
                     ctb.runtime['regex'].append(entry)
 
     lg.info("< init_regex() DONE (%s expressions)", len(ctb.runtime['regex']))
     return None
+
 
 def eval_message(msg, ctb):
     """
@@ -1045,7 +1109,7 @@ def eval_message(msg, ctb):
     for r in ctb.runtime['regex']:
 
         # Attempt a match
-        rg = re.compile(r.regex, re.IGNORECASE|re.DOTALL)
+        rg = re.compile(r.regex, re.IGNORECASE | re.DOTALL)
         #lg.debug("matching '%s' with '%s'", msg.body, r.regex)
         m = rg.search(body)
 
@@ -1066,7 +1130,8 @@ def eval_message(msg, ctb):
                 return None
 
             # Return CtbAction instance with given variables
-            lg.debug("eval_message(): creating action %s: from_user=%s, to_addr=%s, amount=%s, coin=%s, fiat=%s" % (r.action, u_from, to_addr, amount, r.coin, r.fiat))
+            lg.debug("eval_message(): creating action %s: from_user=%s, to_addr=%s, amount=%s, coin=%s, fiat=%s" % (
+            r.action, u_from, to_addr, amount, r.coin, r.fiat))
             try:
                 action = CtbAction(
                     atype=r.action,
@@ -1089,6 +1154,7 @@ def eval_message(msg, ctb):
     lg.debug("eval_message(): no match found")
     return None
 
+
 def eval_comment(comment, ctb):
     """
     Evaluate comment body and return a CtbAction object if successful
@@ -1103,7 +1169,7 @@ def eval_comment(comment, ctb):
             continue
 
         # Attempt a match
-        rg = re.compile(r.regex, re.IGNORECASE|re.DOTALL)
+        rg = re.compile(r.regex, re.IGNORECASE | re.DOTALL)
         #lg.debug("eval_comment(): matching '%s' with <%s>", comment.body, r.regex)
         m = rg.search(body)
 
@@ -1132,7 +1198,8 @@ def eval_comment(comment, ctb):
                 return None
 
             # Return CtbAction instance with given variables
-            lg.debug("eval_comment(): creating action %s: to_user=%s, to_addr=%s, amount=%s, coin=%s, fiat=%s" % (r.action, u_to, to_addr, amount, r.coin, r.fiat))
+            lg.debug("eval_comment(): creating action %s: to_user=%s, to_addr=%s, amount=%s, coin=%s, fiat=%s" % (
+            r.action, u_to, to_addr, amount, r.coin, r.fiat))
             try:
                 action = CtbAction(
                     atype=r.action,
@@ -1155,7 +1222,9 @@ def eval_comment(comment, ctb):
     lg.debug("< eval_comment() DONE (no match)")
     return None
 
-def check_action(atype=None, state=None, coin=None, msg_id=None, created_utc=None, from_user=None, to_user=None, subr=None, ctb=None, is_pending=False):
+
+def check_action(atype=None, state=None, coin=None, msg_id=None, created_utc=None, from_user=None, to_user=None,
+                 subr=None, ctb=None, is_pending=False):
     """
     Return True if action with given attributes exists in database
     """
@@ -1202,7 +1271,9 @@ def check_action(atype=None, state=None, coin=None, msg_id=None, created_utc=Non
     lg.warning("< check_action() DONE (should not get here)")
     return None
 
-def get_actions(atype=None, state=None, coin=None, msg_id=None, created_utc=None, from_user=None, to_user=None, subr=None, ctb=None):
+
+def get_actions(atype=None, state=None, coin=None, msg_id=None, created_utc=None, from_user=None, to_user=None,
+                subr=None, ctb=None):
     """
     Return an array of CtbAction objects from database with given attributes
     """
@@ -1255,22 +1326,23 @@ def get_actions(atype=None, state=None, coin=None, msg_id=None, created_utc=None
                         msg = submission.comments[0]
                         # check if msg.author is present
                         if not msg.author:
-                            lg.warning("get_actions(): could not fetch msg.author (deleted?) from msg_link %s", m['msg_link'])
-                #elif m['msg_id']:
+                            lg.warning("get_actions(): could not fetch msg.author (deleted?) from msg_link %s",
+                                       m['msg_link'])
+                    #elif m['msg_id']:
                 #    msg = praw.objects.Message(ctb.reddit, {'id': m['msg_id']})
 
-                r.append( CtbAction( atype=atype,
-                                     msg=msg,
-                                     from_user=m['from_user'],
-                                     to_user=m['to_user'],
-                                     to_addr=m['to_addr'] if not m['to_user'] else None,
-                                     coin=m['coin'],
-                                     fiat=m['fiat'],
-                                     coin_val=float(m['coin_val']) if m['coin_val'] else None,
-                                     fiat_val=float(m['fiat_val']) if m['fiat_val'] else None,
-                                     subr=m['subreddit'],
-                                     ctb=ctb,
-                                     msg_id=m['msg_id']))
+                r.append(CtbAction(atype=atype,
+                                   msg=msg,
+                                   from_user=m['from_user'],
+                                   to_user=m['to_user'],
+                                   to_addr=m['to_addr'] if not m['to_user'] else None,
+                                   coin=m['coin'],
+                                   fiat=m['fiat'],
+                                   coin_val=float(m['coin_val']) if m['coin_val'] else None,
+                                   fiat_val=float(m['fiat_val']) if m['fiat_val'] else None,
+                                   subr=m['subreddit'],
+                                   ctb=ctb,
+                                   msg_id=m['msg_id']))
 
             lg.debug("< get_actions() DONE (yes)")
             return r

@@ -31,6 +31,7 @@ logging.basicConfig()
 lg = logging.getLogger('cointipbot')
 
 
+# noinspection PyUnresolvedReferences
 class CointipBot(object):
     """
     Main class for cointip bot
@@ -58,7 +59,8 @@ class CointipBot(object):
         handlers = {}
         for l in levels:
             if self.conf.logs.levels[l].enabled:
-                handlers[l] = logging.FileHandler(self.conf.logs.levels[l].filename, mode='a' if self.conf.logs.levels[l].append else 'w')
+                handlers[l] = logging.FileHandler(self.conf.logs.levels[l].filename,
+                                                  mode='a' if self.conf.logs.levels[l].append else 'w')
                 handlers[l].setFormatter(logging.Formatter(self.conf.logs.levels[l].format))
 
         # Set handlers
@@ -84,14 +86,15 @@ class CointipBot(object):
 
         conf = {}
         try:
-            prefix='./conf/'
+            prefix = './conf/'
             for i in ['coins', 'db', 'exchanges', 'fiat', 'keywords', 'logs', 'misc', 'reddit', 'regex']:
                 lg.debug("CointipBot::parse_config(): reading %s%s.yml", prefix, i)
-                conf[i] = yaml.load(open(prefix+i+'.yml'))
+                conf[i] = yaml.load(open(prefix + i + '.yml'))
         except yaml.YAMLError as e:
             lg.error("CointipBot::parse_config(): error reading config file: %s", e)
             if hasattr(e, 'problem_mark'):
-                lg.error("CointipBot::parse_config(): error position: (line %s, column %s)", e.problem_mark.line+1, e.problem_mark.column+1)
+                lg.error("CointipBot::parse_config(): error position: (line %s, column %s)", e.problem_mark.line + 1,
+                         e.problem_mark.column + 1)
             sys.exit(1)
 
         lg.info('CointipBot::parse_config(): config files has been parsed')
@@ -103,7 +106,8 @@ class CointipBot(object):
         """
         lg.debug('CointipBot::connect_db(): connecting to database...')
 
-        dsn = "mysql+mysqldb://%s:%s@%s:%s/%s?charset=utf8" % (self.conf.db.auth.user, self.conf.db.auth.password, self.conf.db.auth.host, self.conf.db.auth.port, self.conf.db.auth.dbname)
+        dsn = "sqlite://%s:%s@%s/%s?charset=utf8" % (
+            self.conf.db.auth.user, self.conf.db.auth.password, self.conf.db.auth.host, self.conf.db.auth.dbname)
         dbobj = ctb_db.CointipBotDatabase(dsn)
 
         try:
@@ -112,7 +116,8 @@ class CointipBot(object):
             lg.error("CointipBot::connect_db(): error connecting to database: %s", e)
             sys.exit(1)
 
-        lg.info("CointipBot::connect_db(): connected to database %s as %s", self.conf.db.auth.dbname, self.conf.db.auth.user)
+        lg.info("CointipBot::connect_db(): connected to database %s as %s", self.conf.db.auth.dbname,
+                self.conf.db.auth.user)
         return conn
 
     def connect_reddit(self):
@@ -121,7 +126,7 @@ class CointipBot(object):
         """
         lg.debug('CointipBot::connect_reddit(): connecting to Reddit...')
 
-        conn = praw.Reddit(user_agent = self.conf.reddit.auth.user)
+        conn = praw.Reddit(user_agent=self.conf.reddit.auth.user)
         conn.login(self.conf.reddit.auth.user, self.conf.reddit.auth.password)
 
         lg.info("CointipBot::connect_reddit(): logged in to Reddit as %s", self.conf.reddit.auth.user)
@@ -145,7 +150,8 @@ class CointipBot(object):
             for a in actions:
                 pending_tips += a.coinval
             if (ctb_balance - pending_tips) < -0.000001:
-                raise Exception("CointipBot::self_checks(): CointipBot's %s balance (%s) < total pending tips (%s)" % (c.upper(), ctb_balance, pending_tips))
+                raise Exception("CointipBot::self_checks(): CointipBot's %s balance (%s) < total pending tips (%s)" % (
+                    c.upper(), ctb_balance, pending_tips))
 
         # Ensure coin balances are positive
         for c in self.coins:
@@ -155,13 +161,13 @@ class CointipBot(object):
 
         # Ensure user accounts are intact and balances are not negative
         sql = "SELECT username FROM t_users ORDER BY username"
-        for mysqlrow in self.db.execute(sql):
-            u = ctb_user.CtbUser(name=mysqlrow['username'], ctb=self)
+        for sqlrow in self.db.execute(sql):
+            u = ctb_user.CtbUser(name=sqlrow['username'], ctb=self)
             if not u.is_registered():
-                raise Exception("CointipBot::self_checks(): user %s is_registered() failed" % mysqlrow['username'])
-        #    for c in vars(self.coins):
-        #        if u.get_balance(coin=c, kind='givetip') < 0:
-        #            raise Exception("CointipBot::self_checks(): user %s %s balance is negative" % (mysqlrow['username'], c))
+                raise Exception("CointipBot::self_checks(): user %s is_registered() failed" % sqlrow['username'])
+                #    for c in vars(self.coins):
+                #        if u.get_balance(coin=c, kind='givetip') < 0:
+                #            raise Exception("CointipBot::self_checks(): user %s %s balance is negative" % (sqlrow['username'], c))
 
         return True
 
@@ -176,12 +182,13 @@ class CointipBot(object):
         counter = 0
 
         # Get expired actions and decline them
-        for a in ctb_action.get_actions(atype='givetip', state='pending', created_utc='< ' + str(created_before), ctb=self):
+        for a in ctb_action.get_actions(atype='givetip', state='pending', created_utc='< ' + str(created_before),
+                                        ctb=self):
             a.expire()
             counter += 1
 
         # Done
-        return (counter > 0)
+        return counter > 0
 
     def check_inbox(self):
         """
@@ -203,7 +210,8 @@ class CointipBot(object):
                     ctb_misc.praw_call(m.mark_as_read)
                     continue
 
-                lg.info("CointipBot::check_inbox(): %s from %s", "comment" if m.was_comment else "message", m.author.name)
+                lg.info("CointipBot::check_inbox(): %s from %s", "comment" if m.was_comment else "message",
+                        m.author.name)
 
                 # Ignore duplicate messages (sometimes Reddit fails to mark messages as read)
                 if ctb_action.check_action(msg_id=m.id, ctb=self):
@@ -220,7 +228,7 @@ class CointipBot(object):
                 # Ignore messages from banned users
                 if m.author and self.conf.reddit.banned_users:
                     lg.debug("CointipBot::check_inbox(): checking whether user '%s' is banned..." % m.author)
-                    u = ctb_user.CtbUser(name = m.author.name, redditobj = m.author, ctb = self)
+                    u = ctb_user.CtbUser(name=m.author.name, redditobj=m.author, ctb=self)
                     if u.banned:
                         lg.info("CointipBot::check_inbox(): ignoring banned user '%s'" % m.author)
                         ctb_misc.praw_call(m.mark_as_read)
@@ -244,7 +252,8 @@ class CointipBot(object):
                     if self.conf.reddit.messages.sorry and not m.subject in ['post reply', 'comment reply']:
                         user = ctb_user.CtbUser(name=m.author.name, redditobj=m.author, ctb=self)
                         tpl = self.jenv.get_template('didnt-understand.tpl')
-                        msg = tpl.render(user_from=user.name, what='comment' if m.was_comment else 'message', source_link=m.permalink if hasattr(m, 'permalink') else None, ctb=self)
+                        msg = tpl.render(user_from=user.name, what='comment' if m.was_comment else 'message',
+                                         source_link=m.permalink if hasattr(m, 'permalink') else None, ctb=self)
                         lg.debug("CointipBot::check_inbox(): %s", msg)
                         user.tell(subj='What?', msg=msg, msgobj=m if not m.was_comment else None)
 
@@ -256,10 +265,10 @@ class CointipBot(object):
             time.sleep(self.conf.misc.times.sleep_seconds)
             pass
         except RateLimitExceeded as e:
-             lg.warning("CointipBot::check_inbox(): rate limit exceeded, sleeping for %s seconds", e.sleep_time) 
-             time.sleep(e.sleep_time)
-             time.sleep(1)
-             pass
+            lg.warning("CointipBot::check_inbox(): rate limit exceeded, sleeping for %s seconds", e.sleep_time)
+            time.sleep(e.sleep_time)
+            time.sleep(1)
+            pass
         except Exception as e:
             lg.error("CointipBot::check_inbox(): %s", e)
             raise
@@ -320,12 +329,15 @@ class CointipBot(object):
             # Process comments until old comment reached
 
             # Get last_processed_comment_time if necessary
-            if not hasattr(self.conf.reddit, 'last_processed_comment_time') or self.conf.reddit.last_processed_comment_time <= 0:
-                self.conf.reddit.last_processed_comment_time = ctb_misc.get_value(conn=self.db, param0='last_processed_comment_time')
+            if not hasattr(self.conf.reddit,
+                           'last_processed_comment_time') or self.conf.reddit.last_processed_comment_time <= 0:
+                self.conf.reddit.last_processed_comment_time = ctb_misc.get_value(conn=self.db,
+                                                                                  param0='last_processed_comment_time')
             updated_last_processed_time = 0
 
             # Fetch comments from subreddits
-            my_comments = ctb_misc.praw_call(self.conf.reddit.subreddits.get_comments, limit=self.conf.reddit.scan.batch_limit)
+            my_comments = ctb_misc.praw_call(self.conf.reddit.subreddits.get_comments,
+                                             limit=self.conf.reddit.scan.batch_limit)
 
             # Match each comment against regex
             counter = 0
@@ -347,7 +359,7 @@ class CointipBot(object):
                 # Ignore comments from banned users
                 if c.author and self.conf.reddit.banned_users:
                     lg.debug("CointipBot::check_subreddits(): checking whether user '%s' is banned..." % c.author)
-                    u = ctb_user.CtbUser(name = c.author.name, redditobj = c.author, ctb = self)
+                    u = ctb_user.CtbUser(name=c.author.name, redditobj=c.author, ctb=self)
                     if u.banned:
                         lg.info("CointipBot::check_subreddits(): ignoring banned user '%s'" % c.author)
                         continue
@@ -365,7 +377,9 @@ class CointipBot(object):
 
             lg.debug("CointipBot::check_subreddits(): %s comments processed", counter)
             if counter >= self.conf.reddit.scan.batch_limit - 1:
-                lg.warning("CointipBot::check_subreddits(): conf.reddit.scan.batch_limit (%s) was not large enough to process all comments", self.conf.reddit.scan.batch_limit)
+                lg.warning(
+                    "CointipBot::check_subreddits(): conf.reddit.scan.batch_limit (%s) was not " +
+                    "large enough to process all comments", self.conf.reddit.scan.batch_limit)
 
         except (HTTPError, RateLimitExceeded, timeout) as e:
             lg.warning("CointipBot::check_subreddits(): Reddit is down (%s), sleeping", e)
@@ -378,7 +392,8 @@ class CointipBot(object):
         # Save updated last_processed_time value
         if updated_last_processed_time > 0:
             self.conf.reddit.last_processed_comment_time = updated_last_processed_time
-        ctb_misc.set_value(conn=self.db, param0='last_processed_comment_time', value0=self.conf.reddit.last_processed_comment_time)
+        ctb_misc.set_value(conn=self.db, param0='last_processed_comment_time',
+                           value0=self.conf.reddit.last_processed_comment_time)
 
         lg.debug("< CointipBot::check_subreddits() DONE")
         return True
@@ -390,7 +405,8 @@ class CointipBot(object):
 
         # Return if rate has been checked in the past hour
         seconds = int(1 * 3600)
-        if hasattr(self.conf.exchanges, 'last_refresh') and self.conf.exchanges.last_refresh + seconds > int(time.mktime(time.gmtime())):
+        if hasattr(self.conf.exchanges, 'last_refresh') and self.conf.exchanges.last_refresh + seconds > int(
+                time.mktime(time.gmtime())):
             lg.debug("< CointipBot::refresh_ev(): DONE (skipping)")
             return
 
@@ -420,7 +436,7 @@ class CointipBot(object):
                     result = 1.0
 
                 # Assign result to self.runtime['ev']
-                if not self.runtime['ev'].has_key(c):
+                if not c in self.runtime['ev']:
                     self.runtime['ev'][c] = {}
                 self.runtime['ev'][c]['btc'] = result
 
@@ -445,7 +461,7 @@ class CointipBot(object):
                     result = sum(values) / float(len(values))
 
                 # Assign result to self.runtime['ev']
-                if not self.runtime['ev'].has_key('btc'):
+                if not 'btc' in self.runtime['ev']:
                     self.runtime['ev']['btc'] = {}
                 self.runtime['ev']['btc'][f] = result
 
@@ -460,7 +476,7 @@ class CointipBot(object):
         """
         try:
             value = self.runtime['ev'][_coin]['btc'] * self.runtime['ev']['btc'][_fiat]
-        except KeyError as e:
+        except KeyError:
             lg.warning("CointipBot::coin_value(%s, %s): KeyError", _coin, _fiat)
             value = 0.0
         return value
@@ -484,7 +500,8 @@ class CointipBot(object):
         server.sendmail(self.conf.misc.notify.addr_from, self.conf.misc.notify.addr_to, msg.as_string())
         server.quit()
 
-    def __init__(self, self_checks=True, init_reddit=True, init_coins=True, init_exchanges=True, init_db=True, init_logging=True):
+    def __init__(self, self_checks=True, init_reddit=True, init_coins=True, init_exchanges=True, init_db=True,
+                 init_logging=True):
         """
         Constructor. Parses configuration file and initializes bot.
         """
@@ -532,7 +549,8 @@ class CointipBot(object):
         if self_checks:
             self.self_checks()
 
-        lg.info("< CointipBot::__init__(): DONE, batch-limit = %s, sleep-seconds = %s", self.conf.reddit.scan.batch_limit, self.conf.misc.times.sleep_seconds)
+        lg.info("< CointipBot::__init__(): DONE, batch-limit = %s, sleep-seconds = %s",
+                self.conf.reddit.scan.batch_limit, self.conf.misc.times.sleep_seconds)
 
     def __str__(self):
         """
@@ -547,7 +565,7 @@ class CointipBot(object):
         Main loop
         """
 
-        while (True):
+        while True:
             try:
                 lg.debug("CointipBot::main(): beginning main() iteration")
 
