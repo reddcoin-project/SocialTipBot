@@ -104,8 +104,7 @@ class CointipBot(object):
         """
         lg.debug('CointipBot::connect_db(): connecting to database...')
 
-        dsn = "sqlite://%s:%s@%s/%s" % (
-            self.conf.db.auth.user, self.conf.db.auth.password, self.conf.db.auth.dbfile, self.conf.db.auth.dbname)
+        dsn = "sqlite:///%s" % self.conf.db.auth.dbfile
         dbobj = ctb_db.CointipBotDatabase(dsn)
 
         try:

@@ -3,6 +3,7 @@ auth:
     password: ''
     host: localhost
     port: 3306
+    dbfile: db/reddit.db
     dbname: reddtipbot
 
 sql:
