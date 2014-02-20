@@ -33,6 +33,7 @@ class CtbUser(object):
 
     # Basic properties
     name = None
+    network = 'reddit'
     giftamount = None
     joindate = None
     addr = {}
@@ -108,8 +109,8 @@ class CtbUser(object):
         if hasattr(self.addr, coin):
             return self.addr[coin]
 
-        sql = "SELECT address from t_addrs WHERE username = %s AND coin = %s"
-        sqlrow = self.ctb.db.execute(sql, (self.name.lower(), coin.lower())).fetchone()
+        sql = "SELECT address from t_addrs WHERE username = :u AND coin = :c"
+        sqlrow = self.ctb.db.execute(sql, {'u': self.name.lower(), 'c': coin.lower()}).fetchone()
         if not sqlrow:
             lg.debug("< CtbUser::get_addr(%s, %s) DONE (no)", self.name, coin)
             return None
@@ -152,10 +153,10 @@ class CtbUser(object):
         """
         lg.debug("> CtbUser::is_registered(%s)", self.name)
 
-        sql = "SELECT * FROM t_users WHERE username = %s"
+        sql = "SELECT * FROM t_users WHERE username = :u"
         try:
             # First, check t_users table
-            sqlrow = self.ctb.db.execute(sql, (self.name.lower())).fetchone()
+            sqlrow = self.ctb.db.execute(sql, {'u': self.name.lower()}).fetchone()
 
             if not sqlrow:
                 lg.debug("< CtbUser::is_registered(%s) DONE (no)", self.name)
@@ -163,16 +164,16 @@ class CtbUser(object):
 
             else:
                 # Next, check t_addrs table for whether  user has correct number of coin addresses
-                sql_coins = "SELECT COUNT(*) AS count FROM t_addrs WHERE username = %s"
-                sqlrow_coins = self.ctb.db.execute(sql_coins, (self.name.lower())).fetchone()
+                sql_coins = "SELECT COUNT(*) AS count FROM t_addrs WHERE username = :u"
+                sqlrow_coins = self.ctb.db.execute(sql_coins, {'u': self.name.lower()}).fetchone()
 
                 if int(sqlrow_coins['count']) != len(self.ctb.coins):
                     if int(sqlrow_coins['count']) == 0:
                         # Bot probably crashed during user registration process
                         # Delete user
                         lg.warning("CtbUser::is_registered(%s): deleting user, incomplete registration", self.name)
-                        sql_delete = "DELETE FROM t_users WHERE username = %s"
-                        sql_res = self.ctb.db.execute(sql_delete, (self.name.lower()))
+                        sql_delete = "DELETE FROM t_users WHERE username = :u"
+                        sql_res = self.ctb.db.execute(sql_delete, {'u': self.name.lower()})
                         # User is not registered
                         return False
                     else:
@@ -223,15 +224,13 @@ class CtbUser(object):
         lg.debug("> CtbUser::register(%s)", self.name)
 
         # Add user to database
-        sql_adduser = "INSERT INTO t_users (username) VALUES (%s)"
+        sql_adduser = "INSERT INTO t_users (username, network) VALUES (:u, :n)"
         try:
-            sqlexec = self.ctb.db.execute(sql_adduser, (self.name.lower()))
+            sqlexec = self.ctb.db.execute(sql_adduser, {'u': self.name.lower(), 'n': self.network.lower()})
             if sqlexec.rowcount <= 0:
-                raise Exception("CtbUser::register(%s): rowcount <= 0 while executing <%s>" % (
-                    self.name, sql_adduser % (self.name.lower()) ))
+                raise Exception("CtbUser::register(%s): rowcount <= 0 while executing <%s>" % (self.name, sql_adduser))
         except Exception, e:
-            lg.error("CtbUser::register(%s): exception while executing <%s>: %s", self.name,
-                     sql_adduser % (self.name.lower()), e)
+            lg.error("CtbUser::register(%s): exception while executing <%s>: %s", self.name, sql_adduser, e)
             raise
 
         # Get new coin addresses
@@ -241,10 +240,10 @@ class CtbUser(object):
             lg.info("CtbUser::register(%s): got %s address %s", self.name, c, new_addrs[c])
 
         # Add coin addresses to database
-        sql_addr = "REPLACE INTO t_addrs (username, coin, address) VALUES (%s, %s, %s)"
+        sql_addr = "REPLACE INTO t_addrs (username, coin, address) VALUES (:u, :c, :a)"
         for c in new_addrs:
             try:
-                sqlexec = self.ctb.db.execute(sql_addr, (self.name.lower(), c, new_addrs[c]))
+                sqlexec = self.ctb.db.execute(sql_addr, {'u': self.name.lower(), 'c': c, 'a': new_addrs[c]})
                 if sqlexec.rowcount <= 0:
                     # Undo change to database
                     delete_user(_username=self.name.lower(), _db=self.ctb.db)
@@ -320,10 +319,10 @@ def delete_user(_username=None, _db=None):
     lg.debug("> delete_user(%s)", _username)
 
     try:
-        sql_arr = ["DELETE FROM t_users WHERE username = %s",
-                   "DELETE FROM t_addrs WHERE username = %s"]
+        sql_arr = ["DELETE FROM t_users WHERE username = :u",
+                   "DELETE FROM t_addrs WHERE username = :u"]
         for sql in sql_arr:
-            sqlexec = _db.execute(sql, _username.lower())
+            sqlexec = _db.execute(sql, {'u': _username.lower()})
             if sqlexec.rowcount <= 0:
                 lg.warning("delete_user(%s): rowcount <= 0 while executing <%s>", _username, sql % _username.lower())
 
