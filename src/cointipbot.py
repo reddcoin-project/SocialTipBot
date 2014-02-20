@@ -50,9 +50,7 @@ class CointipBot(object):
         Initialize logging handlers
         """
 
-        handlers = {}
         levels = ['warning', 'info', 'debug']
-        lg = logging.getLogger('cointipbot')
         bt = logging.getLogger('bitcoin')
 
         # Get handlers
@@ -65,7 +63,7 @@ class CointipBot(object):
 
         # Set handlers
         for l in levels:
-            if handlers.has_key(l):
+            if l in handlers:
                 level = logging.WARNING if l == 'warning' else (logging.INFO if l == 'info' else logging.DEBUG)
                 handlers[l].addFilter(ctb_log.LevelFilter(level))
                 lg.addHandler(handlers[l])
@@ -106,8 +104,8 @@ class CointipBot(object):
         """
         lg.debug('CointipBot::connect_db(): connecting to database...')
 
-        dsn = "sqlite://%s:%s@%s/%s?charset=utf8" % (
-            self.conf.db.auth.user, self.conf.db.auth.password, self.conf.db.auth.host, self.conf.db.auth.dbname)
+        dsn = "sqlite://%s:%s@%s/%s" % (
+            self.conf.db.auth.user, self.conf.db.auth.password, self.conf.db.auth.dbfile, self.conf.db.auth.dbname)
         dbobj = ctb_db.CointipBotDatabase(dsn)
 
         try:

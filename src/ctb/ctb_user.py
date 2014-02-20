@@ -17,7 +17,11 @@
 
 import ctb_misc
 
-import logging, time, praw, re
+import logging
+import time
+import praw
+import re
+
 
 lg = logging.getLogger('cointipbot')
 
@@ -148,9 +152,9 @@ class CtbUser(object):
         """
         lg.debug("> CtbUser::is_registered(%s)", self.name)
 
+        sql = "SELECT * FROM t_users WHERE username = %s"
         try:
             # First, check t_users table
-            sql = "SELECT * FROM t_users WHERE username = %s"
             sqlrow = self.ctb.db.execute(sql, (self.name.lower())).fetchone()
 
             if not sqlrow:
@@ -219,8 +223,8 @@ class CtbUser(object):
         lg.debug("> CtbUser::register(%s)", self.name)
 
         # Add user to database
+        sql_adduser = "INSERT INTO t_users (username) VALUES (%s)"
         try:
-            sql_adduser = "INSERT INTO t_users (username) VALUES (%s)"
             sqlexec = self.ctb.db.execute(sql_adduser, (self.name.lower()))
             if sqlexec.rowcount <= 0:
                 raise Exception("CtbUser::register(%s): rowcount <= 0 while executing <%s>" % (
@@ -237,9 +241,9 @@ class CtbUser(object):
             lg.info("CtbUser::register(%s): got %s address %s", self.name, c, new_addrs[c])
 
         # Add coin addresses to database
+        sql_addr = "REPLACE INTO t_addrs (username, coin, address) VALUES (%s, %s, %s)"
         for c in new_addrs:
             try:
-                sql_addr = "REPLACE INTO t_addrs (username, coin, address) VALUES (%s, %s, %s)"
                 sqlexec = self.ctb.db.execute(sql_addr, (self.name.lower(), c, new_addrs[c]))
                 if sqlexec.rowcount <= 0:
                     # Undo change to database
@@ -247,7 +251,7 @@ class CtbUser(object):
                     raise Exception("CtbUser::register(%s): rowcount <= 0 while executing <%s>" % (
                         self.name, sql_addr % (self.name.lower(), c, new_addrs[c])))
 
-            except Exception, e:
+            except Exception:
                 # Undo change to database
                 delete_user(_username=self.name.lower(), _db=self.ctb.db)
                 raise
@@ -270,7 +274,7 @@ class CtbUser(object):
         coin_value = self.ctb.coin_value(coin, fiat)
         if not coin_value or not coin_value > 0.0:
             lg.warning("CtbUser::get_redeem_amount(%s): coin_value not available", coin)
-            return (None, None)
+            return None, None
 
         # First, determine fiat value due to link karma
         link_mul = self.ctb.conf.reddit.redeem.multiplier.link
@@ -306,7 +310,7 @@ class CtbUser(object):
         total_coin = total_fiat / coin_value
 
         lg.debug("< CtbUser::get_redeem_amount(%s) DONE", coin)
-        return (total_coin, total_fiat)
+        return total_coin, total_fiat
 
 
 def delete_user(_username=None, _db=None):
