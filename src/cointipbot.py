@@ -16,9 +16,18 @@
     along with ALTcointip.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from ctb import ctb_action, ctb_coin, ctb_db, ctb_exchange, ctb_log, ctb_misc, ctb_user, ctb_network
+from ctb import ctb_action, ctb_coin, ctb_db, ctb_exchange, ctb_log, ctb_misc, ctb_user
+from ctb.ctb_network import RedditNetwork
+from ctb.ctb_twitter import TwitterNetwork
 
-import gettext, locale, logging, smtplib, sys, time, traceback, yaml
+import logging
+import smtplib
+import sys
+import time
+import traceback
+import yaml
+import glob
+import ntpath
 from email.mime.text import MIMEText
 from jinja2 import Environment, PackageLoader
 
@@ -81,10 +90,10 @@ class CointipBot(object):
 
         conf = {}
         try:
-            prefix = './conf/'
-            for i in ['coins', 'db', 'exchanges', 'fiat', 'keywords', 'logs', 'misc', 'reddit', 'regex']:
-                lg.debug("CointipBot::parse_config(): reading %s%s.yml", prefix, i)
-                conf[i] = yaml.load(open(prefix + i + '.yml'))
+            for path in glob.glob('./conf/*.yml'):
+                f = ntpath.basename(path)
+                lg.debug("CointipBot::parse_config(): reading %s", f)
+                conf[f.split('.')[0]] = yaml.load(open(path))
         except yaml.YAMLError as e:
             lg.error("CointipBot::parse_config(): error reading config file: %s", e)
             if hasattr(e, 'problem_mark'):
@@ -279,7 +288,7 @@ class CointipBot(object):
         server.quit()
 
     def __init__(self, self_checks=True, init_coins=True, init_db=True, init_logging=True, init_exchanges=False,
-                 init_reddit=True):
+                 init_reddit=True, init_twitter=False):
         """
         Constructor. Parses configuration file and initializes bot.
         """
@@ -318,11 +327,16 @@ class CointipBot(object):
 
         # Reddit
         if init_reddit:
-            self.network = ctb_network.RedditNetwork(self.conf.reddit, self.db)
-            self.network.connect()
-            self.network.init_subreddits()
+            self.network = RedditNetwork(self.conf.reddit, self.db)
             # Regex for Reddit messages
             ctb_action.init_regex(self)
+
+        # Twitter
+        if init_twitter:
+            self.network = TwitterNetwork(self.conf.twitter, self.db)
+
+        self.network.connect()
+        self.network.init()
 
         # Self-checks
         if self_checks:

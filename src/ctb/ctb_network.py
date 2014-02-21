@@ -5,7 +5,6 @@ from requests.exceptions import HTTPError, ConnectionError, Timeout
 from praw.errors import ExceptionList, APIException, InvalidCaptcha, InvalidUser, RateLimitExceeded
 from socket import timeout
 
-import ctb_user
 import ctb_action
 import ctb_misc
 
@@ -87,11 +86,9 @@ class RedditNetwork(CtbNetwork):
         Returns a praw connection object
         """
         lg.debug('RedditNetwork::connect(): connecting to Reddit...')
-
         conn = praw.Reddit(user_agent=self.user)
         conn.login(self.user, self.password)
         self.conn = conn
-
         lg.info("RedditNetwork::connect(): logged in to Reddit as %s", self.user)
         return conn
 
@@ -177,7 +174,7 @@ class RedditNetwork(CtbNetwork):
         lg.error("RedditNetwork::get_parent_author(): returning None (should not get here)")
         return None
 
-    def init_subreddits(self):
+    def init(self):
         """
         Determine a list of subreddits and create a PRAW object
         """
