@@ -26,6 +26,9 @@ class CtbNetwork(object):
     def send_msg(self, user_to, subject, body, editor, msgobj):
         pass
 
+    def reply_msg(self, body, msgobj):
+        pass
+
     def check_mentions(self, ctb):
         pass
 
@@ -124,6 +127,9 @@ class RedditNetwork(CtbNetwork):
 
         lg.debug("< RedditNetwork::send_msg(%s) DONE", self.name)
         return True
+
+    def reply_msg(self, body, msgobj):
+        self.praw_call(msgobj.reply, body)
 
     def get_parent_author(self, comment, sleep_seconds):
         """

@@ -87,7 +87,7 @@ def update_tips(ctb=None):
     tip_list = "### All Completed Tips\n\n"
 
     q = ctb.db.execute(ctb.conf.db.sql.tips.sql_set)
-    tips = ctb.db.execute(ctb.conf.db.sql.tips.sql_list, ctb.conf.db.sql.tips.limit)
+    tips = ctb.db.execute(ctb.conf.db.sql.tips.sql_list, [ctb.conf.db.sql.tips.limit])
     tip_list += ("|".join(tips.keys())) + "\n"
     tip_list += ("|".join([":---"] * len(tips.keys()))) + "\n"
 
@@ -149,7 +149,7 @@ def update_user_stats(ctb=None, username=None):
     user_stats += "fiat|total\n:---|---:\n"
     total_tipped = []
     for f in fiat:
-        sqlexec = ctb.db.execute(ctb.conf.db.sql.userstats.total_tipped_fiat, (username, f))
+        sqlexec = ctb.db.execute(ctb.conf.db.sql.userstats.total_tipped_fiat, [username, f])
         total_tipped_fiat = sqlexec.fetchone()
         if total_tipped_fiat['total_fiat'] is not None:
             user_stats += "**%s**|%s %.2f\n" % (f, ctb.conf.fiat[f].symbol, total_tipped_fiat['total_fiat'])
@@ -159,7 +159,7 @@ def update_user_stats(ctb=None, username=None):
     user_stats += "#### Total Tipped (Coins)\n\n"
     user_stats += "coin|total\n:---|---:\n"
     for c in coins:
-        sqlexec = ctb.db.execute(ctb.conf.db.sql.userstats.total_tipped_coin, (username, c))
+        sqlexec = ctb.db.execute(ctb.conf.db.sql.userstats.total_tipped_coin, [username, c])
         total_tipped_coin = sqlexec.fetchone()
         if total_tipped_coin['total_coin'] is not None:
             user_stats += "**%s**|%s %.6f\n" % (c, ctb.conf.coins[c].symbol, total_tipped_coin['total_coin'])
@@ -170,7 +170,7 @@ def update_user_stats(ctb=None, username=None):
     user_stats += "fiat|total\n:---|---:\n"
     total_received = []
     for f in fiat:
-        sqlexec = ctb.db.execute(ctb.conf.db.sql.userstats.total_received_fiat, (username, f))
+        sqlexec = ctb.db.execute(ctb.conf.db.sql.userstats.total_received_fiat, [username, f])
         total_received_fiat = sqlexec.fetchone()
         if total_received_fiat['total_fiat'] is not None:
             user_stats += "**%s**|%s %.2f\n" % (f, ctb.conf.fiat[f].symbol, total_received_fiat['total_fiat'])
@@ -180,7 +180,7 @@ def update_user_stats(ctb=None, username=None):
     user_stats += "#### Total Received (Coins)\n\n"
     user_stats += "coin|total\n:---|---:\n"
     for c in coins:
-        sqlexec = ctb.db.execute(ctb.conf.db.sql.userstats.total_received_coin, (username, c))
+        sqlexec = ctb.db.execute(ctb.conf.db.sql.userstats.total_received_coin, [username, c])
         total_received_coin = sqlexec.fetchone()
         if total_received_coin['total_coin'] is not None:
             user_stats += "**%s**|%s %.6f\n" % (c, ctb.conf.coins[c].symbol, total_received_coin['total_coin'])
@@ -188,7 +188,7 @@ def update_user_stats(ctb=None, username=None):
 
     # History
     user_stats += "#### History\n\n"
-    history = ctb.db.execute(ctb.conf.db.sql.userstats.history, (username, username))
+    history = ctb.db.execute(ctb.conf.db.sql.userstats.history, [username, username])
     user_stats += ("|".join(history.keys())) + "\n"
     user_stats += ("|".join([":---"] * len(history.keys()))) + "\n"
 

@@ -20,10 +20,7 @@ import ctb_misc
 import ctb_stats
 
 import logging
-import praw
 import re
-import time
-from random import randint
 
 lg = logging.getLogger('cointipbot')
 
@@ -37,7 +34,7 @@ class CtbAction(object):
     Action class for cointip bot
     """
 
-    type = None           # 'accept', 'decline', 'history', 'info', 'register', 'givetip', 'withdraw', 'redeem', 'rates'
+    type = None           # 'accept', 'decline', 'history', 'info', 'register', 'givetip', 'withdraw', 'rates'
     state = None          # 'completed', 'pending', 'failed', 'declined'
     txid = None           # cryptocoin transaction id, a 64-char string, if applicable
 
@@ -79,7 +76,7 @@ class CtbAction(object):
 
         self.addr_to = to_addr
         self.u_to = ctb_user.CtbUser(name=to_user, ctb=ctb) if to_user else None
-        self.u_from = ctb_user.CtbUser(name=msg.author.name, redditobj=msg.author, ctb=ctb) if (
+        self.u_from = ctb_user.CtbUser(name=msg.author.name, ctb=ctb) if (
             msg and hasattr(msg, 'author') and msg.author) else ctb_user.CtbUser(name=from_user, ctb=ctb)
         self.subreddit = subr
 
@@ -249,8 +246,8 @@ class CtbAction(object):
         sql = "UPDATE t_action SET state=? WHERE type=? AND msg_id=?"
 
         try:
-            mysqlexec = conn.execute(sql, [state, self.type, self.msg_id])
-            if mysqlexec.rowcount <= 0:
+            sqlexec = conn.execute(sql, [state, self.type, self.msg_id])
+            if sqlexec.rowcount <= 0:
                 raise Exception("query didn't affect any rows")
         except Exception as e:
             lg.error("CtbAction::update(%s): error executing query <%s>: %s", state,
@@ -324,7 +321,7 @@ class CtbAction(object):
         if not self.ctb.conf.regex.actions[self.type].enabled:
             msg = self.ctb.jenv.get_template('command-disabled.tpl').render(a=self, ctb=self.ctb)
             lg.info("CtbAction::do(): action %s is disabled", self.type)
-            ctb_misc.praw_call(self.msg.reply, msg)
+            self.ctb.network.reply_msg(msg, self.msg)
             return False
 
         if self.type == 'accept':
@@ -352,9 +349,6 @@ class CtbAction(object):
         if self.type == 'withdraw':
             return self.givetip()
 
-        if self.type == 'redeem':
-            return self.redeem()
-
         if self.type == 'rates':
             return self.rates()
 
@@ -372,18 +366,18 @@ class CtbAction(object):
         sql_history = self.ctb.conf.db.sql.userhistory.sql
         limit = int(self.ctb.conf.db.sql.userhistory.limit)
 
-        mysqlexec = self.ctb.db.execute(sql_history, (self.u_from.name.lower(), self.u_from.name.lower(), limit))
-        for m in mysqlexec:
+        sqlexec = self.ctb.db.execute(sql_history, [self.u_from.name.lower(), self.u_from.name.lower(), limit])
+        for m in sqlexec:
             history_entry = []
-            for k in mysqlexec.keys():
+            for k in sqlexec.keys():
                 history_entry.append(ctb_stats.format_value(m, k, self.u_from.name.lower(), self.ctb, compact=True))
             history.append(history_entry)
 
         # Send message to user
-        msg = self.ctb.jenv.get_template('history.tpl').render(history=history, keys=mysqlexec.keys(), limit=limit,
+        msg = self.ctb.jenv.get_template('history.tpl').render(history=history, keys=sqlexec.keys(), limit=limit,
                                                                a=self, ctb=self.ctb)
         lg.debug("CtbAction::history(): %s", msg)
-        ctb_misc.praw_call(self.msg.reply, msg)
+        self.ctb.network.reply_msg(msg, self.msg)
 
         # Save as completed
         self.save('completed')
@@ -424,7 +418,7 @@ class CtbAction(object):
             msg = self.ctb.jenv.get_template('no-pending-tips.tpl').render(user_from=self.u_from.name, a=self,
                                                                            ctb=self.ctb)
             lg.debug("CtbAction::accept(): %s", msg)
-            ctb_misc.praw_call(self.msg.reply, msg)
+            self.ctb.network.reply_msg(msg, self.msg)
             # Save this action
             self.save('failed')
 
@@ -442,8 +436,8 @@ class CtbAction(object):
             for a in actions:
                 # Move coins back into a.u_from account
                 lg.info("CtbAction::decline(): moving %.9f %s from %s to %s", a.coinval, a.coin.upper(),
-                        self.ctb.conf.reddit.auth.user, a.u_from.name)
-                if not self.ctb.coins[a.coin].sendtouser(_userfrom=self.ctb.conf.reddit.auth.user,
+                        self.ctb.network.conf.auth.user, a.u_from.name)
+                if not self.ctb.coins[a.coin].sendtouser(_userfrom=self.ctb.network.conf.auth.user,
                                                          _userto=a.u_from.name, _amount=a.coinval):
                     raise Exception("CtbAction::decline(): failed to sendtouser()")
 
@@ -457,8 +451,8 @@ class CtbAction(object):
                 msg = self.ctb.jenv.get_template('confirmation.tpl').render(title='Declined', a=a, ctb=a.ctb,
                                                                             source_link=a.msg.permalink if a.msg else None)
                 lg.debug("CtbAction::decline(): " + msg)
-                if self.ctb.conf.reddit.messages.declined:
-                    if not ctb_misc.praw_call(a.msg.reply, msg):
+                if self.ctb.network.conf.messages.declined:
+                    if not self.ctb.network.praw_call(a.msg.reply, msg):
                         a.u_from.tell(subj="+tip declined", msg=msg)
                 else:
                     a.u_from.tell(subj="+tip declined", msg=msg)
@@ -470,7 +464,7 @@ class CtbAction(object):
             msg = self.ctb.jenv.get_template('pending-tips-declined.tpl').render(user_from=self.u_from.name,
                                                                                  ctb=self.ctb)
             lg.debug("CtbAction::decline(): %s", msg)
-            ctb_misc.praw_call(self.msg.reply, msg)
+            self.ctb.network.reply_msg(msg, self.msg)
 
             # Save action to database
             self.save('completed')
@@ -479,7 +473,7 @@ class CtbAction(object):
 
             msg = self.ctb.jenv.get_template('no-pending-tips.tpl').render(user_from=self.u_from.name, ctb=self.ctb)
             lg.debug("CtbAction::decline(): %s", msg)
-            ctb_misc.praw_call(self.msg.reply, msg)
+            self.ctb.network.reply_msg(msg, self.msg)
 
             # Save action to database
             self.save('failed')
@@ -495,8 +489,8 @@ class CtbAction(object):
 
         # Move coins back into self.u_from account
         lg.info("CtbAction::expire(): moving %.9f %s from %s to %s", self.coinval, self.coin.upper(),
-                self.ctb.conf.reddit.auth.user, self.u_from.name)
-        if not self.ctb.coins[self.coin].sendtouser(_userfrom=self.ctb.conf.reddit.auth.user, _userto=self.u_from.name,
+                self.ctb.network.conf.auth.user, self.u_from.name)
+        if not self.ctb.coins[self.coin].sendtouser(_userfrom=self.ctb.network.conf.auth.user, _userto=self.u_from.name,
                                                     _amount=self.coinval):
             raise Exception("CtbAction::expire(): sendtouser() failed")
 
@@ -511,8 +505,8 @@ class CtbAction(object):
         msg = self.ctb.jenv.get_template('confirmation.tpl').render(title='Expired', a=self, ctb=self.ctb,
                                                                     source_link=self.msg.permalink if self.msg else None)
         lg.debug("CtbAction::expire(): " + msg)
-        if self.ctb.conf.reddit.messages.expired:
-            if not ctb_misc.praw_call(self.msg.reply, msg):
+        if self.ctb.network.conf.messages.expired:
+            if not ctb_misc.reply_msg(msg, self.msg):
                 self.u_from.tell(subj="+tip expired", msg=msg)
         else:
             self.u_from.tell(subj="+tip expired", msg=msg)
@@ -615,9 +609,9 @@ class CtbAction(object):
                 # Move coins into pending account
                 minconf = self.ctb.coins[self.coin].conf.minconf.givetip
                 lg.info("CtbAction::validate(): moving %.9f %s from %s to %s (minconf=%s)...", self.coinval,
-                        self.coin.upper(), self.u_from.name, self.ctb.conf.reddit.auth.user, minconf)
+                        self.coin.upper(), self.u_from.name, self.ctb.network.conf.auth.user, minconf)
                 if not self.ctb.coins[self.coin].sendtouser(_userfrom=self.u_from.name,
-                                                            _userto=self.ctb.conf.reddit.auth.user,
+                                                            _userto=self.ctb.network.conf.auth.user,
                                                             _amount=self.coinval, _minconf=minconf):
                     raise Exception("CtbAction::validate(): sendtouser() failed")
 
@@ -627,8 +621,8 @@ class CtbAction(object):
                 # Respond to tip comment
                 msg = self.ctb.jenv.get_template('confirmation.tpl').render(title='Verified', a=self, ctb=self.ctb)
                 lg.debug("CtbAction::validate(): " + msg)
-                if self.ctb.conf.reddit.messages.verified:
-                    if not ctb_misc.praw_call(self.msg.reply, msg):
+                if self.ctb.network.conf.messages.verified:
+                    if not ctb_misc.reply_msg(msg, self.msg):
                         self.u_from.tell(subj="+tip pending +accept", msg=msg)
                 else:
                     self.u_from.tell(subj="+tip pending +accept", msg=msg)
@@ -678,8 +672,8 @@ class CtbAction(object):
             if is_pending:
                 # This is accept() of pending transaction, so move coins from pending account to receiver
                 lg.info("CtbAction::givetip(): moving %.9f %s from %s to %s...", self.coinval, self.coin.upper(),
-                        self.ctb.conf.reddit.auth.user, self.u_to.name)
-                res = self.ctb.coins[self.coin].sendtouser(_userfrom=self.ctb.conf.reddit.auth.user,
+                        self.ctb.network.conf.auth.user, self.u_to.name)
+                res = self.ctb.coins[self.coin].sendtouser(_userfrom=self.ctb.network.conf.auth.user,
                                                            _userto=self.u_to.name, _amount=self.coinval)
             else:
                 # This is not accept() of pending transaction, so move coins from tipper to receiver
@@ -711,8 +705,8 @@ class CtbAction(object):
             if not is_pending:
                 msg = self.ctb.jenv.get_template('confirmation.tpl').render(title='Verified', a=self, ctb=self.ctb)
                 lg.debug("CtbAction::givetip(): " + msg)
-                if self.ctb.conf.reddit.messages.verified:
-                    if not ctb_misc.praw_call(self.msg.reply, msg):
+                if self.ctb.network.conf.messages.verified:
+                    if not ctb_misc.reply_msg(msg, self.msg):
                         self.u_from.tell(subj="+tip succeeded", msg=msg)
                 else:
                     self.u_from.tell(subj="+tip succeeded", msg=msg)
@@ -745,8 +739,8 @@ class CtbAction(object):
             # Post verification comment
             msg = self.ctb.jenv.get_template('confirmation.tpl').render(title='Verified', a=self, ctb=self.ctb)
             lg.debug("CtbAction::givetip(): " + msg)
-            if self.ctb.conf.reddit.messages.verified:
-                if not ctb_misc.praw_call(self.msg.reply, msg):
+            if self.ctb.network.conf.messages.verified:
+                if not ctb_misc.reply_msg(msg, self.msg):
                     self.u_from.tell(subj="+tip succeeded", msg=msg)
             else:
                 self.u_from.tell(subj="+tip succeeded", msg=msg)
@@ -793,19 +787,19 @@ class CtbAction(object):
                 i.fiat_balance = i.balance * self.ctb.coin_value(self.ctb.conf.coins[i.coin].unit, 'usd')
                 fiat_total += i.fiat_balance
 
-        # Get coin addresses from MySQL
+        # Get coin addresses from db
         for i in info:
             sql = "SELECT address FROM t_addrs WHERE username = '%s' AND coin = '%s'" % (
                 self.u_from.name.lower(), i.coin)
-            mysqlrow = self.ctb.db.execute(sql).fetchone()
-            if not mysqlrow:
+            sqlrow = self.ctb.db.execute(sql).fetchone()
+            if not sqlrow:
                 raise Exception("CtbAction::info(%s): no result from <%s>" % (self.u_from.name, sql))
-            i.address = mysqlrow['address']
+            i.address = sqlrow['address']
 
         # Format and send message
         msg = self.ctb.jenv.get_template('info.tpl').render(info=info, fiat_symbol=self.ctb.conf.fiat.usd.symbol,
                                                             fiat_total=fiat_total, a=self, ctb=self.ctb)
-        ctb_misc.praw_call(self.msg.reply, msg)
+        self.ctb.network.reply_msg(msg, self.msg)
 
         # Save action to database
         self.save('completed')
@@ -823,7 +817,7 @@ class CtbAction(object):
         if self.u_from.is_registered():
             lg.debug("CtbAction::register(%s): user already exists", self.u_from.name)
             msg = self.ctb.jenv.get_template('already-registered.tpl').render(a=self, ctb=self.ctb)
-            ctb_misc.praw_call(self.msg.reply, msg)
+            self.ctb.network.reply_msg(msg, self.msg)
             self.save('failed')
             return False
 
@@ -838,7 +832,7 @@ class CtbAction(object):
         # Send welcome message to user
         if result:
             msg = self.ctb.jenv.get_template('welcome.tpl').render(a=self, ctb=self.ctb)
-            ctb_misc.praw_call(self.msg.reply, msg)
+            self.ctb.network.reply_msg(msg, self.msg)
 
         lg.debug("< CtbAction::register() DONE")
         return result
@@ -879,7 +873,7 @@ class CtbAction(object):
                 except TypeError as e:
                     msg = self.ctb.jenv.get_template('rates-error.tpl').render(exchange=exchange, a=self, ctb=self.ctb)
                     lg.debug("CtbAction::rates(): %s", msg)
-                    ctb_misc.praw_call(self.msg.reply, msg)
+                    self.ctb.network.reply_msg(msg, self.msg)
                     self.save('failed')
                     return False
 
@@ -892,7 +886,7 @@ class CtbAction(object):
         msg = self.ctb.jenv.get_template('rates.tpl').render(coins=sorted(coins), exchanges=sorted(exchanges),
                                                              rates=rates, fiat=fiat, a=self, ctb=self.ctb)
         lg.debug("CtbAction::rates(): %s", msg)
-        ctb_misc.praw_call(self.msg.reply, msg)
+        self.ctb.network.reply_msg(msg, self.msg)
         self.save('completed')
         return True
 
@@ -929,8 +923,7 @@ def init_regex(ctb):
 
         else:
 
-            # Add non-simple actions (givetip, redeem, withdraw)
-
+            # Add non-simple actions (givetip, withdraw)
             for r in sorted(vars(actions[a].regex)):
                 lg.debug("init_regex(): processing regex %s", actions[a].regex[r].value)
                 rval1 = actions[a].regex[r].value
@@ -1112,7 +1105,7 @@ def eval_comment(comment, ctb):
             # If no destination mentioned, find parent submission's author
             if not u_to and not to_addr:
                 # set u_to to author of parent comment
-                u_to = ctb_misc.reddit_get_parent_author(comment, ctb.reddit, ctb)
+                u_to = ctb.network.get_parent_author(comment, ctb.conf.misc.times.sleep_seconds)
                 if not u_to:
                     # couldn't determine u_to, giving up
                     lg.warning("eval_comment(): couldn't determine u_to, giving up")
@@ -1232,19 +1225,19 @@ def get_actions(atype=None, state=None, coin=None, msg_id=None, created_utc=None
         try:
             r = []
             lg.debug("get_actions(): <%s>", sql)
-            mysqlexec = ctb.db.execute(sql)
+            sqlexec = ctb.db.execute(sql)
 
-            if mysqlexec.rowcount <= 0:
+            if sqlexec.rowcount <= 0:
                 lg.debug("< get_actions() DONE (no)")
                 return r
 
-            for m in mysqlexec:
+            for m in sqlexec:
                 lg.debug("get_actions(): found %s / %s", m['msg_link'], m['msg_id'])
 
                 # Get PRAW message/comment pointer (msg)
                 msg = None
                 if m['msg_link']:
-                    submission = ctb_misc.praw_call(ctb.reddit.get_submission, m['msg_link'])
+                    submission = ctb.network.praw_call(ctb.network.get_submission, m['msg_link'])
                     if not len(submission.comments) > 0:
                         lg.warning("get_actions(): could not fetch msg (deleted?) from msg_link %s", m['msg_link'])
                     else:
