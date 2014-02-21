@@ -18,13 +18,9 @@
 
 from ctb import ctb_action, ctb_coin, ctb_db, ctb_exchange, ctb_log, ctb_misc, ctb_user, ctb_network
 
-import gettext, locale, logging, praw, smtplib, sys, time, traceback, yaml
+import gettext, locale, logging, smtplib, sys, time, traceback, yaml
 from email.mime.text import MIMEText
 from jinja2 import Environment, PackageLoader
-
-from requests.exceptions import HTTPError, ConnectionError, Timeout
-from praw.errors import ExceptionList, APIException, InvalidCaptcha, InvalidUser, RateLimitExceeded
-from socket import timeout
 
 # Configure CointipBot logger
 logging.basicConfig()
@@ -39,7 +35,7 @@ class CointipBot(object):
 
     conf = None
     db = None
-    reddit = None
+    network = None
     coins = {}
     exchanges = {}
     jenv = None
@@ -76,7 +72,8 @@ class CointipBot(object):
         lg.info('CointipBot::init_logging(): -------------------- logging initialized --------------------')
         return True
 
-    def parse_config(self):
+    @classmethod
+    def parse_config(cls):
         """
         Returns a Python object with CointipBot configuration
         """
@@ -117,25 +114,13 @@ class CointipBot(object):
                 self.conf.db.auth.user)
         return conn
 
-    def connect_reddit(self):
-        """
-        Returns a praw connection object
-        """
-        lg.debug('CointipBot::connect_reddit(): connecting to Reddit...')
-
-        conn = praw.Reddit(user_agent=self.conf.reddit.auth.user)
-        conn.login(self.conf.reddit.auth.user, self.conf.reddit.auth.password)
-
-        lg.info("CointipBot::connect_reddit(): logged in to Reddit as %s", self.conf.reddit.auth.user)
-        return conn
-
     def self_checks(self):
         """
         Run self-checks before starting the bot
         """
 
         # Ensure bot is a registered user
-        u = ctb_user.CtbUser(name=self.conf.reddit.auth.user.lower(), ctb=self)
+        u = ctb_user.CtbUser(name=self.network.user.lower(), ctb=self)
         if not u.is_registered():
             u.register()
 
@@ -190,214 +175,6 @@ class CointipBot(object):
 
         # Done
         return counter > 0
-
-    def check_inbox(self):
-        """
-        Evaluate new messages in inbox
-        """
-        lg.debug('> CointipBot::check_inbox()')
-
-        try:
-
-            # Try to fetch some messages
-            messages = list(ctb_misc.praw_call(self.reddit.get_unread, limit=self.conf.reddit.scan.batch_limit))
-            messages.reverse()
-
-            # Process messages
-            for m in messages:
-                # Sometimes messages don't have an author (such as 'you are banned from' message)
-                if not m.author:
-                    lg.info("CointipBot::check_inbox(): ignoring msg with no author")
-                    ctb_misc.praw_call(m.mark_as_read)
-                    continue
-
-                lg.info("CointipBot::check_inbox(): %s from %s", "comment" if m.was_comment else "message",
-                        m.author.name)
-
-                # Ignore duplicate messages (sometimes Reddit fails to mark messages as read)
-                if ctb_action.check_action(msg_id=m.id, ctb=self):
-                    lg.warning("CointipBot::check_inbox(): duplicate action detected (msg.id %s), ignoring", m.id)
-                    ctb_misc.praw_call(m.mark_as_read)
-                    continue
-
-                # Ignore self messages
-                if m.author and m.author.name.lower() == self.conf.reddit.auth.user.lower():
-                    lg.debug("CointipBot::check_inbox(): ignoring message from self")
-                    ctb_misc.praw_call(m.mark_as_read)
-                    continue
-
-                # Ignore messages from banned users
-                if m.author and self.conf.reddit.banned_users:
-                    lg.debug("CointipBot::check_inbox(): checking whether user '%s' is banned..." % m.author)
-                    u = ctb_user.CtbUser(name=m.author.name, redditobj=m.author, ctb=self)
-                    if u.banned:
-                        lg.info("CointipBot::check_inbox(): ignoring banned user '%s'" % m.author)
-                        ctb_misc.praw_call(m.mark_as_read)
-                        continue
-
-                action = None
-                if m.was_comment:
-                    # Attempt to evaluate as comment / mention
-                    action = ctb_action.eval_comment(m, self)
-                else:
-                    # Attempt to evaluate as inbox message
-                    action = ctb_action.eval_message(m, self)
-
-                # Perform action, if found
-                if action:
-                    lg.info("CointipBot::check_inbox(): %s from %s (m.id %s)", action.type, action.u_from.name, m.id)
-                    lg.debug("CointipBot::check_inbox(): message body: <%s>", m.body)
-                    action.do()
-                else:
-                    lg.info("CointipBot::check_inbox(): no match")
-                    if self.conf.reddit.messages.sorry and not m.subject in ['post reply', 'comment reply']:
-                        user = ctb_user.CtbUser(name=m.author.name, redditobj=m.author, ctb=self)
-                        tpl = self.jenv.get_template('didnt-understand.tpl')
-                        msg = tpl.render(user_from=user.name, what='comment' if m.was_comment else 'message',
-                                         source_link=m.permalink if hasattr(m, 'permalink') else None, ctb=self)
-                        lg.debug("CointipBot::check_inbox(): %s", msg)
-                        user.tell(subj='What?', msg=msg, msgobj=m if not m.was_comment else None)
-
-                # Mark message as read
-                ctb_misc.praw_call(m.mark_as_read)
-
-        except (HTTPError, ConnectionError, Timeout, timeout) as e:
-            lg.warning("CointipBot::check_inbox(): Reddit is down (%s), sleeping", e)
-            time.sleep(self.conf.misc.times.sleep_seconds)
-            pass
-        except RateLimitExceeded as e:
-            lg.warning("CointipBot::check_inbox(): rate limit exceeded, sleeping for %s seconds", e.sleep_time)
-            time.sleep(e.sleep_time)
-            time.sleep(1)
-            pass
-        except Exception as e:
-            lg.error("CointipBot::check_inbox(): %s", e)
-            raise
-
-        lg.debug("< CointipBot::check_inbox() DONE")
-        return True
-
-    def init_subreddits(self):
-        """
-        Determine a list of subreddits and create a PRAW object
-        """
-        lg.debug("> CointipBot::init_subreddits()")
-
-        try:
-
-            if not hasattr(self.conf.reddit, 'subreddits'):
-                my_reddits_list = None
-                my_reddits_string = None
-
-                if hasattr(self.conf.reddit.scan, 'these_subreddits'):
-                    # Subreddits are specified in conf.yml
-                    my_reddits_list = list(self.conf.reddit.scan.these_subreddits)
-
-                elif self.conf.reddit.scan.my_subreddits:
-                    # Subreddits are subscribed to by bot user
-                    my_reddits = ctb_misc.praw_call(self.reddit.get_my_subreddits, limit=None)
-                    my_reddits_list = []
-                    for my_reddit in my_reddits:
-                        my_reddits_list.append(my_reddit.display_name.lower())
-                    my_reddits_list.sort()
-
-                else:
-                    # No subreddits configured
-                    lg.debug("< CointipBot::check_subreddits() DONE (no subreddits configured to scan)")
-                    return False
-
-                # Build subreddits string
-                my_reddits_string = "+".join(my_reddits_list)
-
-                # Get multi-reddit PRAW object
-                lg.debug("CointipBot::check_subreddits(): multi-reddit string: %s", my_reddits_string)
-                self.conf.reddit.subreddits = ctb_misc.praw_call(self.reddit.get_subreddit, my_reddits_string)
-
-        except Exception as e:
-            lg.error("CointipBot::check_subreddits(): coudln't get subreddits: %s", e)
-            raise
-
-        lg.debug("< CointipBot::init_subreddits() DONE")
-        return True
-
-    def check_subreddits(self):
-        """
-        Evaluate new comments from configured subreddits
-        """
-        lg.debug("> CointipBot::check_subreddits()")
-        updated_last_processed_time = 0
-
-        try:
-            # Process comments until old comment reached
-
-            # Get last_processed_comment_time if necessary
-            if not hasattr(self.conf.reddit,
-                           'last_processed_comment_time') or self.conf.reddit.last_processed_comment_time <= 0:
-                self.conf.reddit.last_processed_comment_time = ctb_misc.get_value(conn=self.db,
-                                                                                  param0='last_processed_comment_time')
-
-            # Fetch comments from subreddits
-            my_comments = ctb_misc.praw_call(self.conf.reddit.subreddits.get_comments,
-                                             limit=self.conf.reddit.scan.batch_limit)
-
-            # Match each comment against regex
-            counter = 0
-            for c in my_comments:
-                # Stop processing if old comment reached
-                #lg.debug("check_subreddits(): c.id %s from %s, %s <= %s", c.id, c.subreddit.display_name, c.created_utc, self.conf.reddit.last_processed_comment_time)
-                if c.created_utc <= self.conf.reddit.last_processed_comment_time:
-                    lg.debug("CointipBot::check_subreddits(): old comment reached")
-                    break
-                counter += 1
-                if c.created_utc > updated_last_processed_time:
-                    updated_last_processed_time = c.created_utc
-
-                # Ignore duplicate comments (may happen when bot is restarted)
-                if ctb_action.check_action(msg_id=c.id, ctb=self):
-                    lg.warning("CointipBot::check_inbox(): duplicate action detected (comment.id %s), ignoring", c.id)
-                    continue
-
-                # Ignore comments from banned users
-                if c.author and self.conf.reddit.banned_users:
-                    lg.debug("CointipBot::check_subreddits(): checking whether user '%s' is banned..." % c.author)
-                    u = ctb_user.CtbUser(name=c.author.name, redditobj=c.author, ctb=self)
-                    if u.banned:
-                        lg.info("CointipBot::check_subreddits(): ignoring banned user '%s'" % c.author)
-                        continue
-
-                # Attempt to evaluate comment
-                action = ctb_action.eval_comment(c, self)
-
-                # Perform action, if found
-                if action:
-                    lg.info("CointipBot::check_subreddits(): %s from %s (%s)", action.type, action.u_from.name, c.id)
-                    lg.debug("CointipBot::check_subreddits(): comment body: <%s>", c.body)
-                    action.do()
-                else:
-                    lg.info("CointipBot::check_subreddits(): no match")
-
-            lg.debug("CointipBot::check_subreddits(): %s comments processed", counter)
-            if counter >= self.conf.reddit.scan.batch_limit - 1:
-                lg.warning(
-                    "CointipBot::check_subreddits(): conf.reddit.scan.batch_limit (%s) was not " +
-                    "large enough to process all comments", self.conf.reddit.scan.batch_limit)
-
-        except (HTTPError, RateLimitExceeded, timeout) as e:
-            lg.warning("CointipBot::check_subreddits(): Reddit is down (%s), sleeping", e)
-            time.sleep(self.conf.misc.times.sleep_seconds)
-            pass
-        except Exception as e:
-            lg.error("CointipBot::check_subreddits(): coudln't fetch comments: %s", e)
-            raise
-
-        # Save updated last_processed_time value
-        if updated_last_processed_time > 0:
-            self.conf.reddit.last_processed_comment_time = updated_last_processed_time
-        ctb_misc.set_value(conn=self.db, param0='last_processed_comment_time',
-                           value0=self.conf.reddit.last_processed_comment_time)
-
-        lg.debug("< CointipBot::check_subreddits() DONE")
-        return True
 
     def refresh_ev(self):
         """
@@ -501,8 +278,8 @@ class CointipBot(object):
         server.sendmail(self.conf.misc.notify.addr_from, self.conf.misc.notify.addr_to, msg.as_string())
         server.quit()
 
-    def __init__(self, self_checks=True, init_reddit=True, init_coins=True, init_exchanges=True, init_db=True,
-                 init_logging=True):
+    def __init__(self, self_checks=True, init_coins=True, init_db=True, init_logging=True, init_exchanges=False,
+                 init_reddit=True):
         """
         Constructor. Parses configuration file and initializes bot.
         """
@@ -541,9 +318,9 @@ class CointipBot(object):
 
         # Reddit
         if init_reddit:
-            self.reddit = self.connect_reddit()
-            self.init_subreddits()
             self.network = ctb_network.RedditNetwork(self.conf.reddit, self.db)
+            self.network.connect()
+            self.network.init_subreddits()
             # Regex for Reddit messages
             ctb_action.init_regex(self)
 
@@ -575,14 +352,13 @@ class CointipBot(object):
                 self.refresh_ev()
 
                 # Check personal messages
-                self.check_inbox()
+                self.network.check_inbox()
 
                 # Expire pending tips
                 self.expire_pending_tips()
 
                 # Check subreddit comments for tips
-                if self.conf.reddit.scan.my_subreddits or hasattr(self.conf.reddit.scan, 'these_subreddits'):
-                    self.check_subreddits()
+                self.network.check_mentions()
 
                 # Sleep
                 lg.debug("CointipBot::main(): sleeping for %s seconds...", self.conf.misc.times.sleep_seconds)

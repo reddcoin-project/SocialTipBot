@@ -19,12 +19,6 @@ class CtbNetwork(object):
     def connect(self):
         pass
 
-    def is_connected(self, user):
-        return False
-
-    def send_msg(self, from_user, to_user, msg):
-        pass
-
 
 class RedditNetwork(CtbNetwork):
     @classmethod
@@ -181,11 +175,15 @@ class RedditNetwork(CtbNetwork):
         lg.debug("< RedditNetwork::init_subreddits() DONE")
         return True
 
-    def check_subreddits(self):
+    def check_mentions(self):
         """
         Evaluate new comments from self.configured subreddits
         """
-        lg.debug("> RedditNetwork::check_subreddits()")
+        if not (self.conf.scan.my_subreddits or hasattr(self.conf.scan, 'these_subreddits')):
+            lg.debug("> RedditNetwork::check_mentions(): nothing to check. return now.")
+            return True
+
+        lg.debug("> RedditNetwork::check_mentions()")
         updated_last_processed_time = 0
 
         try:
@@ -202,25 +200,25 @@ class RedditNetwork(CtbNetwork):
             counter = 0
             for c in my_comments:
                 # Stop processing if old comment reached
-                #lg.debug("check_subreddits(): c.id %s from %s, %s <= %s", c.id, c.subreddit.display_name, c.created_utc, self.conf.last_processed_comment_time)
+                #lg.debug("check_mentions(): c.id %s from %s, %s <= %s", c.id, c.subreddit.display_name, c.created_utc, self.conf.last_processed_comment_time)
                 if c.created_utc <= self.conf.last_processed_comment_time:
-                    lg.debug("RedditNetwork::check_subreddits(): old comment reached")
+                    lg.debug("RedditNetwork::check_mentions(): old comment reached")
                     break
                 counter += 1
                 if c.created_utc > updated_last_processed_time:
                     updated_last_processed_time = c.created_utc
 
                 # Ignore duplicate comments (may happen when bot is restarted)
-                if ctb_action.check_action(msg_id=c.id, ctb=self):
+                if ctb_action.check_action(msg_id=c.id, db=self.db):
                     lg.warning("RedditNetwork::check_inbox(): duplicate action detected (comment.id %s), ignoring",
                                c.id)
                     continue
 
                 # Ignore comments from banned users
                 if c.author and self.conf.banned_users:
-                    lg.debug("RedditNetwork::check_subreddits(): checking whether user '%s' is banned..." % c.author)
+                    lg.debug("RedditNetwork::check_mentions(): checking whether user '%s' is banned..." % c.author)
                     if self.is_user_banned(c.author.name):
-                        lg.info("RedditNetwork::check_subreddits(): ignoring banned user '%s'" % c.author)
+                        lg.info("RedditNetwork::check_mentions(): ignoring banned user '%s'" % c.author)
                         continue
 
                 # Attempt to evaluate comment
@@ -228,24 +226,24 @@ class RedditNetwork(CtbNetwork):
 
                 # Perform action, if found
                 if action:
-                    lg.info("RedditNetwork::check_subreddits(): %s from %s (%s)", action.type, action.u_from.name, c.id)
-                    lg.debug("RedditNetwork::check_subreddits(): comment body: <%s>", c.body)
+                    lg.info("RedditNetwork::check_mentions(): %s from %s (%s)", action.type, action.u_from.name, c.id)
+                    lg.debug("RedditNetwork::check_mentions(): comment body: <%s>", c.body)
                     action.do()
                 else:
-                    lg.info("RedditNetwork::check_subreddits(): no match")
+                    lg.info("RedditNetwork::check_mentions(): no match")
 
-            lg.debug("RedditNetwork::check_subreddits(): %s comments processed", counter)
+            lg.debug("RedditNetwork::check_mentions(): %s comments processed", counter)
             if counter >= self.conf.scan.batch_limit - 1:
                 lg.warning(
-                    "RedditNetwork::check_subreddits(): conf.reddit.scan.batch_limit (%s) was not " +
+                    "RedditNetwork::check_mentions(): conf.reddit.scan.batch_limit (%s) was not " +
                     "large enough to process all comments", self.conf.scan.batch_limit)
 
         except (HTTPError, RateLimitExceeded, timeout) as e:
-            lg.warning("RedditNetwork::check_subreddits(): Reddit is down (%s), sleeping", e)
+            lg.warning("RedditNetwork::check_mentions(): Reddit is down (%s), sleeping", e)
             time.sleep(self.conf.misc.times.sleep_seconds)
             pass
         except Exception as e:
-            lg.error("RedditNetwork::check_subreddits(): coudln't fetch comments: %s", e)
+            lg.error("RedditNetwork::check_mentions(): coudln't fetch comments: %s", e)
             raise
 
         # Save updated last_processed_time value
@@ -254,5 +252,88 @@ class RedditNetwork(CtbNetwork):
         ctb_misc.set_value(conn=self.db, param0='last_processed_comment_time',
                            value0=self.conf.last_processed_comment_time)
 
-        lg.debug("< RedditNetwork::check_subreddits() DONE")
+        lg.debug("< RedditNetwork::check_mentions() DONE")
+        return True
+
+    def check_inbox(self):
+        """
+        Evaluate new messages in inbox
+        """
+        lg.debug('> RedditNetwork::check_inbox()')
+
+        try:
+            # Try to fetch some messages
+            messages = list(self.praw_call(self.conn.get_unread, limit=self.conf.scan.batch_limit))
+            messages.reverse()
+
+            # Process messages
+            for m in messages:
+                # Sometimes messages don't have an author (such as 'you are banned from' message)
+                if not m.author:
+                    lg.info("RedditNetwork::check_inbox(): ignoring msg with no author")
+                    self.praw_call(m.mark_as_read)
+                    continue
+
+                lg.info("RedditNetwork::check_inbox(): %s from %s", "comment" if m.was_comment else "message",
+                        m.author.name)
+
+                # Ignore duplicate messages (sometimes Reddit fails to mark messages as read)
+                if ctb_action.check_action(msg_id=m.id, db=self.db):
+                    lg.warning("RedditNetwork::check_inbox(): duplicate action detected (msg.id %s), ignoring", m.id)
+                    self.praw_call(m.mark_as_read)
+                    continue
+
+                # Ignore self messages
+                if m.author and m.author.name.lower() == self.user.lower():
+                    lg.debug("RedditNetwork::check_inbox(): ignoring message from self")
+                    self.praw_call(m.mark_as_read)
+                    continue
+
+                # Ignore messages from banned users
+                if m.author and self.conf.banned_users:
+                    lg.debug("RedditNetwork::check_inbox(): checking whether user '%s' is banned..." % m.author)
+                    if self.is_user_banned(m.author.name):
+                        lg.info("RedditNetwork::check_inbox(): ignoring banned user '%s'" % m.author)
+                        self.praw_call(m.mark_as_read)
+                        continue
+
+                if m.was_comment:
+                    # Attempt to evaluate as comment / mention
+                    action = ctb_action.eval_comment(m, self)
+                else:
+                    # Attempt to evaluate as inbox message
+                    action = ctb_action.eval_message(m, self)
+
+                # Perform action, if found
+                if action:
+                    lg.info("RedditNetwork::check_inbox(): %s from %s (m.id %s)", action.type, action.u_from.name, m.id)
+                    lg.debug("RedditNetwork::check_inbox(): message body: <%s>", m.body)
+                    action.do()
+                else:
+                    lg.info("RedditNetwork::check_inbox(): no match")
+                    if self.conf.messages.sorry and not m.subject in ['post reply', 'comment reply']:
+                        # user = ctb_user.CtbUser(name=m.author.name, redditobj=m.author, ctb=self)
+                        # tpl = self.jenv.get_template('didnt-understand.tpl')
+                        # msg = tpl.render(user_from=user.name, what='comment' if m.was_comment else 'message',
+                        #                  source_link=m.permalink if hasattr(m, 'permalink') else None, ctb=self)
+                        # lg.debug("RedditNetwork::check_inbox(): %s", msg)
+                        # user.tell(subj='What?', msg=msg, msgobj=m if not m.was_comment else None)
+                        lg.debug("RedditNetwork::check_inbox(): %s", m.body)
+
+                # Mark message as read
+                self.praw_call(m.mark_as_read)
+        except (HTTPError, ConnectionError, Timeout, timeout) as e:
+            lg.warning("RedditNetwork::check_inbox(): Reddit is down (%s), sleeping", e)
+            time.sleep(self.conf.misc.times.sleep_seconds)
+            pass
+        except RateLimitExceeded as e:
+            lg.warning("RedditNetwork::check_inbox(): rate limit exceeded, sleeping for %s seconds", e.sleep_time)
+            time.sleep(e.sleep_time)
+            time.sleep(1)
+            pass
+        except Exception as e:
+            lg.error("RedditNetwork::check_inbox(): %s", e)
+            raise
+
+        lg.debug("< RedditNetwork::check_inbox() DONE")
         return True

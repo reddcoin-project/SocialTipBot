@@ -597,7 +597,7 @@ class CtbAction(object):
             # Check if u_to has any pending coin tips from u_from
             if self.u_to and not is_pending:
                 if check_action(atype='givetip', state='pending', to_user=self.u_to.name, from_user=self.u_from.name,
-                                coin=self.coin, ctb=self.ctb):
+                                coin=self.coin, db=self.ctb.db):
                     # Send notice to u_from
                     msg = self.ctb.jenv.get_template('tip-already-pending.tpl').render(a=self, ctb=self.ctb)
                     lg.debug("CtbAction::validate(): " + msg)
@@ -661,7 +661,7 @@ class CtbAction(object):
         lg.debug("> CtbAction::givetip()")
 
         # Check if action has been processed
-        if check_action(atype=self.type, msg_id=self.msg_id, ctb=self.ctb, is_pending=is_pending):
+        if check_action(atype=self.type, msg_id=self.msg_id, db=self.ctb.db, is_pending=is_pending):
             # Found action in database, returning
             lg.warning("CtbAction::givetipt(): duplicate action %s (msg.id %s), ignoring", self.type, self.msg.id)
             return False
@@ -862,10 +862,10 @@ class CtbAction(object):
         if self.ctb.conf.reddit.redeem.multicoin:
             # Check if self.coin has been redeemed
             has_redeemed = check_action(atype='redeem', from_user=self.u_from.name, state='completed', coin=self.coin,
-                                        ctb=self.ctb)
+                                        db=self.ctb.db)
         else:
             # Check if any coin has been redeemed
-            has_redeemed = check_action(atype='redeem', from_user=self.u_from.name, state='completed', ctb=self.ctb)
+            has_redeemed = check_action(atype='redeem', from_user=self.u_from.name, state='completed', db=self.ctb.db)
         if has_redeemed:
             msg = self.ctb.jenv.get_template('redeem-already-done.tpl').render(
                 coin=self.ctb.conf.coins[self.coin].name if self.ctb.conf.reddit.redeem.multicoin else None, a=self,
@@ -1225,7 +1225,7 @@ def eval_comment(comment, ctb):
 
 
 def check_action(atype=None, state=None, coin=None, msg_id=None, created_utc=None, from_user=None, to_user=None,
-                 subr=None, ctb=None, is_pending=False):
+                 subr=None, db=None, is_pending=False):
     """
     Return True if action with given attributes exists in database
     """
@@ -1258,8 +1258,8 @@ def check_action(atype=None, state=None, coin=None, msg_id=None, created_utc=Non
 
     try:
         lg.debug("check_action(): <%s>", sql)
-        mysqlexec = ctb.db.execute(sql)
-        if mysqlexec.rowcount <= 0:
+        sqlexec = db.execute(sql)
+        if sqlexec.rowcount <= 0:
             lg.debug("< check_action() DONE (no)")
             return False
         else:
