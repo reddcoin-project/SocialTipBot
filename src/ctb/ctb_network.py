@@ -5,6 +5,7 @@ from requests.exceptions import HTTPError, ConnectionError, Timeout
 from praw.errors import ExceptionList, APIException, InvalidCaptcha, InvalidUser, RateLimitExceeded
 from socket import timeout
 
+import ctb_user
 import ctb_action
 import ctb_misc
 
@@ -312,13 +313,12 @@ class RedditNetwork(CtbNetwork):
                 else:
                     lg.info("RedditNetwork::check_inbox(): no match")
                     if self.conf.messages.sorry and not m.subject in ['post reply', 'comment reply']:
-                        # user = ctb_user.CtbUser(name=m.author.name, redditobj=m.author, ctb=self)
-                        # tpl = self.jenv.get_template('didnt-understand.tpl')
-                        # msg = tpl.render(user_from=user.name, what='comment' if m.was_comment else 'message',
-                        #                  source_link=m.permalink if hasattr(m, 'permalink') else None, ctb=self)
-                        # lg.debug("RedditNetwork::check_inbox(): %s", msg)
-                        # user.tell(subj='What?', msg=msg, msgobj=m if not m.was_comment else None)
-                        lg.debug("RedditNetwork::check_inbox(): %s", m.body)
+                        user = ctb_user.CtbUser(name=m.author.name, redditobj=m.author, ctb=ctb)
+                        tpl = ctb.jenv.get_template('didnt-understand.tpl')
+                        msg = tpl.render(user_from=user.name, what='comment' if m.was_comment else 'message',
+                                         source_link=m.permalink if hasattr(m, 'permalink') else None, ctb=ctb)
+                        lg.debug("RedditNetwork::check_inbox(): %s", msg)
+                        user.tell(subj='What?', msg=msg, msgobj=m if not m.was_comment else None)
 
                 # Mark message as read
                 self.praw_call(m.mark_as_read)
