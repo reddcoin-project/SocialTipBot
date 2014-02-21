@@ -242,7 +242,7 @@ class CtbUser(object):
 
         # Add coin addresses to database
         # sql_addr = "UPDATE t_addrs SET username=:u, network=:n, coin=:c, address=:a"
-        sql_addr = "INSERT INTO t_addrs (username, network, coin, address) VALUES (:u, :n, :c, :a)"
+        sql_addr = "INSERT OR REPLACE INTO t_addrs (username, network, coin, address) VALUES (:u, :n, :c, :a)"
         for c, a in new_addrs.iteritems():
             try:
                 sqlexec = self.ctb.db.execute(sql_addr, {'u': self.name.lower(), 'n': self.network.lower(),
