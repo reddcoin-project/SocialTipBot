@@ -20,6 +20,18 @@ class CtbNetwork(object):
     def connect(self):
         pass
 
+    def is_user_banned(self, user):
+        pass
+
+    def send_msg(self, user_to, subject, body, editor, msgobj):
+        pass
+
+    def check_mentions(self, ctb):
+        pass
+
+    def check_inbox(self, ctb):
+        pass
+
 
 class RedditNetwork(CtbNetwork):
     @classmethod
@@ -54,7 +66,7 @@ class RedditNetwork(CtbNetwork):
                     return False
                 else:
                     raise
-            except Exception as e:
+            except Exception:
                 raise
 
         return True
@@ -91,6 +103,27 @@ class RedditNetwork(CtbNetwork):
                     if user.lower() == u.lower():
                         return True
         return False
+
+    def send_msg(self, user_to, subject, body, editor=None, msgobj=None):
+        """
+        Send a Reddit message to user
+        """
+        lg.debug("> RedditNetwork::send_msg from %s to %s", self.user, user_to)
+
+        if not subject or not body:
+            raise Exception("RedditNetwork::send_msg(%s): subject or body not set", self.user)
+
+        if msgobj:
+            lg.debug("RedditNetwork::send_msg(%s): replying to message", msgobj.id)
+            self.praw_call(msgobj.reply, body)
+        else:
+            lg.debug("RedditNetwork::send_msg(%s): sending message", self.user)
+            if editor is None:
+                editor = self.praw_call(self.conn.get_redditor, self.user)
+            self.praw_call(editor.send_message, subject, body)
+
+        lg.debug("< RedditNetwork::send_msg(%s) DONE", self.name)
+        return True
 
     def get_parent_author(self, comment, sleep_seconds):
         """
@@ -313,12 +346,12 @@ class RedditNetwork(CtbNetwork):
                 else:
                     lg.info("RedditNetwork::check_inbox(): no match")
                     if self.conf.messages.sorry and not m.subject in ['post reply', 'comment reply']:
-                        user = ctb_user.CtbUser(name=m.author.name, redditobj=m.author, ctb=ctb)
                         tpl = ctb.jenv.get_template('didnt-understand.tpl')
-                        msg = tpl.render(user_from=user.name, what='comment' if m.was_comment else 'message',
+                        msg = tpl.render(user_from=m.author.name, what='comment' if m.was_comment else 'message',
                                          source_link=m.permalink if hasattr(m, 'permalink') else None, ctb=ctb)
                         lg.debug("RedditNetwork::check_inbox(): %s", msg)
-                        user.tell(subj='What?', msg=msg, msgobj=m if not m.was_comment else None)
+                        self.send_msg(user_to=m.author.name, subject='What?', body=msg, editor=m.author,
+                                      msgobj=m if not m.was_comment else None)
 
                 # Mark message as read
                 self.praw_call(m.mark_as_read)
