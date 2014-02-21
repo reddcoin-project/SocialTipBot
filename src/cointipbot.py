@@ -352,13 +352,13 @@ class CointipBot(object):
                 self.refresh_ev()
 
                 # Check personal messages
-                self.network.check_inbox()
+                self.network.check_inbox(self)
 
                 # Expire pending tips
                 self.expire_pending_tips()
 
                 # Check subreddit comments for tips
-                self.network.check_mentions()
+                self.network.check_mentions(self)
 
                 # Sleep
                 lg.debug("CointipBot::main(): sleeping for %s seconds...", self.conf.misc.times.sleep_seconds)

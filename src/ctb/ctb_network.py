@@ -175,7 +175,7 @@ class RedditNetwork(CtbNetwork):
         lg.debug("< RedditNetwork::init_subreddits() DONE")
         return True
 
-    def check_mentions(self):
+    def check_mentions(self, ctb):
         """
         Evaluate new comments from self.configured subreddits
         """
@@ -209,7 +209,7 @@ class RedditNetwork(CtbNetwork):
                     updated_last_processed_time = c.created_utc
 
                 # Ignore duplicate comments (may happen when bot is restarted)
-                if ctb_action.check_action(msg_id=c.id, db=self.db):
+                if ctb_action.check_action(msg_id=c.id, ctb=ctb):
                     lg.warning("RedditNetwork::check_inbox(): duplicate action detected (comment.id %s), ignoring",
                                c.id)
                     continue
@@ -222,7 +222,7 @@ class RedditNetwork(CtbNetwork):
                         continue
 
                 # Attempt to evaluate comment
-                action = ctb_action.eval_comment(c, self)
+                action = ctb_action.eval_comment(c, ctb)
 
                 # Perform action, if found
                 if action:
@@ -255,7 +255,7 @@ class RedditNetwork(CtbNetwork):
         lg.debug("< RedditNetwork::check_mentions() DONE")
         return True
 
-    def check_inbox(self):
+    def check_inbox(self, ctb):
         """
         Evaluate new messages in inbox
         """
@@ -278,7 +278,7 @@ class RedditNetwork(CtbNetwork):
                         m.author.name)
 
                 # Ignore duplicate messages (sometimes Reddit fails to mark messages as read)
-                if ctb_action.check_action(msg_id=m.id, db=self.db):
+                if ctb_action.check_action(msg_id=m.id, ctb=ctb):
                     lg.warning("RedditNetwork::check_inbox(): duplicate action detected (msg.id %s), ignoring", m.id)
                     self.praw_call(m.mark_as_read)
                     continue
@@ -299,10 +299,10 @@ class RedditNetwork(CtbNetwork):
 
                 if m.was_comment:
                     # Attempt to evaluate as comment / mention
-                    action = ctb_action.eval_comment(m, self)
+                    action = ctb_action.eval_comment(m, ctb)
                 else:
                     # Attempt to evaluate as inbox message
-                    action = ctb_action.eval_message(m, self)
+                    action = ctb_action.eval_message(m, ctb)
 
                 # Perform action, if found
                 if action:
