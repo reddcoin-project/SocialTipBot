@@ -15,9 +15,14 @@
     along with ALTcointip.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import ctb_user, ctb_misc, ctb_stats
+import ctb_user
+import ctb_misc
+import ctb_stats
 
-import logging, praw, re, time
+import logging
+import praw
+import re
+import time
 from random import randint
 
 lg = logging.getLogger('cointipbot')
@@ -52,7 +57,6 @@ class CtbAction(object):
     msg_id = None         #
     ctb = None            # CointipBot instance
 
-
     def __init__(self, atype=None, msg=None, msg_id=None, from_user=None, to_user=None, to_addr=None, coin=None,
                  fiat=None, coin_val=None, fiat_val=None, keyword=None, subr=None, ctb=None):
         """
@@ -76,7 +80,7 @@ class CtbAction(object):
         self.addr_to = to_addr
         self.u_to = ctb_user.CtbUser(name=to_user, ctb=ctb) if to_user else None
         self.u_from = ctb_user.CtbUser(name=msg.author.name, redditobj=msg.author, ctb=ctb) if (
-        msg and hasattr(msg, 'author') and msg.author) else ctb_user.CtbUser(name=from_user, ctb=ctb)
+            msg and hasattr(msg, 'author') and msg.author) else ctb_user.CtbUser(name=from_user, ctb=ctb)
         self.subreddit = subr
 
         # Do some checks
@@ -89,21 +93,21 @@ class CtbAction(object):
         if self.type in ['givetip', 'withdraw']:
             if not (bool(self.u_to) ^ bool(self.addr_to)):
                 raise Exception("CtbAction::__init__(atype=%s, from_user=%s): u_to xor addr_to must be set" % (
-                self.type, self.u_from.name))
+                    self.type, self.u_from.name))
             if not (bool(self.coin) or bool(self.fiat) or bool(self.keyword)):
                 raise Exception("CtbAction::__init__(atype=%s, from_user=%s): coin or fiat or keyword must be set" % (
-                self.type, self.u_from.name))
+                    self.type, self.u_from.name))
             if not (bool(self.coinval) or bool(self.fiatval) or bool(self.keyword)):
                 raise Exception(
                     "CtbAction::__init__(atype=%s, from_user=%s): coinval or fiatval or keyword must be set" % (
-                    self.type, self.u_from.name))
+                        self.type, self.u_from.name))
             if (not self.coinval or not float(self.coinval) > 0.0) and (
-                not self.fiatval or not float(self.fiatval) > 0.0) and (not self.keyword):
+                    not self.fiatval or not float(self.fiatval) > 0.0) and (not self.keyword):
                 raise CtbActionExc(
                     "CtbAction::__init__(type=%s, from_user=%s, to_user=%s): no (coinval or fiatval or keyword) given" % (
-                    self.type, self.u_from, self.u_to))
+                        self.type, self.u_from, self.u_to))
 
-        # Convert coinval and fiat to float, if necesary
+        # Convert coinval and fiat to float, if necessary
         if self.coinval and type(self.coinval) == unicode and self.coinval.replace('.', '').isnumeric():
             self.coinval = float(self.coinval)
         if self.fiatval and type(self.fiatval) == unicode and self.fiatval.replace('.', '').isnumeric():
@@ -142,11 +146,11 @@ class CtbAction(object):
                     if not type(self.fiatval) == float:
                         raise CtbActionExc(
                             "CtbAction::__init__(atype=%s, from_user=%s): couldn't determine fiatval from keyword '%s' (not float)" % (
-                            self.type, self.u_from.name, self.keyword))
+                                self.type, self.u_from.name, self.keyword))
                 else:
                     raise CtbActionExc(
                         "CtbAction::__init__(atype=%s, from_user=%s): couldn't determine fiatval from keyword '%s' (not float or str)" % (
-                        self.type, self.u_from.name, self.keyword))
+                            self.type, self.u_from.name, self.keyword))
 
             elif self.keyword and self.coin and not ( type(self.coinval) in [float, int] and self.coinval > 0.0 ):
                 # Determine coin value
@@ -160,17 +164,17 @@ class CtbAction(object):
                     if not type(self.coinval) == float:
                         raise CtbActionExc(
                             "CtbAction::__init__(atype=%s, from_user=%s): couldn't determine coinval from keyword '%s' (not float)" % (
-                            self.type, self.u_from.name, self.keyword))
+                                self.type, self.u_from.name, self.keyword))
                 else:
                     raise CtbActionExc(
                         "CtbAction::__init__(atype=%s, from_user=%s): couldn't determine coinval from keyword '%s' (not float or str)" % (
-                        self.type, self.u_from.name, self.keyword))
+                            self.type, self.u_from.name, self.keyword))
 
             # By this point we should have a proper coinval or fiatval
             if not type(self.coinval) in [float, int] and not type(self.fiatval) in [float, int]:
                 raise CtbActionExc(
                     "CtbAction::__init__(atype=%s, from_user=%s): coinval or fiatval isn't determined" % (
-                    self.type, self.u_from.name))
+                        self.type, self.u_from.name))
 
         # Determine coin, if given only fiat, using exchange rates
         if self.type in ['givetip']:
@@ -185,7 +189,7 @@ class CtbAction(object):
                 cc = self.ctb.conf.coins
                 for c in sorted(self.ctb.coins):
                     lg.debug("CtbAction::__init__(atype=%s, from_user=%s): considering %s" % (
-                    self.type, self.u_from.name, c))
+                        self.type, self.u_from.name, c))
                     # First, check if we have a ticker value for this coin and fiat
                     if not self.ctb.coin_value(cc[c].unit, self.fiat) > 0.0:
                         continue
@@ -197,7 +201,7 @@ class CtbAction(object):
                         self.coin = cc[c].unit
                         break
             if not self.coin:
-                # Couldn't deteremine coin, abort
+                # Couldn't determine coin, abort
                 raise CtbActionExc("CtbAction::__init__(): can't determine coin for user %s" % self.u_from.name)
 
         # Calculate fiat or coin value with exchange rates
@@ -226,8 +230,8 @@ class CtbAction(object):
         """
         me = "<CtbAction: type=%s, msg.body=%s, from_user=%s, to_user=%s, to_addr=%s, coin=%s, fiat=%s, coin_val=%s, fiat_val=%s, subreddit=%s>"
         me = me % (
-        self.type, self.msg.body if self.msg else '', self.u_from, self.u_to, self.addr_to, self.coin, self.fiat,
-        self.coinval, self.fiatval, self.subreddit)
+            self.type, self.msg.body if self.msg else '', self.u_from, self.u_to, self.addr_to, self.coin, self.fiat,
+            self.coinval, self.fiatval, self.subreddit)
         return me
 
     def update(self, state=None):
@@ -242,10 +246,10 @@ class CtbAction(object):
             raise Exception("CtbAction::update(): type or msg_id missing")
 
         conn = self.ctb.db
-        sql = "UPDATE t_action SET state=%s WHERE type=%s AND msg_id=%s"
+        sql = "UPDATE t_action SET state=? WHERE type=? AND msg_id=?"
 
         try:
-            mysqlexec = conn.execute(sql, (state, self.type, self.msg_id))
+            mysqlexec = conn.execute(sql, [state, self.type, self.msg_id])
             if mysqlexec.rowcount <= 0:
                 raise Exception("query didn't affect any rows")
         except Exception as e:
@@ -269,26 +273,26 @@ class CtbAction(object):
             self.fiatval = 0.0
 
         conn = self.ctb.db
-        sql = "INSERT INTO t_action (type, state, created_utc, from_user, to_user, to_addr, coin_val, fiat_val, txid, coin, fiat, subreddit, msg_id, msg_link)"
-        sql += " values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        sql = ("INSERT INTO t_action (type, state, created_utc, from_user, to_user, to_addr, coin_val, fiat_val, "
+               "txid, coin, fiat, subreddit, msg_id, msg_link) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 
         try:
-            mysqlexec = conn.execute(sql,
-                                     (self.type,
-                                      state,
-                                      self.msg.created_utc,
-                                      self.u_from.name.lower(),
-                                      self.u_to.name.lower() if self.u_to else None,
-                                      self.addr_to,
-                                      self.coinval,
-                                      self.fiatval,
-                                      self.txid,
-                                      self.coin,
-                                      self.fiat,
-                                      self.subreddit,
-                                      self.msg.id,
-                                      self.msg.permalink if hasattr(self.msg, 'permalink') else None))
-            if mysqlexec.rowcount <= 0:
+            sqlexec = conn.execute(sql,
+                                   [self.type,
+                                    state,
+                                    self.msg.created_utc,
+                                    self.u_from.name.lower(),
+                                    self.u_to.name.lower() if self.u_to else None,
+                                    self.addr_to,
+                                    self.coinval,
+                                    self.fiatval,
+                                    self.txid,
+                                    self.coin,
+                                    self.fiat,
+                                    self.subreddit,
+                                    self.msg.id,
+                                    self.msg.permalink if hasattr(self.msg, 'permalink') else None])
+            if sqlexec.rowcount <= 0:
                 raise Exception("query didn't affect any rows")
         except Exception as e:
             lg.error("CtbAction::save(%s): error executing query <%s>: %s", state, sql % (
@@ -562,7 +566,8 @@ class CtbAction(object):
                 self.save('failed') if not is_pending else self.update('failed')
                 return False
 
-            # Verify balance (unless it's a pending transaction being processed, in which case coins have been already moved to pending acct)
+            # Verify balance (unless it's a pending transaction being processed,
+            # in which case coins have been already moved to pending acct)
             if self.u_to and not is_pending:
                 # Tip to user (requires less confirmations)
                 balance_avail = self.u_from.get_balance(coin=self.coin, kind='givetip')
@@ -791,7 +796,7 @@ class CtbAction(object):
         # Get coin addresses from MySQL
         for i in info:
             sql = "SELECT address FROM t_addrs WHERE username = '%s' AND coin = '%s'" % (
-            self.u_from.name.lower(), i.coin)
+                self.u_from.name.lower(), i.coin)
             mysqlrow = self.ctb.db.execute(sql).fetchone()
             if not mysqlrow:
                 raise Exception("CtbAction::info(%s): no result from <%s>" % (self.u_from.name, sql))
@@ -1037,8 +1042,7 @@ def init_regex(ctb):
                                      'rg_address': actions[a].regex[r].rg_address,
                                      'rg_to_user': actions[a].regex[r].rg_to_user,
                                      'coin': cc[c].unit,
-                                     'fiat': fiat[f].unit
-                                    })
+                                     'fiat': fiat[f].unit})
                                 lg.debug("init_regex(): ADDED %s: %s", entry.action, entry.regex)
                                 ctb.runtime['regex'].append(entry)
 
@@ -1052,8 +1056,7 @@ def init_regex(ctb):
                                  'rg_address': actions[a].regex[r].rg_address,
                                  'rg_to_user': actions[a].regex[r].rg_to_user,
                                  'coin': cc[c].unit,
-                                 'fiat': None
-                                })
+                                 'fiat': None})
                             lg.debug("init_regex(): ADDED %s: %s", entry.action, entry.regex)
                             ctb.runtime['regex'].append(entry)
 
@@ -1074,8 +1077,7 @@ def init_regex(ctb):
                              'rg_address': actions[a].regex[r].rg_address,
                              'rg_to_user': actions[a].regex[r].rg_to_user,
                              'coin': None,
-                             'fiat': fiat[f].unit
-                            })
+                             'fiat': fiat[f].unit})
                         lg.debug("init_regex(): ADDED %s: %s", entry.action, entry.regex)
                         ctb.runtime['regex'].append(entry)
 
@@ -1089,8 +1091,7 @@ def init_regex(ctb):
                          'rg_address': actions[a].regex[r].rg_address,
                          'rg_to_user': actions[a].regex[r].rg_to_user,
                          'coin': None,
-                         'fiat': None
-                        })
+                         'fiat': None})
                     lg.debug("init_regex(): ADDED %s: %s", entry.action, entry.regex)
                     ctb.runtime['regex'].append(entry)
 
@@ -1131,7 +1132,7 @@ def eval_message(msg, ctb):
 
             # Return CtbAction instance with given variables
             lg.debug("eval_message(): creating action %s: from_user=%s, to_addr=%s, amount=%s, coin=%s, fiat=%s" % (
-            r.action, u_from, to_addr, amount, r.coin, r.fiat))
+                r.action, u_from, to_addr, amount, r.coin, r.fiat))
             try:
                 action = CtbAction(
                     atype=r.action,
@@ -1199,7 +1200,7 @@ def eval_comment(comment, ctb):
 
             # Return CtbAction instance with given variables
             lg.debug("eval_comment(): creating action %s: to_user=%s, to_addr=%s, amount=%s, coin=%s, fiat=%s" % (
-            r.action, u_to, to_addr, amount, r.coin, r.fiat))
+                r.action, u_to, to_addr, amount, r.coin, r.fiat))
             try:
                 action = CtbAction(
                     atype=r.action,
@@ -1328,8 +1329,8 @@ def get_actions(atype=None, state=None, coin=None, msg_id=None, created_utc=None
                         if not msg.author:
                             lg.warning("get_actions(): could not fetch msg.author (deleted?) from msg_link %s",
                                        m['msg_link'])
-                    #elif m['msg_id']:
-                #    msg = praw.objects.Message(ctb.reddit, {'id': m['msg_id']})
+                            #elif m['msg_id']:
+                            #    msg = praw.objects.Message(ctb.reddit, {'id': m['msg_id']})
 
                 r.append(CtbAction(atype=atype,
                                    msg=msg,
