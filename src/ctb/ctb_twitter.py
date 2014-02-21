@@ -1,7 +1,7 @@
 __author__ = 'laudney'
 
 import logging
-import yaml
+from dateutil.parser import parse
 from twython import TwythonStreamer
 
 from ctb_network import CtbNetwork
@@ -14,8 +14,13 @@ lg = logging.getLogger('cointipbot')
 
 class TwitterStreamer(TwythonStreamer):
     def on_success(self, data):
-        if 'text' in data:
-            print data['text']
+        fields = ['created_at', 'user', 'entities', 'text']
+        if all(field in data for field in fields):
+            created_at = parse(data['created_at'])
+            author = data['user']['screen_name']
+            mentions = [um['screen_name'] for um in data['entities']['user_mentions']]
+            msg = data['text']
+            print created_at, author, mentions, msg
 
     def on_error(self, status_code, data):
         print status_code
@@ -29,6 +34,7 @@ class TwitterNetwork(CtbNetwork):
         CtbNetwork.__init__(self, "twitter")
         self.conf = conf
         self.db = db
+        self.user = conf.auth.user
         self.app_key = conf.auth.app_key
         self.app_secret = conf.auth.app_secret
         self.oauth_token = conf.auth.oauth_token
