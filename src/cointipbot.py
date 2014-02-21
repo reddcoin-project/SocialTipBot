@@ -16,7 +16,7 @@
     along with ALTcointip.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from ctb import ctb_action, ctb_coin, ctb_db, ctb_exchange, ctb_log, ctb_misc, ctb_user
+from ctb import ctb_action, ctb_coin, ctb_db, ctb_exchange, ctb_log, ctb_misc, ctb_user, ctb_network
 
 import gettext, locale, logging, praw, smtplib, sys, time, traceback, yaml
 from email.mime.text import MIMEText
@@ -325,6 +325,7 @@ class CointipBot(object):
         Evaluate new comments from configured subreddits
         """
         lg.debug("> CointipBot::check_subreddits()")
+        updated_last_processed_time = 0
 
         try:
             # Process comments until old comment reached
@@ -334,7 +335,6 @@ class CointipBot(object):
                            'last_processed_comment_time') or self.conf.reddit.last_processed_comment_time <= 0:
                 self.conf.reddit.last_processed_comment_time = ctb_misc.get_value(conn=self.db,
                                                                                   param0='last_processed_comment_time')
-            updated_last_processed_time = 0
 
             # Fetch comments from subreddits
             my_comments = ctb_misc.praw_call(self.conf.reddit.subreddits.get_comments,
@@ -515,7 +515,7 @@ class CointipBot(object):
         if init_logging:
             self.init_logging()
 
-        # Templating with jinja2
+        # Template with jinja2
         self.jenv = Environment(trim_blocks=True, loader=PackageLoader('cointipbot', 'tpl/jinja2'))
 
         # Database
@@ -543,6 +543,7 @@ class CointipBot(object):
         if init_reddit:
             self.reddit = self.connect_reddit()
             self.init_subreddits()
+            self.network = ctb_network.RedditNetwork(self.conf.reddit, self.db)
             # Regex for Reddit messages
             ctb_action.init_regex(self)
 
