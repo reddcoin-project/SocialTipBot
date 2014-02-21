@@ -32,6 +32,7 @@ class CointipBotDatabase:
         """
         Return a connection object
         """
-        engine = create_engine(self.dsn_url, echo_pool=True, execution_options={'autocommit': True})
+        engine = create_engine(self.dsn_url, echo_pool=True, poolclass=SingletonThreadPool,
+                               execution_options={'autocommit': True})
         self.metadata.create_all(engine)
         return engine
