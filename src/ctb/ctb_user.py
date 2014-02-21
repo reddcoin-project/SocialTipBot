@@ -33,7 +33,7 @@ class CtbUser(object):
 
     # Basic properties
     name = None
-    network = 'reddit'
+    network = None
     giftamount = None
     joindate = None
     addr = {}
@@ -52,6 +52,7 @@ class CtbUser(object):
         if not bool(name):
             raise Exception("CtbUser::__init__(): name must be set")
         self.name = name
+        self.network = 'reddit'
 
         if not bool(ctb):
             raise Exception("CtbUser::__init__(): ctb must be set")
@@ -240,16 +241,17 @@ class CtbUser(object):
             lg.info("CtbUser::register(%s): got %s address %s", self.name, c, new_addrs[c])
 
         # Add coin addresses to database
-        sql_addr = "REPLACE INTO t_addrs (username, coin, address) VALUES (:u, :c, :a)"
-        for c in new_addrs:
+        # sql_addr = "UPDATE t_addrs SET username=:u, network=:n, coin=:c, address=:a"
+        sql_addr = "INSERT INTO t_addrs (username, network, coin, address) VALUES (:u, :n, :c, :a)"
+        for c, a in new_addrs.iteritems():
             try:
-                sqlexec = self.ctb.db.execute(sql_addr, {'u': self.name.lower(), 'c': c, 'a': new_addrs[c]})
+                sqlexec = self.ctb.db.execute(sql_addr, {'u': self.name.lower(), 'n': self.network.lower(),
+                                                         'c': c, 'a': a})
                 if sqlexec.rowcount <= 0:
                     # Undo change to database
                     delete_user(_username=self.name.lower(), _db=self.ctb.db)
                     raise Exception("CtbUser::register(%s): rowcount <= 0 while executing <%s>" % (
                         self.name, sql_addr % (self.name.lower(), c, new_addrs[c])))
-
             except Exception:
                 # Undo change to database
                 delete_user(_username=self.name.lower(), _db=self.ctb.db)
@@ -324,10 +326,10 @@ def delete_user(_username=None, _db=None):
         for sql in sql_arr:
             sqlexec = _db.execute(sql, {'u': _username.lower()})
             if sqlexec.rowcount <= 0:
-                lg.warning("delete_user(%s): rowcount <= 0 while executing <%s>", _username, sql % _username.lower())
+                lg.warning("delete_user(%s): rowcount <= 0 while executing <%s>", _username, sql)
 
     except Exception, e:
-        lg.error("delete_user(%s): error while executing <%s>: %s", _username, sql % _username.lower(), e)
+        lg.error("delete_user(%s): error while executing <%s>: %s", _username, sql, e)
         return False
 
     lg.debug("< delete_user(%s) DONE", _username)

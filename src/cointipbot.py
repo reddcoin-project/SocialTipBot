@@ -135,17 +135,20 @@ class CointipBot(object):
         """
 
         # Ensure bot is a registered user
-        b = ctb_user.CtbUser(name=self.conf.reddit.auth.user.lower(), ctb=self)
-        if not b.is_registered():
-            b.register()
+        u = ctb_user.CtbUser(name=self.conf.reddit.auth.user.lower(), ctb=self)
+        if not u.is_registered():
+            u.register()
 
         # Ensure (total pending tips) < (CointipBot's balance)
         for c in self.coins:
-            ctb_balance = b.get_balance(coin=c, kind='givetip')
+            ctb_balance = u.get_balance(coin=c, kind='givetip')
             pending_tips = float(0)
             actions = ctb_action.get_actions(atype='givetip', state='pending', coin=c, ctb=self)
             for a in actions:
                 pending_tips += a.coinval
+
+            lg.info("CointipBot::self_checks(): CointipBot's pending tips: %s" % pending_tips)
+
             if (ctb_balance - pending_tips) < -0.000001:
                 raise Exception("CointipBot::self_checks(): CointipBot's %s balance (%s) < total pending tips (%s)" % (
                     c.upper(), ctb_balance, pending_tips))
@@ -153,6 +156,7 @@ class CointipBot(object):
         # Ensure coin balances are positive
         for c in self.coins:
             b = float(self.coins[c].conn.getbalance())
+            lg.info("CointipBot::self_checks(): balance of %s: %s" % (c, b))
             if b < 0:
                 raise Exception("CointipBot::self_checks(): negative balance of %s: %s" % (c, b))
 
