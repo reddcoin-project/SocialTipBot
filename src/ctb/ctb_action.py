@@ -1074,7 +1074,7 @@ def eval_message(msg, ctb):
     return None
 
 
-def eval_comment(comment, ctb):
+def eval_reddit_comment(comment, ctb):
     """
     Evaluate comment body and return a CtbAction object if successful
     """

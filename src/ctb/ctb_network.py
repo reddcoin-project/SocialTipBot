@@ -262,7 +262,7 @@ class RedditNetwork(CtbNetwork):
                         continue
 
                 # Attempt to evaluate comment
-                action = ctb_action.eval_comment(c, ctb)
+                action = ctb_action.eval_reddit_comment(c, ctb)
 
                 # Perform action, if found
                 if action:
@@ -339,7 +339,7 @@ class RedditNetwork(CtbNetwork):
 
                 if m.was_comment:
                     # Attempt to evaluate as comment / mention
-                    action = ctb_action.eval_comment(m, ctb)
+                    action = ctb_action.eval_reddit_comment(m, ctb)
                 else:
                     # Attempt to evaluate as inbox message
                     action = ctb_action.eval_message(m, ctb)
