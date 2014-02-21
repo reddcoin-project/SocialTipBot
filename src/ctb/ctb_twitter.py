@@ -53,8 +53,5 @@ class TwitterNetwork(CtbNetwork):
     def reply_msg(self, body, msgobj):
         pass
 
-    def check_inbox(self, ctb):
-        pass
-
     def check_mentions(self, ctb):
-        pass
+        self.conn.user()

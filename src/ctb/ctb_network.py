@@ -19,6 +19,9 @@ class CtbNetwork(object):
     def connect(self):
         pass
 
+    def init(self):
+        pass
+
     def is_user_banned(self, user):
         pass
 

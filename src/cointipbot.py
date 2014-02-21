@@ -375,8 +375,9 @@ class CointipBot(object):
                 self.network.check_mentions(self)
 
                 # Sleep
-                lg.debug("CointipBot::main(): sleeping for %s seconds...", self.conf.misc.times.sleep_seconds)
-                time.sleep(self.conf.misc.times.sleep_seconds)
+                if self.network.name != 'twitter':
+                    lg.debug("CointipBot::main(): sleeping for %s seconds...", self.conf.misc.times.sleep_seconds)
+                    time.sleep(self.conf.misc.times.sleep_seconds)
 
             except Exception as e:
                 lg.error("CointipBot::main(): exception: %s", e)
