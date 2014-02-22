@@ -16,29 +16,59 @@ lg = logging.getLogger('cointipbot')
 
 
 class TwitterStreamer(TwythonStreamer):
+    def _parse_mention(self, data):
+        msg = {'id': str(data['id']),
+               'created_utc': calendar.timegm(parse(data['created_at']).utctimetuple()),
+               'author': {'name': data['user']['screen_name']}}
+
+        mentions = [um['screen_name'] for um in data['entities']['user_mentions']]
+        targets = set(mentions).difference({msg['author']['name'], self.username})
+
+        text = data['text']
+        tokens = re.split('\s+', text)
+        commands = [t for t in tokens if t[0] != '@']
+        final_tokens = ['@' + self.username]
+        if len(targets) > 0:
+            final_tokens.append('[' + ' '.join(list(targets)) + ']')
+
+        final_tokens.append(' '.join(commands))
+        msg['body'] = ' '.join(final_tokens)
+        print msg
+
+        action = ctb_action.eval_message(ctb_misc.DotDict(msg), self.ctb)
+        print action
+        return action
+
+    def _parse_direct_msg(self, data):
+        msg = {'id': str(data['id']),
+               'created_utc': calendar.timegm(parse(data['created_at']).utctimetuple()),
+               'author': {'name': data['sender']['screen_name']}}
+
+        text = data['text']
+        tokens = re.split('\s+', text)
+        mentions = [t[1:] for t in tokens if t[0] == '@']
+        targets = set(mentions).difference({msg['author']['name'], self.username})
+        commands = [t for t in tokens if t[0] != '@']
+        final_tokens = ['@' + self.username]
+        if len(targets) > 0:
+            final_tokens.append('[' + ' '.join(list(targets)) + ']')
+
+        final_tokens.append(' '.join(commands))
+        msg['body'] = ' '.join(final_tokens)
+        print msg
+
+        action = ctb_action.eval_message(ctb_misc.DotDict(msg), self.ctb)
+        print action
+        return action
+
     def on_success(self, data):
         fields = ['created_at', 'id', 'user', 'entities', 'text']
         if all(field in data for field in fields):
-            msg = {'id': str(data['id']),
-                   'created_utc': calendar.timegm(parse(data['created_at']).utctimetuple()),
-                   'author': {'name': data['user']['screen_name']}}
-
-            mentions = [um['screen_name'] for um in data['entities']['user_mentions']]
-            targets = set(mentions).difference({msg['author']['name'], self.username})
-
-            text = data['text']
-            tokens = re.split('\s+', text)
-            commands = [t for t in tokens if t not in ['@' + m for m in mentions]]
-            final_tokens = ['@' + self.username]
-            if len(targets) > 0:
-                final_tokens.append('[' + ' '.join(list(targets)) + ']')
-
-            final_tokens.append(' '.join(commands))
-            msg['body'] = ' '.join(final_tokens)
-            print msg
-
-            action = ctb_action.eval_message(ctb_misc.DotDict(msg), self.ctb)
-            print action
+            # should be a mention
+            self._parse_mention(data)
+        elif 'direct_message' in data:
+            # received a direct message
+            self._parse_direct_msg(data['direct_message'])
 
     def on_error(self, status_code, data):
         print status_code
