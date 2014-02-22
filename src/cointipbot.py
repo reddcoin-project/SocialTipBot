@@ -89,11 +89,20 @@ class CointipBot(object):
         lg.debug('CointipBot::parse_config(): parsing config files...')
 
         conf = {}
+        prefix = './conf/'
         try:
-            for path in glob.glob('./conf/*.yml'):
+            for path in glob.glob(prefix + '*.yml'):
                 f = ntpath.basename(path)
                 lg.debug("CointipBot::parse_config(): reading %s", f)
                 conf[f.split('.')[0]] = yaml.load(open(path))
+
+            for folder in ['reddit', 'twitter']:
+                conf[folder] = {}
+                for path in glob.glob(prefix + folder + '/*.yml'):
+                    f = ntpath.basename(path)
+                    lg.debug("CointipBot::parse_config(): reading %s/%s", folder, f)
+                    conf[folder][f.split('.')[0]] = yaml.load(open(path))
+
         except yaml.YAMLError as e:
             lg.error("CointipBot::parse_config(): error reading config file: %s", e)
             if hasattr(e, 'problem_mark'):
@@ -327,16 +336,17 @@ class CointipBot(object):
 
         # Reddit
         if init_reddit:
-            self.network = RedditNetwork(self.conf.reddit, self)
-            # Regex for Reddit messages
-            ctb_action.init_regex(self)
+            self.conf.network = self.conf.reddit.reddit
+            self.conf.regex = self.conf.reddit.regex
+            self.network = RedditNetwork(self.conf.network, self)
 
         # Twitter
         if init_twitter:
-            self.network = TwitterNetwork(self.conf.twitter, self)
-            self.conf.regex.values.tip_init.regex = '(' + self.network.user + ')'
-            ctb_action.init_regex(self)
+            self.conf.network = self.conf.twitter.twitter
+            self.conf.regex = self.conf.twitter.regex
+            self.network = TwitterNetwork(self.conf.network, self)
 
+        ctb_action.init_regex(self)
         self.network.connect()
         self.network.init()
 
@@ -344,15 +354,14 @@ class CointipBot(object):
         if self_checks:
             self.self_checks()
 
-        lg.info("< CointipBot::__init__(): DONE, batch-limit = %s, sleep-seconds = %s",
-                self.conf.reddit.scan.batch_limit, self.conf.misc.times.sleep_seconds)
+        lg.info("< CointipBot::__init__(): DONE, sleep-seconds = %s", self.conf.misc.times.sleep_seconds)
 
     def __str__(self):
         """
         Return string representation of self
         """
-        me = "<CointipBot: sleepsec=%s, batchlim=%s, ev=%s"
-        me = me % (self.conf.misc.times.sleep_seconds, self.conf.reddit.scan.batch_limit, self.runtime['ev'])
+        me = "<CointipBot: sleepsec=%s ev=%s"
+        me = me % (self.conf.misc.times.sleep_seconds, self.runtime['ev'])
         return me
 
     def main(self):
