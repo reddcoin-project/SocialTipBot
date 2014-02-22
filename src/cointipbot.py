@@ -288,7 +288,7 @@ class CointipBot(object):
         server.quit()
 
     def __init__(self, self_checks=True, init_coins=True, init_db=True, init_logging=True, init_exchanges=False,
-                 init_reddit=True, init_twitter=False):
+                 init_reddit=False, init_twitter=True):
         """
         Constructor. Parses configuration file and initializes bot.
         """
@@ -334,6 +334,8 @@ class CointipBot(object):
         # Twitter
         if init_twitter:
             self.network = TwitterNetwork(self.conf.twitter, self.db)
+            self.conf.regex.values.tip_init.regex = '(' + self.network.user + ')'
+            ctb_action.init_regex(self)
 
         self.network.connect()
         self.network.init()
