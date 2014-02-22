@@ -3,8 +3,8 @@
 {% set arrow_fmt = " ^->" %}
 {% if a.u_to: %}
 {%   set user_to_fmt = " ^/u/%s" % a.u_to.name %}
-{%   if ctb.conf.reddit.stats.enabled: %}
-{%     set stats_user_to_fmt = " ^^[[stats]](%s_%s)" % (ctb.conf.reddit.stats.url, a.u_to.name) %}
+{%   if ctb.conf.network.stats.enabled: %}
+{%     set stats_user_to_fmt = " ^^[[stats]](%s_%s)" % (ctb.conf.network.stats.url, a.u_to.name) %}
 {%   endif %}
 {% endif %}
 {% if a.addr_to: %}
@@ -37,12 +37,12 @@
 {%   set fiat_symbol = ctb.conf.fiat[a.fiat].symbol %}
 {%   set fiat_amount_fmt = "&nbsp;^__(%s%.4f)__" % (fiat_symbol, fiat_amount) %}
 {% endif %}
-{% if ctb.conf.reddit.stats.enabled: %}
-{%   set stats_user_from_fmt = " ^^[[stats]](%s_%s)" % (ctb.conf.reddit.stats.url, a.u_from.name) %}
-{%   set stats_link_fmt = " ^[[global_stats]](%s)" % ctb.conf.reddit.stats.url %}
+{% if ctb.conf.network.stats.enabled: %}
+{%   set stats_user_from_fmt = " ^^[[stats]](%s_%s)" % (ctb.conf.network.stats.url, a.u_from.name) %}
+{%   set stats_link_fmt = " ^[[global_stats]](%s)" % ctb.conf.network.stats.url %}
 {% endif %}
-{% if ctb.conf.reddit.help.enabled: %}
-{%   set help_link_fmt = " ^[[help]](%s)" % ctb.conf.reddit.help.url %}
+{% if ctb.conf.network.help.enabled: %}
+{%   set help_link_fmt = " ^[[help]](%s)" % ctb.conf.network.help.url %}
 {% endif %}
 {% if a.type == 'givetip' and a.keyword and ctb.conf.keywords[a.keyword].message %}
 {%   set txt = ctb.conf.keywords[a.keyword].message %}

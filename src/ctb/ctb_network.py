@@ -276,7 +276,7 @@ class RedditNetwork(CtbNetwork):
             lg.debug("RedditNetwork::check_mentions(): %s comments processed", counter)
             if counter >= self.conf.scan.batch_limit - 1:
                 lg.warning(
-                    "RedditNetwork::check_mentions(): conf.reddit.scan.batch_limit (%s) was not " +
+                    "RedditNetwork::check_mentions(): conf.network.scan.batch_limit (%s) was not " +
                     "large enough to process all comments", self.conf.scan.batch_limit)
 
         except (HTTPError, RateLimitExceeded, timeout) as e:

@@ -1,6 +1,6 @@
 {% set user_from = a.u_from.name %}
 {% set user_to = a.u_to.name %}
-{% set user_bot = ctb.conf.reddit.auth.user %}
+{% set user_bot = ctb.conf.network.auth.user %}
 {% if a.coinval: %}
 {%   if a.coinval < 0.0001 %}
 {%     set coin_amount = ( a.coinval * 100000000.0 ) %}

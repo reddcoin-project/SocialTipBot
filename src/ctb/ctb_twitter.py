@@ -39,6 +39,7 @@ class TwitterStreamer(TwythonStreamer):
 
         to_follow = list(set(followers).difference(set(friends)).difference(set(pending)))
 
+        actions = []
         for user_id in to_follow:
             try:
                 resp = self.conn.create_friendship(user_id=user_id)
@@ -55,12 +56,16 @@ class TwitterStreamer(TwythonStreamer):
                    'body': '+register'}
 
             action = ctb_action.eval_message(ctb_misc.DotDict(msg), self.ctb)
-            print action
+            actions.append(action)
+
+        return actions
 
     def _parse_event(self, data):
-        self.follow_followers()
+        actions = self.follow_followers()
+        return actions
 
     def _parse_mention(self, data):
+        # we do allow the bot to issue commands
         msg = {'id': str(data['id']),
                'created_utc': self._timestamp_utc(data['created_at']),
                'author': {'name': data['user']['screen_name']}}
@@ -70,34 +75,50 @@ class TwitterStreamer(TwythonStreamer):
         print msg
 
         action = ctb_action.eval_message(ctb_misc.DotDict(msg), self.ctb)
-        print action
         return action
 
     def _parse_direct_msg(self, data):
+        # ignore direct message from the bot itself
+        author_name = data['sender']['screen_name']
+        if author_name == self.username:
+            return None
+
         msg = {'id': str(data['id']),
                'created_utc': self._timestamp_utc(data['created_at']),
-               'author': {'name': data['sender']['screen_name']}}
+               'author': {'name': author_name}}
 
         text = data['text']
         msg['body'] = text.replace('@', '').replace(self.username, '')
         print msg
 
         action = ctb_action.eval_message(ctb_misc.DotDict(msg), self.ctb)
-        print action
         return action
 
     def on_success(self, data):
         fields = ['created_at', 'id', 'user', 'entities', 'text']
         if all(field in data for field in fields):
             # received a mention
-            self._parse_mention(data)
+            actions = self._parse_mention(data)
         elif 'direct_message' in data:
             # received a direct message
-            self._parse_direct_msg(data['direct_message'])
+            actions = self._parse_direct_msg(data['direct_message'])
         elif 'event' in data:
-            self._parse_event(data)
+            actions = self._parse_event(data)
         else:
             print data
+            return
+
+        if not isinstance(actions, list):
+            actions = [actions]
+
+        for action in actions:
+            # Perform action, if found
+            if action:
+                lg.info("TwitterNetwork::check_mentions(): %s from %s", action.type, action.u_from.name)
+                lg.debug("TwitterNetwork::check_mentions(): comment body: <%s>", action.msg.body)
+                action.do()
+            else:
+                lg.info("TwitterNetwork::check_mentions(): no match")
 
     def on_error(self, status_code, data):
         print status_code
@@ -146,7 +167,9 @@ class TwitterNetwork(CtbNetwork):
         pass
 
     def reply_msg(self, body, msgobj):
-        pass
+        self.conn.send_direct_message(screen_name=msgobj.author.name, text='ack ' + msgobj.body)
+        lg.debug("< TwitterNetwork::reply_msg to %s DONE", msgobj.author.name)
+        return True
 
     def check_mentions(self, ctb):
         self.stream.user()
