@@ -15,6 +15,13 @@ lg = logging.getLogger('cointipbot')
 
 
 class TwitterStreamer(TwythonStreamer):
+    @classmethod
+    def _timestamp_utc(cls, dt):
+        if isinstance(dt, basestring):
+            dt = parse(dt)
+
+        return calendar.timegm(dt.utctimetuple())
+
     def follow_followers(self):
         lg.debug('TwitterStreamer::follow_followers(): checking followers...')
 
@@ -43,7 +50,7 @@ class TwitterStreamer(TwythonStreamer):
                 lg.debug('TwitterStreamer::follow_followers(): just sent request to follow user %s', user_id)
 
             msg = {'id': str(user_id),
-                   'created_utc': calendar.timegm(parse(resp['created_at']).utctimetuple()),
+                   'created_utc': self._timestamp_utc(resp['created_at']),
                    'author': {'name': resp['screen_name']},
                    'body': '+register'}
 
@@ -55,21 +62,11 @@ class TwitterStreamer(TwythonStreamer):
 
     def _parse_mention(self, data):
         msg = {'id': str(data['id']),
-               'created_utc': calendar.timegm(parse(data['created_at']).utctimetuple()),
+               'created_utc': self._timestamp_utc(data['created_at']),
                'author': {'name': data['user']['screen_name']}}
 
-        mentions = [um['screen_name'] for um in data['entities']['user_mentions']]
-        targets = set(mentions).difference({msg['author']['name'], self.username})
-
         text = data['text']
-        tokens = re.split('\s+', text)
-        commands = [t for t in tokens if t[0] != '@']
-        final_tokens = ['@' + self.username]
-        if len(targets) > 0:
-            final_tokens.append('[' + ' '.join(list(targets)) + ']')
-
-        final_tokens.append(' '.join(commands))
-        msg['body'] = ' '.join(final_tokens)
+        msg['body'] = text.replace('@', '').replace(self.username, '')
         print msg
 
         action = ctb_action.eval_message(ctb_misc.DotDict(msg), self.ctb)
@@ -78,20 +75,11 @@ class TwitterStreamer(TwythonStreamer):
 
     def _parse_direct_msg(self, data):
         msg = {'id': str(data['id']),
-               'created_utc': calendar.timegm(parse(data['created_at']).utctimetuple()),
+               'created_utc': self._timestamp_utc(data['created_at']),
                'author': {'name': data['sender']['screen_name']}}
 
         text = data['text']
-        tokens = re.split('\s+', text)
-        mentions = [t[1:] for t in tokens if t[0] == '@']
-        targets = set(mentions).difference({msg['author']['name'], self.username})
-        commands = [t for t in tokens if t[0] != '@']
-        final_tokens = ['@' + self.username]
-        if len(targets) > 0:
-            final_tokens.append('[' + ' '.join(list(targets)) + ']')
-
-        final_tokens.append(' '.join(commands))
-        msg['body'] = ' '.join(final_tokens)
+        msg['body'] = text.replace('@', '').replace(self.username, '')
         print msg
 
         action = ctb_action.eval_message(ctb_misc.DotDict(msg), self.ctb)
