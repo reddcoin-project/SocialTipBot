@@ -76,10 +76,11 @@ class RedditNetwork(CtbNetwork):
 
         return True
 
-    def __init__(self, conf, db):
+    def __init__(self, conf, ctb):
         CtbNetwork.__init__(self, "reddit")
         self.conf = conf
-        self.db = db
+        self.ctb = ctb
+        self.db = ctb.db
         self.user = conf.auth.user
         self.password = conf.auth.password
         self.conn = None

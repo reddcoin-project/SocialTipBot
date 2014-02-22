@@ -327,13 +327,13 @@ class CointipBot(object):
 
         # Reddit
         if init_reddit:
-            self.network = RedditNetwork(self.conf.reddit, self.db)
+            self.network = RedditNetwork(self.conf.reddit, self)
             # Regex for Reddit messages
             ctb_action.init_regex(self)
 
         # Twitter
         if init_twitter:
-            self.network = TwitterNetwork(self.conf.twitter, self.db)
+            self.network = TwitterNetwork(self.conf.twitter, self)
             self.conf.regex.values.tip_init.regex = '(' + self.network.user + ')'
             ctb_action.init_regex(self)
 
