@@ -105,6 +105,13 @@ class CtbUser(object):
         lg.debug("> CtbUser::is_on_reddit(%s)", self.name)
         return self.network.lower() == 'reddit'
 
+    def is_on_twitter(self):
+        """
+        Return true if username exists on Twitter.
+        """
+        lg.debug("> CtbUser::is_on_twitter(%s)", self.name)
+        return self.network.lower() == 'twitter'
+
     def is_registered(self):
         """
         Return true if user is registered with CointipBot
@@ -155,22 +162,20 @@ class CtbUser(object):
 
     def tell(self, subj=None, msg=None, msgobj=None):
         """
-        Send a Reddit message to user
+        Send a message to user
         """
         lg.debug("> CtbUser::tell(%s)", self.name)
 
         if not bool(subj) or not bool(msg):
-            raise Exception("CtbUser::tell(%s): subj or msg not set", self.name)
-
-        if not self.is_on_reddit():
-            raise Exception("CtbUser::tell(%s): not a Reddit user", self.name)
+            lg.warning("CtbUser::tell(%s): subj or msg not set", self.name)
+            return False
 
         if bool(msgobj):
             lg.debug("CtbUser::tell(%s): replying to message", msgobj.id)
-            ctb_misc.praw_call(msgobj.reply, msg)
+            self.ctb.network.reply_msg(msg, msgobj)
         else:
             lg.debug("CtbUser::tell(%s): sending message", self.name)
-            ctb_misc.praw_call(self.prawobj.send_message, subj, msg)
+            self.ctb.network.send_msg(self.name, subj, msg, msgobj=msgobj)
 
         lg.debug("< CtbUser::tell(%s) DONE", self.name)
         return True

@@ -131,7 +131,7 @@ class CtbAction(object):
                 # If keyword is coin-only but only fiat is set, give up
                 raise CtbActionExc("CtbAction::__init__(type=%s): keyword is coin-only, but only fiat is set")
 
-            if self.keyword and self.fiat and not ( type(self.fiatval) in [float, int] and self.fiatval > 0.0 ):
+            if self.keyword and self.fiat and not (type(self.fiatval) in [float, int] and self.fiatval > 0.0):
                 # Determine fiat value
                 lg.debug("CtbAction::__init__(): determining fiat value given '%s'", self.keyword)
                 val = self.ctb.conf.keywords[self.keyword].value
@@ -149,7 +149,7 @@ class CtbAction(object):
                         "CtbAction::__init__(atype=%s, from_user=%s): couldn't determine fiatval from keyword '%s' (not float or str)" % (
                             self.type, self.u_from.name, self.keyword))
 
-            elif self.keyword and self.coin and not ( type(self.coinval) in [float, int] and self.coinval > 0.0 ):
+            elif self.keyword and self.coin and not (type(self.coinval) in [float, int] and self.coinval > 0.0):
                 # Determine coin value
                 lg.debug("CtbAction::__init__(): determining coin value given '%s'", self.keyword)
                 val = self.ctb.conf.keywords[self.keyword].value
@@ -270,8 +270,7 @@ class CtbAction(object):
             self.fiatval = 0.0
 
         conn = self.ctb.db
-        sql = ("INSERT INTO t_action (type, state, created_utc, from_user, to_user, to_addr, coin_val, fiat_val, "
-               "txid, coin, fiat, subreddit, msg_id, msg_link) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+        sql = "INSERT INTO t_action (type, state, created_utc, from_user, to_user, to_addr, coin_val, fiat_val, txid, coin, fiat, subreddit, msg_id, msg_link) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
         try:
             sqlexec = conn.execute(sql,
@@ -401,14 +400,14 @@ class CtbAction(object):
         # Get pending actions
         actions = get_actions(atype='givetip', to_user=self.u_from.name, state='pending', ctb=self.ctb)
         if actions:
-
             # Accept each action
             for a in actions:
                 a.givetip(is_pending=True)
                 # Update u_from (tip action) stats
                 ctb_stats.update_user_stats(ctb=a.ctb, username=a.u_from.name)
                 # Update u_from (accept action) stats
-            ctb_stats.update_user_stats(ctb=a.ctb, username=self.u_from.name)
+
+            ctb_stats.update_user_stats(ctb=self.ctb, username=self.u_from.name)
             # Save this action
             self.save('completed')
 
@@ -458,7 +457,7 @@ class CtbAction(object):
                     a.u_from.tell(subj="+tip declined", msg=msg)
 
             # Update u_from (decline action) stats
-            ctb_stats.update_user_stats(ctb=a.ctb, username=self.u_from.name)
+            ctb_stats.update_user_stats(ctb=self.ctb, username=self.u_from.name)
 
             # Notify self.u_from
             msg = self.ctb.jenv.get_template('pending-tips-declined.tpl').render(user_from=self.u_from.name,
@@ -565,7 +564,7 @@ class CtbAction(object):
             if self.u_to and not is_pending:
                 # Tip to user (requires less confirmations)
                 balance_avail = self.u_from.get_balance(coin=self.coin, kind='givetip')
-                if not ( balance_avail > self.coinval or abs(balance_avail - self.coinval) < 0.000001 ):
+                if not balance_avail > self.coinval or abs(balance_avail - self.coinval) < 0.000001:
                     msg = self.ctb.jenv.get_template('tip-low-balance.tpl').render(balance=balance_avail,
                                                                                    action_name='tip', a=self,
                                                                                    ctb=self.ctb)
@@ -579,7 +578,7 @@ class CtbAction(object):
                 balance_need = self.coinval
                 # Add mandatory network transaction fee
                 balance_need += self.ctb.conf.coins[self.coin].txfee
-                if not ( balance_avail > balance_need or abs(balance_avail - balance_need) < 0.000001 ):
+                if not balance_avail > balance_need or abs(balance_avail - balance_need) < 0.000001:
                     msg = self.ctb.jenv.get_template('tip-low-balance.tpl').render(balance=balance_avail,
                                                                                    action_name='withdraw', a=self,
                                                                                    ctb=self.ctb)
@@ -916,16 +915,15 @@ def init_regex(ctb):
                  'rg_to_user': 0,
                  'coin': None,
                  'fiat': None,
-                 'keyword': None
-                })
-            lg.debug("init_regex(): ADDED %s: %s", entry.action, entry.regex)
+                 'keyword': None})
+            # lg.debug("init_regex(): ADDED %s: %s", entry.action, entry.regex)
             ctb.runtime['regex'].append(entry)
 
         else:
 
             # Add non-simple actions (givetip, withdraw)
             for r in sorted(vars(actions[a].regex)):
-                lg.debug("init_regex(): processing regex %s", actions[a].regex[r].value)
+                # lg.debug("init_regex(): processing regex %s", actions[a].regex[r].value)
                 rval1 = actions[a].regex[r].value
                 rval1 = rval1.replace('{REGEX_TIP_INIT}', ctb.conf.regex.values.tip_init.regex)
                 rval1 = rval1.replace('{REGEX_USER}', ctb.conf.regex.values.username.regex)
@@ -961,7 +959,7 @@ def init_regex(ctb):
                                      'rg_to_user': actions[a].regex[r].rg_to_user,
                                      'coin': cc[c].unit,
                                      'fiat': fiat[f].unit})
-                                lg.debug("init_regex(): ADDED %s: %s", entry.action, entry.regex)
+                                # lg.debug("init_regex(): ADDED %s: %s", entry.action, entry.regex)
                                 ctb.runtime['regex'].append(entry)
 
                         else:
@@ -975,7 +973,7 @@ def init_regex(ctb):
                                  'rg_to_user': actions[a].regex[r].rg_to_user,
                                  'coin': cc[c].unit,
                                  'fiat': None})
-                            lg.debug("init_regex(): ADDED %s: %s", entry.action, entry.regex)
+                            # lg.debug("init_regex(): ADDED %s: %s", entry.action, entry.regex)
                             ctb.runtime['regex'].append(entry)
 
                 elif actions[a].regex[r].rg_fiat > 0:
@@ -996,7 +994,7 @@ def init_regex(ctb):
                              'rg_to_user': actions[a].regex[r].rg_to_user,
                              'coin': None,
                              'fiat': fiat[f].unit})
-                        lg.debug("init_regex(): ADDED %s: %s", entry.action, entry.regex)
+                        # lg.debug("init_regex(): ADDED %s: %s", entry.action, entry.regex)
                         ctb.runtime['regex'].append(entry)
 
                 elif actions[a].regex[r].rg_keyword > 0:
@@ -1010,7 +1008,7 @@ def init_regex(ctb):
                          'rg_to_user': actions[a].regex[r].rg_to_user,
                          'coin': None,
                          'fiat': None})
-                    lg.debug("init_regex(): ADDED %s: %s", entry.action, entry.regex)
+                    # lg.debug("init_regex(): ADDED %s: %s", entry.action, entry.regex)
                     ctb.runtime['regex'].append(entry)
 
     lg.info("< init_regex() DONE (%s expressions)", len(ctb.runtime['regex']))
