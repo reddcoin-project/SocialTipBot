@@ -98,19 +98,12 @@ class CtbUser(object):
         lg.debug("< CtbUser::get_addr(%s, %s, %s) DONE (should never happen)", self.name, self.network, coin)
         return None
 
-    def is_on_reddit(self):
+    def is_on_network(self, name):
         """
-        Return true if username exists on Reddit.
+        Return true if username exists on the specified network.
         """
-        lg.debug("> CtbUser::is_on_reddit(%s)", self.name)
-        return self.network.lower() == 'reddit'
-
-    def is_on_twitter(self):
-        """
-        Return true if username exists on Twitter.
-        """
-        lg.debug("> CtbUser::is_on_twitter(%s)", self.name)
-        return self.network.lower() == 'twitter'
+        lg.debug("> CtbUser::is_on_network(%s, %s)", self.name, name)
+        return self.network.lower() == name
 
     def is_registered(self):
         """

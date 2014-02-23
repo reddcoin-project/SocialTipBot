@@ -34,7 +34,7 @@ def update_stats(ctb=None):
 
     stats = ""
 
-    if not ctb.conf.reddit.stats.enabled:
+    if not ctb.conf.network.stats.enabled:
         return None
 
     for s in sorted(vars(ctb.conf.db.sql.globalstats)):
@@ -70,8 +70,8 @@ def update_stats(ctb=None):
         stats += "\n"
 
     lg.debug("update_stats(): updating subreddit '%s', page '%s'" % (
-        ctb.conf.reddit.stats.subreddit, ctb.conf.reddit.stats.page))
-    return ctb_misc.praw_call(ctb.reddit.edit_wiki_page, ctb.conf.reddit.stats.subreddit, ctb.conf.reddit.stats.page,
+        ctb.conf.network.stats.subreddit, ctb.conf.network.stats.page))
+    return ctb_misc.praw_call(ctb.reddit.edit_wiki_page, ctb.conf.network.stats.subreddit, ctb.conf.network.stats.page,
                               stats, "Update by ALTcointip bot")
 
 
@@ -80,7 +80,7 @@ def update_tips(ctb=None):
     Update page listing all tips
     """
 
-    if not ctb.conf.reddit.stats.enabled:
+    if not ctb.conf.network.stats.enabled:
         return None
 
     # Start building stats page
@@ -99,8 +99,8 @@ def update_tips(ctb=None):
         tip_list += ("|".join(values)) + "\n"
 
     lg.debug("update_tips(): updating subreddit '%s', page '%s'" % (
-        ctb.conf.reddit.stats.subreddit, ctb.conf.reddit.stats.page_tips))
-    ctb_misc.praw_call(ctb.reddit.edit_wiki_page, ctb.conf.reddit.stats.subreddit, ctb.conf.reddit.stats.page_tips,
+        ctb.conf.network.stats.subreddit, ctb.conf.network.stats.page_tips))
+    ctb_misc.praw_call(ctb.reddit.edit_wiki_page, ctb.conf.network.stats.subreddit, ctb.conf.network.stats.page_tips,
                        tip_list, "Update by ALTcointip bot")
 
     return True
@@ -111,7 +111,7 @@ def update_all_user_stats(ctb=None):
     Update individual user stats for all uers
     """
 
-    if not ctb.conf.reddit.stats.enabled:
+    if not ctb.conf.network.stats.enabled:
         lg.error('update_all_user_stats(): stats are not enabled in config.yml')
         return None
 
@@ -125,7 +125,7 @@ def update_user_stats(ctb=None, username=None):
     Update individual user stats for given username
     """
 
-    if not ctb.conf.reddit.stats.enabled:
+    if not ctb.conf.network.stats.enabled:
         return None
 
     # List of coins
@@ -142,7 +142,7 @@ def update_user_stats(ctb=None, username=None):
 
     # Start building stats page
     user_stats = "### Tipping Summary for /u/%s\n\n" % username
-    page = ctb.conf.reddit.stats.page + '_' + username
+    page = ctb.conf.network.stats.page + '_' + username
 
     # Total Tipped
     user_stats += "#### Total Tipped (Fiat)\n\n"
@@ -207,12 +207,12 @@ def update_user_stats(ctb=None, username=None):
         user_stats += ("|".join(values)) + "\n"
 
     # Submit changes
-    lg.debug("update_user_stats(): updating subreddit '%s', page '%s'" % (ctb.conf.reddit.stats.subreddit, page))
-    ctb_misc.praw_call(ctb.reddit.edit_wiki_page, ctb.conf.reddit.stats.subreddit, page, user_stats,
+    lg.debug("update_user_stats(): updating subreddit '%s', page '%s'" % (ctb.conf.network.stats.subreddit, page))
+    ctb_misc.praw_call(ctb.reddit.edit_wiki_page, ctb.conf.network.stats.subreddit, page, user_stats,
                        "Update by ALTcointip bot")
 
     # Update user flair on subreddit
-    if ctb.conf.reddit.stats.userflair and ( len(total_tipped) > 0 or len(total_received) > 0 ):
+    if ctb.conf.network.stats.userflair and ( len(total_tipped) > 0 or len(total_received) > 0 ):
         flair = ""
         if len(total_tipped) > 0:
             flair += "tipped[" + '|'.join(total_tipped) + "]"
@@ -223,7 +223,7 @@ def update_user_stats(ctb=None, username=None):
             flair += "received[" + '|'.join(total_received) + "]"
             flair += " (%d)" % num_received
         lg.debug("update_user_stats(): updating flair for %s (%s)", username, flair)
-        r = ctb_misc.praw_call(ctb.reddit.get_subreddit, ctb.conf.reddit.stats.subreddit)
+        r = ctb_misc.praw_call(ctb.reddit.get_subreddit, ctb.conf.network.stats.subreddit)
         res = ctb_misc.praw_call(r.set_flair, username, flair, '')
         lg.debug(res)
 
@@ -258,7 +258,7 @@ def format_value(m, k, username, ctb, compact=False):
             toreturn = "[%s](/u/%s)" % (un, re.escape(m[k]))
             if m[k].lower() != username.lower():
                 toreturn += "^[[stats]](/r/%s/wiki/%s_%s)" % (
-                    ctb.conf.reddit.stats.subreddit, ctb.conf.reddit.stats.page, m[k])
+                    ctb.conf.network.stats.subreddit, ctb.conf.network.stats.page, m[k])
             return toreturn
 
     # Format address

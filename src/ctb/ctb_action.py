@@ -528,7 +528,7 @@ class CtbAction(object):
                 self.save('failed') if not is_pending else self.update('failed')
                 return False
 
-            if self.u_to and not self.u_to.is_on_reddit():
+            if self.u_to and not self.u_to.is_on_network(self.ctb.network.name):
                 msg = self.ctb.jenv.get_template('not-on-reddit.tpl').render(a=self, ctb=self.ctb)
                 lg.debug("CtbAction::validate(): %s", msg)
                 self.u_from.tell(subj="+tip failed", msg=msg)

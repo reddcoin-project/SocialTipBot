@@ -53,7 +53,8 @@ class TwitterStreamer(TwythonStreamer):
             msg = {'id': str(user_id),
                    'created_utc': self._timestamp_utc(resp['created_at']),
                    'author': {'name': resp['screen_name']},
-                   'body': '+register'}
+                   'body': '+register',
+                   'type': 'direct_message'}
 
             action = ctb_action.eval_message(ctb_misc.DotDict(msg), self.ctb)
             actions.append(action)
@@ -68,10 +69,11 @@ class TwitterStreamer(TwythonStreamer):
         # we do allow the bot to issue commands
         msg = {'id': str(data['id']),
                'created_utc': self._timestamp_utc(data['created_at']),
-               'author': {'name': data['user']['screen_name']}}
+               'author': {'name': data['user']['screen_name']},
+               'type': 'mention'}
 
         text = data['text']
-        msg['body'] = text.replace('@', '').replace(self.username, '')
+        msg['body'] = text.replace(self.username, '')
         print msg
 
         action = ctb_action.eval_message(ctb_misc.DotDict(msg), self.ctb)
@@ -85,10 +87,11 @@ class TwitterStreamer(TwythonStreamer):
 
         msg = {'id': str(data['id']),
                'created_utc': self._timestamp_utc(data['created_at']),
-               'author': {'name': author_name}}
+               'author': {'name': author_name},
+               'type': 'direct_message'}
 
         text = data['text']
-        msg['body'] = text.replace('@', '').replace(self.username, '')
+        msg['body'] = text.replace(self.username, '')
         print msg
 
         action = ctb_action.eval_message(ctb_misc.DotDict(msg), self.ctb)
@@ -163,13 +166,26 @@ class TwitterNetwork(CtbNetwork):
     def is_user_banned(self, user):
         return False
 
-    def send_msg(self, user_to, subject, body, editor, msgobj):
-        pass
+    def send_msg(self, user_to, subject, body, editor=None, msgobj=None):
+        if msgobj:
+            self.reply_msg(body, msgobj)
+        else:
+            lg.debug("< TwitterNetwork::send_msg: sending direct message to %s: %s", user_to, body)
+            self.conn.send_direct_message(screen_name=user_to, text=body[:140])
+            lg.debug("< TwitterNetwork::send_msg to %s DONE", user_to)
+
+        return True
 
     def reply_msg(self, body, msgobj):
-        print body
-        self.conn.send_direct_message(screen_name=msgobj.author.name, text=body[:140])
-        lg.debug("< TwitterNetwork::reply_msg to %s DONE", msgobj.author.name)
+        if msgobj is None:
+            pass
+        elif msgobj.type == 'mention':
+            pass
+        elif msgobj.type == 'direct_message':
+            lg.debug("< TwitterNetwork::reply_msg: sending direct message to %s: %s", user_to, body)
+            self.conn.send_direct_message(screen_name=msgobj.author.name, text=body[:140])
+            lg.debug("< TwitterNetwork::reply_msg to %s DONE", msgobj.author.name)
+
         return True
 
     def check_mentions(self, ctb):

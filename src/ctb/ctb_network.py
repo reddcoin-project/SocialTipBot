@@ -25,7 +25,7 @@ class CtbNetwork(object):
     def is_user_banned(self, user):
         pass
 
-    def send_msg(self, user_to, subject, body, editor, msgobj):
+    def send_msg(self, user_to, subject, body, editor=None, msgobj=None):
         pass
 
     def reply_msg(self, body, msgobj):
