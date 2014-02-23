@@ -1,0 +1,37 @@
+auth:
+    user: 'itipyou'
+    password: ''
+
+scan:
+    batch_limit: 1000
+    my_subreddits: false
+#    these_subreddits: ["all"]
+
+help:
+    enabled: true
+    url: 'http://www.reddit.com/r/reddcoin/wiki/tipbot'
+
+contact:
+    enabled: true
+    url: 'http://www.reddit.com/message/compose/?to=reddtipbot'
+
+messages:
+    verified: true
+    pending: false
+    expired: false
+    declined: false
+    sorry: true
+
+banned_users:
+    method: list
+    list: ['reddtipbot', 'bitcointip', 'altcointip', 'dogetipbot', 'itipyou']
+    subreddit: 'mysubreddit'
+
+stats:
+    enabled: false
+    userflair: false
+    subreddit: 'reddcoin'
+    page: 'stats'
+    url: 'http://www.reddit.com/r/reddcoin/wiki/tipbot'
+    page_tips: 'tips'
+    url_tips: 'http://www.reddit.com/r/reddcoin/wiki/tipbot'
