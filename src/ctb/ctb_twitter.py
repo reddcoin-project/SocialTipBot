@@ -168,7 +168,6 @@ class TwitterNetwork(CtbNetwork):
 
     def reply_msg(self, body, msgobj):
         print body
-        raise
         self.conn.send_direct_message(screen_name=msgobj.author.name, text=body[:140])
         lg.debug("< TwitterNetwork::reply_msg to %s DONE", msgobj.author.name)
         return True

@@ -1,1 +1,1 @@
-{{ '@' + a.u_from.name }}, action type '{{ a.type }}' is currently disabled. Please try again later.
+{{ '@' + a.u_from.name }}, command "{{ '+' + a.type }}" is currently disabled.
