@@ -66,14 +66,18 @@ class TwitterStreamer(TwythonStreamer):
         return actions
 
     def _parse_mention(self, data):
+        author_name = data['user']['screen_name']
+        if author_name == self.username:
+            return None
+
         # we do allow the bot to issue commands
         msg = {'id': str(data['id']),
                'created_utc': self._timestamp_utc(data['created_at']),
-               'author': {'name': data['user']['screen_name']},
+               'author': {'name': author_name},
                'type': 'mention'}
 
         text = data['text']
-        msg['body'] = text.replace(self.username, '')
+        msg['body'] = text.replace('@' + self.username, '').strip()
         print msg
 
         action = ctb_action.eval_message(ctb_misc.DotDict(msg), self.ctb)
@@ -91,7 +95,7 @@ class TwitterStreamer(TwythonStreamer):
                'type': 'direct_message'}
 
         text = data['text']
-        msg['body'] = text.replace(self.username, '')
+        msg['body'] = text.replace('@' + self.username, '').strip()
         print msg
 
         action = ctb_action.eval_message(ctb_misc.DotDict(msg), self.ctb)
@@ -120,8 +124,6 @@ class TwitterStreamer(TwythonStreamer):
                 lg.info("TwitterNetwork::check_mentions(): %s from %s", action.type, action.u_from.name)
                 lg.debug("TwitterNetwork::check_mentions(): comment body: <%s>", action.msg.body)
                 action.do()
-            else:
-                lg.info("TwitterNetwork::check_mentions(): no match")
 
     def on_error(self, status_code, data):
         print status_code
@@ -180,7 +182,9 @@ class TwitterNetwork(CtbNetwork):
         if msgobj is None:
             pass
         elif msgobj.type == 'mention':
-            pass
+            lg.debug("< TwitterNetwork::reply_msg: sending tweet to %s: %s", msgobj.author.name, body)
+            self.conn.update_status(status=body[:140])
+            lg.debug("< TwitterNetwork::reply_msg to %s DONE", msgobj.author.name)
         elif msgobj.type == 'direct_message':
             lg.debug("< TwitterNetwork::reply_msg: sending direct message to %s: %s", msgobj.author.name, body)
             self.conn.send_direct_message(screen_name=msgobj.author.name, text=body[:140])

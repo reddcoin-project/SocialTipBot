@@ -271,10 +271,12 @@ class CointipBot(object):
         Quick method to return _fiat value of _coin
         """
         try:
-            value = self.runtime['ev'][_coin]['btc'] * self.runtime['ev']['btc'][_fiat]
+            # value = self.runtime['ev'][_coin]['btc'] * self.runtime['ev']['btc'][_fiat]
+            # hardcode for now: TO THE MARS!
+            value = 1
         except KeyError:
             lg.warning("CointipBot::coin_value(%s, %s): KeyError", _coin, _fiat)
-            value = 0.0
+            value = 0.00
         return value
 
     def notify(self, _msg=None):
