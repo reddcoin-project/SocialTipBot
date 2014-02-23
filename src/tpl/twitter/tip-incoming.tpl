@@ -23,4 +23,4 @@
 {%   set coinval_fmt = coinval_fmt + " (%s%.9f %ss)" % (ctb.conf.coins[a.coin].symbol, a.coinval, ctb.conf.coins[a.coin].name) %}
 {% endif %}
 {% set expire_days_fmt = "%.2g" % ( ctb.conf.misc.times.expire_pending_hours / 24.0 ) %}
-{{ user_to }}, {{ user_from }} sent you a tip of {{ coinval_fmt }}, reply with "+accept" to claim it.
+{{ user_to }}, {{ user_from }} sent you a tip of {{ coinval_fmt }}, reply with "+accept" to claim it. Also please accept my Follow Request :)
