@@ -1,15 +1,13 @@
 auth:
-    user: 'reddtipbot'
-    password: ''
-
-scan:
-    batch_limit: 1000
-    my_subreddits: false
-#    these_subreddits: ["all"]
+    user: 'itipyou'
+    app_key: 'oEmuw7DXPCAnucHW19KNXw'
+    app_secret: 'scrPYqPCNZEcjyLNAfTrZqa87jwdgfQT3pA003OYJ0'
+    oauth_token: '2352146539-h0227lcGuBEyzIhnIT8kl0k9pFRhfx2Bb1OP6ey'
+    oauth_token_secret: 'iUl0fs8sQnvSXIt2I8mReW1VL2fJuePesMiD10pEsbwMq'
 
 help:
     enabled: true
-    url: 'http://www.reddit.com/r/reddcoin/wiki/tipbot'
+    url: 'http://www.reddit.com/r/reddCoin/'
 
 contact:
     enabled: true
@@ -22,21 +20,9 @@ messages:
     declined: false
     sorry: true
 
-redeem:
-    unit: 'usd'
-    multicoin: true
-    min_karma: 150
-    base: 0.1
-    multiplier:
-        link: 0.00005
-        comment: 0.000005
-    maximum: 0.5
-    account: 'reddtipbot'
-
 banned_users:
     method: list
-    list: ['reddtipbot', 'bitcointip', 'altcointip']
-    subreddit: 'mysubreddit'
+    list: ['reddtipbot', 'bitcointip', 'altcointip', 'dogetipbot', 'itipyou']
 
 stats:
     enabled: false
