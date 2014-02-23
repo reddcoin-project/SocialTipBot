@@ -15,7 +15,9 @@
     along with ALTcointip.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import logging, re, time
+import logging
+import re
+import time
 from pifkoin.bitcoind import Bitcoind, BitcoindException
 from httplib import CannotSendRequest
 
@@ -152,7 +154,7 @@ class CtbCoin(object):
         addr_valid = self.conn.validateaddress(addr)
         time.sleep(0.5)
 
-        if not addr_valid.has_key('isvalid') or not addr_valid['isvalid']:
+        if 'isvalid' not in addr_valid or not addr_valid['isvalid']:
             lg.debug("CtbCoin::validateaddr(%s): not valid", addr)
             return False
         else:
@@ -209,7 +211,6 @@ class CtbCoin(object):
                 else:
                     lg.error("CtbCoin::getnewaddr(%s): Exception: %s", user, e)
                     raise
-
 
     def verify_user(self, _user=None):
         """
