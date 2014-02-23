@@ -54,7 +54,7 @@ class TwitterStreamer(TwythonStreamer):
                    'created_utc': self._timestamp_utc(resp['created_at']),
                    'author': {'name': resp['screen_name']},
                    'body': '+register',
-                   'type': 'direct_message'}
+                   'type': 'mention'}
 
             action = ctb_action.eval_message(ctb_misc.DotDict(msg), self.ctb)
             actions.append(action)
@@ -194,3 +194,14 @@ class TwitterNetwork(CtbNetwork):
 
     def check_mentions(self, ctb):
         self.stream.user()
+
+    def invite(self, user):
+        try:
+            resp = self.conn.create_friendship(screen_name=user)
+        except TwythonError as e:
+            # either really failed (e.g. sent request before) or already friends
+            lg.warning("TwitterNetwork::invite: failed to follow user %s: %s", user, e.msg)
+            return False
+        else:
+            lg.debug('TwitterNetwork::invite(): just sent request to follow user %s', user)
+            return True

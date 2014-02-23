@@ -31,6 +31,9 @@ class CtbNetwork(object):
     def reply_msg(self, body, msgobj):
         pass
 
+    def invite(self, user):
+        pass
+
     def check_mentions(self, ctb):
         pass
 

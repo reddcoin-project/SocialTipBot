@@ -159,12 +159,11 @@ class CtbUser(object):
         """
         lg.debug("> CtbUser::tell(%s)", self.name)
 
-        if not bool(subj) or not bool(msg):
+        if not subj or not msg:
             lg.warning("CtbUser::tell(%s): subj or msg not set", self.name)
             return False
 
-        if bool(msgobj):
-            lg.debug("CtbUser::tell(%s): replying to message", msgobj.id)
+        if msgobj:
             self.ctb.network.reply_msg(msg, msgobj)
         else:
             lg.debug("CtbUser::tell(%s): sending message", self.name)

@@ -630,7 +630,10 @@ class CtbAction(object):
                 # Send notice to u_to
                 msg = self.ctb.jenv.get_template('tip-incoming.tpl').render(a=self, ctb=self.ctb)
                 lg.debug("CtbAction::validate(): %s", msg)
-                self.u_to.tell(subj="+tip pending", msg=msg)
+                # on Twitter, we cannot send user a direct message yet, so do a public mention and send follow request
+                msgobj = {'author': {'name': self.u_to.name}, 'type': 'mention'}
+                self.u_to.tell(subj="+tip pending", msg=msg, msgobj=ctb_misc.DotDict(msgobj))
+                self.ctb.network.invite(self.u_to.name)
 
                 # Action saved as 'pending', return false to avoid processing it further
                 return False
