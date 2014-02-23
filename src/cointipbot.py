@@ -310,9 +310,6 @@ class CointipBot(object):
         if init_logging:
             self.init_logging()
 
-        # Template with jinja2
-        self.jenv = Environment(trim_blocks=True, loader=PackageLoader('cointipbot', 'tpl/jinja2'))
-
         # Database
         if init_db:
             self.db = self.connect_db()
@@ -326,6 +323,20 @@ class CointipBot(object):
                 lg.error("CointipBot::__init__(): Error: please enable at least one type of coin")
                 sys.exit(1)
 
+        # Networks
+        if init_reddit:
+            self.conf.network = self.conf.reddit.reddit
+            self.conf.regex = self.conf.reddit.regex
+            self.network = RedditNetwork(self.conf.network, self)
+        elif init_twitter:
+            self.conf.network = self.conf.twitter.twitter
+            self.conf.regex = self.conf.twitter.regex
+            self.network = TwitterNetwork(self.conf.network, self)
+
+        ctb_action.init_regex(self)
+        self.network.connect()
+        self.network.init()
+
         # Exchanges
         if init_exchanges:
             for e in vars(self.conf.exchanges):
@@ -334,21 +345,8 @@ class CointipBot(object):
             if not len(self.exchanges) > 0:
                 lg.warning("Cointipbot::__init__(): Warning: no exchanges are enabled")
 
-        # Reddit
-        if init_reddit:
-            self.conf.network = self.conf.reddit.reddit
-            self.conf.regex = self.conf.reddit.regex
-            self.network = RedditNetwork(self.conf.network, self)
-
-        # Twitter
-        if init_twitter:
-            self.conf.network = self.conf.twitter.twitter
-            self.conf.regex = self.conf.twitter.regex
-            self.network = TwitterNetwork(self.conf.network, self)
-
-        ctb_action.init_regex(self)
-        self.network.connect()
-        self.network.init()
+        # Template
+        self.jenv = Environment(trim_blocks=True, loader=PackageLoader('cointipbot', 'tpl/' + self.network.name))
 
         # Self-checks
         if self_checks:
