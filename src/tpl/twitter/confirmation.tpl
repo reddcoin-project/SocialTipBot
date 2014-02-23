@@ -4,8 +4,10 @@
 {%   set user_to_fmt = '@' + a.u_to.name %}
 {% endif %}
 {% if a.addr_to: %}
-{%   set arrow_fmt = " -->>(%s)" % a.txid %}
 {%   set user_to_fmt = a.addr_to %}
+{%   set txid = " txid=%s" % a.txid %}
+{% else %}
+{%   set txid = "" %}
 {% endif %}
 {% if a.coinval: %}
 {%   if a.coinval < 0.0001 %}
@@ -34,5 +36,5 @@
 {%   set txt = txt | replace("{AMOUNT}", coin_amount_fmt) %}
 {{   txt }}
 {% else %}
-{{ user_from_fmt }} confirmed: {{ arrow_fmt }}{{ user_to_fmt }}{{ coin_amount_fmt }}
+{{ user_from_fmt }} confirmed: {{ arrow_fmt }}{{ user_to_fmt }}{{ coin_amount_fmt }}{{ txid }}
 {% endif %}

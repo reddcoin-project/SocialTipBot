@@ -13,7 +13,6 @@ rdd:
         givetip: 0.00000001
         withdraw: 0.05
     txfee: 0.001
-    walletpassphrase: ''
     explorer:
         address: 'http://blockexplorer.reddcoin.com/index.php?address='
         transaction: 'http://blockexplorer.reddcoin.com/index.php?transaction='
