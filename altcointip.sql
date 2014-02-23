@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS `t_addrs` (
   `network` varchar(30) NOT NULL,
   `coin` varchar(3) NOT NULL,
   `address` varchar(34) NOT NULL,
-  PRIMARY KEY (`username`,`coin`),
+  PRIMARY KEY (`username`,`network`, `coin`),
   UNIQUE (`address`)
 );
 
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS `t_users` (
   `network` varchar(30) NOT NULL,
   `joindate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `giftamount` float DEFAULT '0',
-  PRIMARY KEY (`username`)
+  PRIMARY KEY (`username`, `network`)
 );
 
 CREATE TABLE IF NOT EXISTS `t_values` (

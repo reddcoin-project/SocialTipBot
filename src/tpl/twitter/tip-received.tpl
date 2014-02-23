@@ -21,4 +21,4 @@
 {% if amount_prefix_short %}
 {%   set coinval_fmt = coinval_fmt + " (%s%.9f %ss)" % (ctb.conf.coins[a.coin].symbol, a.coinval, ctb.conf.coins[a.coin].name) %}
 {% endif %}
-{{ user_to }}, you have received a {{ coinval_fmt }} tip from {{ user_from }}.
+{{ user_to }}, you have received a tip of {{ coinval_fmt }} from {{ user_from }}.

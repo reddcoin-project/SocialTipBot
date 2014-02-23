@@ -58,41 +58,40 @@ class CtbUser(object):
         me = me % (self.name, self.network, self.giftamount, self.joindate, self.addr, self.banned)
         return me
 
+    # TODO currently balance is username-specific and totally ignorant of networks.
     def get_balance(self, coin=None, kind=None):
         """
         If coin is specified, return float with coin balance for user. Else, return a dict with balance of each coin for user.
         """
-        lg.debug("> CtbUser::balance(%s)", self.name)
+        lg.debug("> CtbUser::balance(%s on %s)", self.name, self.network)
 
         if not bool(coin) or not bool(kind):
-            raise Exception("CtbUser::balance(%s): coin or kind not set" % self.name)
+            raise Exception("CtbUser::balance(%s on %s): coin or kind not set" % (self.name, self.network))
 
         # Ask coin daemon for account balance
         lg.info("CtbUser::balance(%s): getting %s %s balance", self.name, coin, kind)
         balance = self.ctb.coins[coin].getbalance(_user=self.name, _minconf=self.ctb.conf.coins[coin].minconf[kind])
 
-        lg.debug("< CtbUser::balance(%s) DONE", self.name)
+        lg.debug("< CtbUser::balance(%s on %s) DONE", self.name, self.network)
         return float(balance)
 
     def get_addr(self, coin=None):
         """
         Return coin address of user
         """
-        lg.debug("> CtbUser::get_addr(%s, %s, %s)", self.name, self.network, coin)
+        lg.debug("> CtbUser::get_addr(%s on %s, %s)", self.name, self.network, coin)
 
         if coin in self.addr:
             return self.addr[coin]
 
-        sql = "SELECT address from t_addrs WHERE username = :u AND network = :n AND coin = :c"
-        sqlrow = self.ctb.db.execute(sql, {'u': self.name.lower(),
-                                           'n': self.network.lower(),
-                                           'c': coin.lower()}).fetchone()
+        sql = "SELECT address FROM t_addrs WHERE username = ? AND network = ? AND coin = ?"
+        sqlrow = self.ctb.db.execute(sql, [self.name.lower(), self.network.lower(), coin.lower()]).fetchone()
         if not sqlrow:
-            lg.debug("< CtbUser::get_addr(%s, %s, %s) DONE (no)", self.name, self.network, coin)
+            lg.debug("< CtbUser::get_addr(%s on %s, %s) DONE (no)", self.name, self.network, coin)
             return None
         else:
             self.addr[coin] = sqlrow['address']
-            lg.debug("< CtbUser::get_addr(%s, %s, %s) DONE (%s)", self.name, self.network, coin, self.addr[coin])
+            lg.debug("< CtbUser::get_addr(%s on %s, %s) DONE (%s)", self.name, self.network, coin, self.addr[coin])
             return self.addr[coin]
 
         lg.debug("< CtbUser::get_addr(%s, %s, %s) DONE (should never happen)", self.name, self.network, coin)
@@ -109,49 +108,50 @@ class CtbUser(object):
         """
         Return true if user is registered with CointipBot
         """
-        lg.debug("> CtbUser::is_registered(%s)", self.name)
+        lg.debug("> CtbUser::is_registered(%s on %s)", self.name, self.network)
 
-        sql = "SELECT * FROM t_users WHERE username = :u"
+        sql = "SELECT * FROM t_users WHERE username = ? AND network = ?"
         try:
             # First, check t_users table
-            sqlrow = self.ctb.db.execute(sql, {'u': self.name.lower()}).fetchone()
+            sqlrow = self.ctb.db.execute(sql, [self.name.lower(), self.network.lower()]).fetchone()
 
             if not sqlrow:
-                lg.debug("< CtbUser::is_registered(%s) DONE (no)", self.name)
+                lg.debug("< CtbUser::is_registered(%s on %s) DONE (no)", self.name, self.network)
                 return False
 
             else:
                 # Next, check t_addrs table for whether  user has correct number of coin addresses
-                sql_coins = "SELECT COUNT(*) AS count FROM t_addrs WHERE username = :u"
-                sqlrow_coins = self.ctb.db.execute(sql_coins, {'u': self.name.lower()}).fetchone()
+                sql_coins = "SELECT COUNT(*) AS count FROM t_addrs WHERE username = ? AND network = ?"
+                sqlrow_coins = self.ctb.db.execute(sql_coins, [self.name.lower(), self.network.lower()]).fetchone()
 
                 if int(sqlrow_coins['count']) != len(self.ctb.coins):
                     if int(sqlrow_coins['count']) == 0:
                         # Bot probably crashed during user registration process
                         # Delete user
-                        lg.warning("CtbUser::is_registered(%s): deleting user, incomplete registration", self.name)
-                        sql_delete = "DELETE FROM t_users WHERE username = :u"
-                        sql_res = self.ctb.db.execute(sql_delete, {'u': self.name.lower()})
+                        lg.warning("CtbUser::is_registered(%s on %s): deleting user, incomplete registration",
+                                   self.name, self.network)
+                        sql_delete = "DELETE FROM t_users WHERE username = ? AND network = ?"
+                        sql_res = self.ctb.db.execute(sql_delete, [self.name.lower(), self.network.lower()])
                         # User is not registered
                         return False
                     else:
-                        raise Exception("CtbUser::is_registered(%s): user has %s coins but %s active" % (
-                            self.name, sqlrow_coins['count'], len(self.ctb.coins)))
+                        raise Exception("CtbUser::is_registered(%s on %s): user has %s coins but %s active" % (
+                            self.name, self.network, sqlrow_coins['count'], len(self.ctb.coins)))
 
                 # Set some properties
                 self.giftamount = sqlrow['giftamount']
 
                 # Done
-                lg.debug("< CtbUser::is_registered(%s) DONE (yes)", self.name)
+                lg.debug("< CtbUser::is_registered(%s on %s) DONE (yes)", self.name, self.network)
                 return True
 
         except Exception, e:
-            lg.error("CtbUser::is_registered(%s): error while executing <%s>: %s", self.name, sql % self.name.lower(),
-                     e)
+            lg.error("CtbUser::is_registered(%s on %s): error while executing <%s>: %s",
+                     self.name, self.network, sql, e)
             raise
 
-        lg.warning("< CtbUser::is_registered(%s): returning None (shouldn't happen)", self.name)
-        return None
+        lg.warning("< CtbUser::is_registered(%s on %s): returning None (shouldn't happen)", self.name, self.network)
+        return False
 
     def tell(self, subj=None, msg=None, msgobj=None):
         """
@@ -177,7 +177,7 @@ class CtbUser(object):
         """
         Add user to database and generate coin addresses
         """
-        lg.debug("> CtbUser::register(%s)", self.name)
+        lg.debug("> CtbUser::register(%s on %s)", self.name, self.network)
 
         # Add user to database
         sql_adduser = "INSERT INTO t_users (username, network) VALUES (:u, :n)"
@@ -197,42 +197,41 @@ class CtbUser(object):
 
         # Add coin addresses to database
         # sql_addr = "UPDATE t_addrs SET username=:u, network=:n, coin=:c, address=:a"
-        sql_addr = "INSERT OR REPLACE INTO t_addrs (username, network, coin, address) VALUES (:u, :n, :c, :a)"
+        sql_addr = "INSERT OR REPLACE INTO t_addrs (username, network, coin, address) VALUES (?, ?, ?, ?)"
         for c, a in new_addrs.iteritems():
             try:
-                sqlexec = self.ctb.db.execute(sql_addr, {'u': self.name.lower(), 'n': self.network.lower(),
-                                                         'c': c, 'a': a})
+                sqlexec = self.ctb.db.execute(sql_addr, [self.name.lower(), self.network.lower(), c, a])
                 if sqlexec.rowcount <= 0:
                     # Undo change to database
-                    delete_user(_username=self.name.lower(), _db=self.ctb.db)
-                    raise Exception("CtbUser::register(%s): rowcount <= 0 while executing <%s>" % (
-                        self.name, sql_addr % (self.name.lower(), c, new_addrs[c])))
+                    lg.warning("CtbUser::register(%s on %s): rowcount <= 0 while executing <%s>",
+                               self.name, self.network, sql_addr)
+                    self.delete()
             except Exception:
                 # Undo change to database
-                delete_user(_username=self.name.lower(), _db=self.ctb.db)
+                self.delete()
                 raise
 
-        lg.debug("< CtbUser::register(%s) DONE", self.name)
+        lg.debug("< CtbUser::register(%s on %s) DONE", self.name, self.network)
         return True
 
+    def delete(self):
+        """
+        Delete user from t_users and t_addrs tables
+        """
+        lg.debug("> CtbUser::delete(%s on %s)", self.name, self.network)
 
-def delete_user(_username=None, _db=None):
-    """
-    Delete _username from t_users and t_addrs tables
-    """
-    lg.debug("> delete_user(%s)", _username)
+        try:
+            sql_arr = ["DELETE FROM t_users WHERE username = ? AND network = ?",
+                       "DELETE FROM t_addrs WHERE username = ? AND network = ?"]
+            for sql in sql_arr:
+                sqlexec = _db.execute(sql, [self.name.lower(), self.network.lower()])
+                if sqlexec.rowcount <= 0:
+                    lg.warning("delete_user(%s on %s): rowcount <= 0 while executing <%s>",
+                               self.name, self.network, sql)
 
-    try:
-        sql_arr = ["DELETE FROM t_users WHERE username = :u",
-                   "DELETE FROM t_addrs WHERE username = :u"]
-        for sql in sql_arr:
-            sqlexec = _db.execute(sql, {'u': _username.lower()})
-            if sqlexec.rowcount <= 0:
-                lg.warning("delete_user(%s): rowcount <= 0 while executing <%s>", _username, sql)
+        except Exception, e:
+            lg.error("delete_user(%s on %s): error while executing <%s>: %s", self.name, self.network, sql, e)
+            return False
 
-    except Exception, e:
-        lg.error("delete_user(%s): error while executing <%s>: %s", _username, sql, e)
-        return False
-
-    lg.debug("< delete_user(%s) DONE", _username)
-    return True
+        lg.debug("< delete_user(%s on %s) DONE", self.name, self.network)
+        return True

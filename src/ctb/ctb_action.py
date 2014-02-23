@@ -505,7 +505,7 @@ class CtbAction(object):
                                                                     source_link=self.msg.permalink if self.msg else None)
         lg.debug("CtbAction::expire(): " + msg)
         if self.ctb.network.conf.messages.expired:
-            if not ctb_misc.reply_msg(msg, self.msg):
+            if not self.ctb.network.reply_msg(msg, self.msg):
                 self.u_from.tell(subj="+tip expired", msg=msg)
         else:
             self.u_from.tell(subj="+tip expired", msg=msg)
@@ -621,7 +621,7 @@ class CtbAction(object):
                 msg = self.ctb.jenv.get_template('confirmation.tpl').render(title='Verified', a=self, ctb=self.ctb)
                 lg.debug("CtbAction::validate(): " + msg)
                 if self.ctb.network.conf.messages.verified:
-                    if not ctb_misc.reply_msg(msg, self.msg):
+                    if not self.ctb.network.reply_msg(msg, self.msg):
                         self.u_from.tell(subj="+tip pending +accept", msg=msg)
                 else:
                     self.u_from.tell(subj="+tip pending +accept", msg=msg)
@@ -705,7 +705,7 @@ class CtbAction(object):
                 msg = self.ctb.jenv.get_template('confirmation.tpl').render(title='Verified', a=self, ctb=self.ctb)
                 lg.debug("CtbAction::givetip(): " + msg)
                 if self.ctb.network.conf.messages.verified:
-                    if not ctb_misc.reply_msg(msg, self.msg):
+                    if not self.ctb.network.reply_msg(msg, self.msg):
                         self.u_from.tell(subj="+tip succeeded", msg=msg)
                 else:
                     self.u_from.tell(subj="+tip succeeded", msg=msg)
@@ -739,7 +739,7 @@ class CtbAction(object):
             msg = self.ctb.jenv.get_template('confirmation.tpl').render(title='Verified', a=self, ctb=self.ctb)
             lg.debug("CtbAction::givetip(): " + msg)
             if self.ctb.network.conf.messages.verified:
-                if not ctb_misc.reply_msg(msg, self.msg):
+                if not self.ctb.network.reply_msg(msg, self.msg):
                     self.u_from.tell(subj="+tip succeeded", msg=msg)
             else:
                 self.u_from.tell(subj="+tip succeeded", msg=msg)

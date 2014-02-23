@@ -182,7 +182,7 @@ class TwitterNetwork(CtbNetwork):
         elif msgobj.type == 'mention':
             pass
         elif msgobj.type == 'direct_message':
-            lg.debug("< TwitterNetwork::reply_msg: sending direct message to %s: %s", user_to, body)
+            lg.debug("< TwitterNetwork::reply_msg: sending direct message to %s: %s", msgobj.author.name, body)
             self.conn.send_direct_message(screen_name=msgobj.author.name, text=body[:140])
             lg.debug("< TwitterNetwork::reply_msg to %s DONE", msgobj.author.name)
 
