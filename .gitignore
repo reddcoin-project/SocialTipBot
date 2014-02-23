@@ -38,3 +38,6 @@ nosetests.xml
 .idea
 conf
 db
+doc/.ipynb_checkpoints/*.*
+doc/*.html
+*.csv
