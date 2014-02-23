@@ -169,28 +169,42 @@ class TwitterNetwork(CtbNetwork):
         return False
 
     def send_msg(self, user_to, subject, body, editor=None, msgobj=None):
-        if msgobj:
-            self.reply_msg(body, msgobj)
-        else:
-            lg.debug("< TwitterNetwork::send_msg: sending direct message to %s: %s", user_to, body)
-            self.conn.send_direct_message(screen_name=user_to, text=body[:140])
-            lg.debug("< TwitterNetwork::send_msg to %s DONE", user_to)
+        try:
+            if msgobj:
+                self.reply_msg(body, msgobj)
+            else:
+                lg.debug("< TwitterNetwork::send_msg: sending direct message to %s: %s", user_to, body)
+                self.conn.send_direct_message(screen_name=user_to, text=body[:140])
+                lg.debug("< TwitterNetwork::send_msg to %s DONE", user_to)
 
-        return True
+        except TwythonError as e:
+            lg.error("TwitterNetwork::send_msg: exception: %s", e)
+            tb = traceback.format_exc()
+            lg.error("TwitterNetwork::send_msg: traceback: %s", tb)
+            return False
+        else:
+            return True
 
     def reply_msg(self, body, msgobj):
-        if msgobj is None:
-            pass
-        elif msgobj.type == 'mention':
-            lg.debug("< TwitterNetwork::reply_msg: sending tweet to %s: %s", msgobj.author.name, body)
-            self.conn.update_status(status=body[:140])
-            lg.debug("< TwitterNetwork::reply_msg to %s DONE", msgobj.author.name)
-        elif msgobj.type == 'direct_message':
-            lg.debug("< TwitterNetwork::reply_msg: sending direct message to %s: %s", msgobj.author.name, body)
-            self.conn.send_direct_message(screen_name=msgobj.author.name, text=body[:140])
-            lg.debug("< TwitterNetwork::reply_msg to %s DONE", msgobj.author.name)
+        try:
+            if msgobj is None:
+                pass
+            elif msgobj.type == 'mention':
+                lg.debug("< TwitterNetwork::reply_msg: sending tweet to %s: %s", msgobj.author.name, body)
+                self.conn.update_status(status=body[:140])
+                lg.debug("< TwitterNetwork::reply_msg to %s DONE", msgobj.author.name)
+            elif msgobj.type == 'direct_message':
+                lg.debug("< TwitterNetwork::reply_msg: sending direct message to %s: %s", msgobj.author.name, body)
+                self.conn.send_direct_message(screen_name=msgobj.author.name, text=body[:140])
+                lg.debug("< TwitterNetwork::reply_msg to %s DONE", msgobj.author.name)
 
-        return True
+        except TwythonError as e:
+            lg.error("TwitterNetwork::reply_msg: exception: %s", e)
+            tb = traceback.format_exc()
+            lg.error("TwitterNetwork::reply_msg: traceback: %s", tb)
+            return False
+        else:
+            return True
 
     def check_mentions(self, ctb):
         self.stream.user()
@@ -198,9 +212,13 @@ class TwitterNetwork(CtbNetwork):
     def invite(self, user):
         try:
             resp = self.conn.create_friendship(screen_name=user)
+
         except TwythonError as e:
             # either really failed (e.g. sent request before) or already friends
             lg.warning("TwitterNetwork::invite: failed to follow user %s: %s", user, e.msg)
+            lg.error("TwitterNetwork::invite: exception: %s", e)
+            tb = traceback.format_exc()
+            lg.error("TwitterNetwork::invite: traceback: %s", tb)
             return False
         else:
             lg.debug('TwitterNetwork::invite(): just sent request to follow user %s', user)
