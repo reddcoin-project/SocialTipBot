@@ -20,9 +20,3 @@ rdd:
     regex:
         address: '(R[1-9a-z]{20,40})'
         units: '(rdd|reddcoin|reddcoins|R)'
-
-btc:
-    enabled: false
-    unit: btc
-    name: Bitcoin
-    symbol: 'B⃦'

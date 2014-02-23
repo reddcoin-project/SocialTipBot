@@ -21,6 +21,7 @@ import ctb_stats
 
 import logging
 import re
+from random import randint
 
 lg = logging.getLogger('cointipbot')
 
