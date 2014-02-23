@@ -3,8 +3,8 @@
 {% if history|length == 0: %}
 {{ user }} your have 0 transaction so far.
 {% else %}
-{{ user }} your last {{ limit }} transaction ID{{ suffix }}:
+{{ user }} your last {{ limit }} transaction{{ suffix }}:
 {%   for h in history %}
-{{   h.txid }}
+{{     "|".join(h) }}
 {%   endfor %}
 {% endif %}

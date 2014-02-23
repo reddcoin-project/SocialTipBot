@@ -242,29 +242,20 @@ def format_value(m, k, username, ctb, compact=False):
     # Format cryptocoin
     if type(m[k]) == float and k.find("coin") > -1:
         coin_symbol = ctb.conf.coins[m['coin']].symbol
-        return "%s&nbsp;%.5g" % (coin_symbol, m[k])
+        return "%s%.5g" % (coin_symbol, m[k])
 
     # Format fiat
-    elif type(m[k]) == float and ( k.find("fiat") > -1 or k.find("usd") > -1 ):
+    elif type(m[k]) == float and ( k.find("fiat") > -1 or k.find("usd") > -1):
         fiat_symbol = ctb.conf.fiat[m['fiat']].symbol
-        return "%s&nbsp;%.2f" % (fiat_symbol, m[k])
+        return "%s%.2f" % (fiat_symbol, m[k])
 
     # Format username
     elif k.find("user") > -1 and type(m[k]) in [str, unicode]:
-        if compact:
-            return ("**/u/%s**" % m[k]) if m[k].lower() == username.lower() else ("/u/%s" % m[k])
-        else:
-            un = ("**%s**" % m[k]) if m[k].lower() == username.lower() else m[k]
-            toreturn = "[%s](/u/%s)" % (un, re.escape(m[k]))
-            if m[k].lower() != username.lower():
-                toreturn += "^[[stats]](/r/%s/wiki/%s_%s)" % (
-                    ctb.conf.network.stats.subreddit, ctb.conf.network.stats.page, m[k])
-            return toreturn
+        return '@%s' % m[k]
 
     # Format address
     elif k.find("addr") > -1:
-        displayaddr = m[k][:6] + "..." + m[k][-5:]
-        return "[%s](%s%s)" % (displayaddr, ctb.conf.coins[m['coin']].explorer.address, m[k])
+        return str(m[k])
 
     # Format state
     elif k.find("state") > -1:
@@ -282,10 +273,6 @@ def format_value(m, k, username, ctb, compact=False):
                 return 'w'
             if m[k] == 'redeem':
                 return 'r'
-
-    # Format subreddit
-    elif k.find("subreddit") > -1:
-        return "/r/%s" % m[k]
 
     # Format link
     elif k.find("link") > -1:

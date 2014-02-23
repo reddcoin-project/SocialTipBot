@@ -103,7 +103,7 @@ sql:
     total_received_fiat: "SELECT SUM(fiat_val) AS total_fiat FROM t_action WHERE type='givetip' AND state='completed' AND to_user=? AND fiat=?"
     total_received_coin: "SELECT SUM(coin_val) AS total_coin FROM t_action WHERE type='givetip' AND state='completed' AND to_user=? AND coin=?"
   userhistory: 
-    sql: "SELECT type, state, from_user, to_user, created_utc, to_addr, coin_val, coin, fiat_val, fiat, subreddit FROM t_action WHERE type IN ('givetip', 'redeem', 'withdraw') AND (from_user=? OR to_user=?) ORDER BY created_utc DESC LIMIT ?"
+    sql: "SELECT created_utc, type, state, from_user, to_user, to_addr, coin_val, coin, txid FROM t_action WHERE type IN ('givetip', 'redeem', 'withdraw') AND (from_user=? OR to_user=?) ORDER BY created_utc DESC LIMIT ?"
     limit: 1
   tips:
     sql_set: "SET @rank=0"
