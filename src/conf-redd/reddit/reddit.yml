@@ -1,6 +1,6 @@
 auth:
     user: 'itipyou'
-    password: 'phd51blognewstarttip'
+    password: ''
 
 scan:
     batch_limit: 1000
