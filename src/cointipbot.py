@@ -390,6 +390,8 @@ class CointipBot(object):
                     lg.debug("CointipBot::main(): sleeping for %s seconds...", self.conf.misc.times.sleep_seconds)
                     time.sleep(self.conf.misc.times.sleep_seconds)
 
+            except KeyboardInterrupt as e:
+                sys.exit(1)
             except Exception as e:
                 lg.error("CointipBot::main(): exception: %s", e)
                 tb = traceback.format_exc()
@@ -397,4 +399,3 @@ class CointipBot(object):
                 # Send a notification, if enabled
                 if self.conf.misc.notify.enabled:
                     self.notify(_msg=tb)
-                sys.exit(1)
