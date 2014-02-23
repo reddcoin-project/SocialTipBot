@@ -1152,7 +1152,7 @@ def check_action(atype=None, state=None, coin=None, msg_id=None, created_utc=Non
     lg.debug("> check_action(%s)", atype)
 
     # Build SQL query
-    sql = "SELECT * FROM t_action"
+    sql = "SELECT COUNT(*) FROM t_action"
     sql_terms = []
     if atype or state or coin or msg_id or created_utc or from_user or to_user or subr or is_pending:
         sql += " WHERE "
@@ -1178,8 +1178,8 @@ def check_action(atype=None, state=None, coin=None, msg_id=None, created_utc=Non
 
     try:
         lg.debug("check_action(): <%s>", sql)
-        sqlexec = ctb.db.execute(sql)
-        if sqlexec.rowcount <= 0:
+        sqlexec = ctb.db.execute(sql).fetchone()
+        if sqlexec[0] <= 0:
             lg.debug("< check_action() DONE (no)")
             return False
         else:
@@ -1229,9 +1229,10 @@ def get_actions(atype=None, state=None, coin=None, msg_id=None, created_utc=None
             lg.debug("get_actions(): <%s>", sql)
             sqlexec = ctb.db.execute(sql)
 
-            if sqlexec.rowcount <= 0:
-                lg.debug("< get_actions() DONE (no)")
-                return r
+            # rowcount is very flaky
+            # if sqlexec.rowcount <= 0:
+            #     lg.debug("< get_actions() DONE (no)")
+            #     return r
 
             for m in sqlexec:
                 lg.debug("get_actions(): found %s / %s", m['msg_link'], m['msg_id'])
@@ -1265,7 +1266,11 @@ def get_actions(atype=None, state=None, coin=None, msg_id=None, created_utc=None
                                    ctb=ctb,
                                    msg_id=m['msg_id']))
 
-            lg.debug("< get_actions() DONE (yes)")
+            if len(r) > 0:
+                lg.debug("< get_actions() DONE (yes)")
+            else:
+                lg.debug("< get_actions() DONE (no)")
+
             return r
 
         except Exception as e:
