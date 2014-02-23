@@ -8,11 +8,11 @@ backup:
 qr_service_url: 'https://chart.googleapis.com/chart?cht=qr&choe=UTF-8&chs=300x300&chl='
 
 notify:
-    enabled: false
-    addr_from: 'user@example.com'
-    addr_to: 'you@example.com'
-    subject: 'ALTcointip error'
+    enabled: true
+    addr_from: 'reddtipbot@gmail.com'
+    addr_to: 'reddtipbot@gmail.com'
+    subject: 'Reddcoin Tipbot error'
     smtp_host: 'smtp.gmail.com:587'
     smtp_tls: true
-    smtp_username: 'user@example.com'
-    smtp_password: 'examplePass'
+    smtp_username: 'reddtipbot@gmail.com'
+    smtp_password: 'phd51blognewstarttipg'
