@@ -271,42 +271,27 @@ class CtbAction(object):
             self.fiatval = 0.0
 
         conn = self.ctb.db
-        sql = "INSERT INTO t_action (type, state, created_utc, from_user, to_user, to_addr, coin_val, fiat_val, txid, coin, fiat, subreddit, msg_id, msg_link) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-
+        sql = "INSERT INTO t_action (type, state, created_utc, from_user, to_user, to_addr, coin_val, fiat_val, txid, coin, fiat, subreddit, msg_id, msg_link) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        sql = sql % (self.type,
+                     state,
+                     self.msg.created_utc,
+                     self.u_from.name.lower(),
+                     self.u_to.name.lower() if self.u_to else None,
+                     self.addr_to,
+                     self.coinval,
+                     self.fiatval,
+                     self.txid,
+                     self.coin,
+                     self.fiat,
+                     self.subreddit,
+                     self.msg.id,
+                     self.msg.permalink if hasattr(self.msg, 'permalink') else None)
         try:
-            sqlexec = conn.execute(sql,
-                                   [self.type,
-                                    state,
-                                    self.msg.created_utc,
-                                    self.u_from.name.lower(),
-                                    self.u_to.name.lower() if self.u_to else None,
-                                    self.addr_to,
-                                    self.coinval,
-                                    self.fiatval,
-                                    self.txid,
-                                    self.coin,
-                                    self.fiat,
-                                    self.subreddit,
-                                    self.msg.id,
-                                    self.msg.permalink if hasattr(self.msg, 'permalink') else None])
+            sqlexec = conn.execute(sql)
             if sqlexec.rowcount <= 0:
                 raise Exception("query didn't affect any rows")
         except Exception as e:
-            lg.error("CtbAction::save(%s): error executing query <%s>: %s", state, sql % (
-                self.type,
-                state,
-                self.msg.created_utc,
-                self.u_from.name.lower(),
-                self.u_to.name.lower() if self.u_to else None,
-                self.addr_to,
-                self.coinval,
-                self.fiatval,
-                self.txid,
-                self.coin,
-                self.fiat,
-                self.subreddit,
-                self.msg.id,
-                self.msg.permalink if hasattr(self.msg, 'permalink') else None), e)
+            lg.error("CtbAction::save(%s): error executing query <%s>: %s", state, sql, e)
             raise
 
         lg.debug("< CtbAction::save() DONE")
