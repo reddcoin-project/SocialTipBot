@@ -202,7 +202,7 @@ actions:
         enabled: true
         public: false
         simple: true
-        regex: '(\+)(info|balance)'
+        regex: '(\+)(info|balance|account)'
     register:
         enabled: true
         public: false
