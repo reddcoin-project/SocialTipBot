@@ -271,6 +271,11 @@ actions:
                 rg_to_user: 0
                 rg_coin: 9
                 rg_fiat: 6
+    help:
+        enabled: true
+        public: false
+        simple: true
+        regex: '(\+)(help)'
     history:
         enabled: true
         public: false

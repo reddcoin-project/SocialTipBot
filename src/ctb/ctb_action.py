@@ -35,7 +35,7 @@ class CtbAction(object):
     Action class for cointip bot
     """
 
-    type = None           # 'accept', 'decline', 'history', 'info', 'register', 'givetip', 'withdraw', 'rates'
+    type = None           # 'accept', 'decline', 'help',  'history', 'info', 'register', 'givetip', 'withdraw', 'rates'
     state = None          # 'completed', 'pending', 'failed', 'declined'
     txid = None           # cryptocoin transaction id, a 64-char string, if applicable
 
@@ -323,6 +323,9 @@ class CtbAction(object):
                 ctb_stats.update_user_stats(ctb=self.ctb, username=self.u_to.name)
             return result
 
+        if self.type == 'help':
+            return self.help()
+
         if self.type == 'history':
             return self.history()
 
@@ -340,6 +343,22 @@ class CtbAction(object):
 
         lg.debug("< CtbAction::do() DONE")
         return None
+
+    def help(self):
+        """
+        Provide user with command help
+        """
+        lg.debug("> CtbAction::help()")
+
+        # Send message to user
+        msg = self.ctb.jenv.get_template('help.tpl').render()
+        lg.debug("CtbAction::help(): %s", msg)
+        self.ctb.network.reply_msg(msg, self.msg)
+        # Save as completed
+        self.save('completed')
+
+        lg.debug("< CtbAction::help() DONE")
+        return True
 
     def history(self):
         """
@@ -894,7 +913,7 @@ def init_regex(ctb):
     for a in vars(actions):
         if actions[a].simple:
 
-            # Add simple message actions (info, register, accept, decline, history, rates)
+            # Add simple message actions (info, register, accept, decline, help, history, rates)
 
             entry = ctb_misc.DotDict(
                 {'regex': actions[a].regex,
