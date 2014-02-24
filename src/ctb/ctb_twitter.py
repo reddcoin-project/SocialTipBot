@@ -121,18 +121,21 @@ class TwitterStreamer(TwythonStreamer):
             actions = [actions]
 
         for action in actions:
-            # Perform action, if found
             if action:
-                lg.info("TwitterNetwork::check_mentions(): %s from %s", action.type, action.u_from.name)
-                lg.debug("TwitterNetwork::check_mentions(): comment body: <%s>", action.msg.body)
+                lg.info("TwitterStreamer::on_success(): %s from %s", action.type, action.u_from.name)
+                lg.debug("TwitterStreamer::on_success(): comment body: <%s>", action.msg.body)
                 action.do()
 
     def on_error(self, status_code, data):
         print status_code
-        self.follow_followers()
 
     def on_timeout(self):
-        pass
+        actions = self.follow_followers()
+        for action in actions:
+            if action:
+                lg.info("TwitterStreamer::on_timeout(): %s from %s", action.type, action.u_from.name)
+                lg.debug("TwitterStreamer::on_timeout(): comment body: <%s>", action.msg.body)
+                action.do()
 
 
 class TwitterNetwork(CtbNetwork):
@@ -157,7 +160,7 @@ class TwitterNetwork(CtbNetwork):
 
         self.conn = Twython(self.app_key, self.app_secret, self.oauth_token, self.oauth_token_secret)
         self.stream = TwitterStreamer(self.app_key, self.app_secret, self.oauth_token, self.oauth_token_secret,
-                                      timeout=60)
+                                      timeout=30)
         self.conn.username = self.stream.username = self.user
         self.stream.conn = self.conn
         self.stream.ctb = self.ctb
@@ -210,7 +213,6 @@ class TwitterNetwork(CtbNetwork):
     def check_mentions(self, ctb):
         actions = self.stream.follow_followers()
         for action in actions:
-            # Perform action, if found
             if action:
                 lg.info("TwitterNetwork::check_mentions(): %s from %s", action.type, action.u_from.name)
                 lg.debug("TwitterNetwork::check_mentions(): comment body: <%s>", action.msg.body)
