@@ -69,7 +69,7 @@ class TwitterStreamer(TwythonStreamer):
 
     def _parse_mention(self, data):
         author_name = data['user']['screen_name']
-        if author_name == self.username:
+        if author_name == self.username or '@' + self.username not in data['text']:
             return None
 
         # we do allow the bot to issue commands
@@ -208,7 +208,14 @@ class TwitterNetwork(CtbNetwork):
             return True
 
     def check_mentions(self, ctb):
-        self.stream.follow_followers()
+        actions = self.stream.follow_followers()
+        for action in actions:
+            # Perform action, if found
+            if action:
+                lg.info("TwitterNetwork::check_mentions(): %s from %s", action.type, action.u_from.name)
+                lg.debug("TwitterNetwork::check_mentions(): comment body: <%s>", action.msg.body)
+                action.do()
+
         self.stream.user()
 
     def invite(self, user):
