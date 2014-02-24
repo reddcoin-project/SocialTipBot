@@ -157,16 +157,13 @@ class TwitterNetwork(CtbNetwork):
 
         self.conn = Twython(self.app_key, self.app_secret, self.oauth_token, self.oauth_token_secret)
         self.stream = TwitterStreamer(self.app_key, self.app_secret, self.oauth_token, self.oauth_token_secret,
-                                      timeout=86400)
+                                      timeout=60)
         self.conn.username = self.stream.username = self.user
         self.stream.conn = self.conn
         self.stream.ctb = self.ctb
 
         lg.info("TwitterNetwork::connect(): logged in to Twitter")
         return None
-
-    def init(self):
-        self.stream.follow_followers()
 
     def is_user_banned(self, user):
         return False
@@ -211,6 +208,7 @@ class TwitterNetwork(CtbNetwork):
             return True
 
     def check_mentions(self, ctb):
+        self.stream.follow_followers()
         self.stream.user()
 
     def invite(self, user):
