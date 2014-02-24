@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS `t_action` (
-  `type` varchar(30) CHECK(`type` IN ('givetip','withdraw','info','register','accept','decline','history','redeem','rates')) NOT NULL,
+  `type` varchar(30) CHECK(`type` IN ('givetip','withdraw','info','register','accept','decline','help','history','redeem','rates')) NOT NULL,
   `state` varchar(30) CHECK(`state` in ('completed','pending','failed','declined','expired')) NOT NULL,
   `created_utc` integer NOT NULL,
   `from_user` varchar(30) NOT NULL,
