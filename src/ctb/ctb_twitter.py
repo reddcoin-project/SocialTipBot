@@ -160,7 +160,7 @@ class TwitterNetwork(CtbNetwork):
 
         self.conn = Twython(self.app_key, self.app_secret, self.oauth_token, self.oauth_token_secret)
         self.stream = TwitterStreamer(self.app_key, self.app_secret, self.oauth_token, self.oauth_token_secret,
-                                      timeout=30)
+                                      timeout=30, retry_count=1000, retry_in=1)
         self.conn.username = self.stream.username = self.user
         self.stream.conn = self.conn
         self.stream.ctb = self.ctb
