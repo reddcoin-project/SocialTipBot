@@ -354,8 +354,6 @@ class CtbAction(object):
         msg = self.ctb.jenv.get_template('help.tpl').render()
         lg.debug("CtbAction::help(): %s", msg)
         self.ctb.network.reply_msg(msg, self.msg)
-        # Save as completed
-        self.save('completed')
 
         lg.debug("< CtbAction::help() DONE")
         return True
