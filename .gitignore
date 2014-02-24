@@ -41,3 +41,4 @@ db
 doc/.ipynb_checkpoints/*.*
 doc/*.html
 *.csv
+src/logs
