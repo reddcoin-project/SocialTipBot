@@ -10,24 +10,10 @@
 {%   set txid = "" %}
 {% endif %}
 {% if a.coinval: %}
-{%   if a.coinval < 0.0001 %}
-{%     set coin_amount = ( a.coinval * 100000000.0 ) %}
-{%     set amount_prefix_short = "s" %}
-{%     set amount_prefix_long = "satoshi" %}
-{%   elif a.coinval < 1.0 %}
-{%     set coin_amount = ( a.coinval * 1000.0 ) %}
-{%     set amount_prefix_short = "m" %}
-{%     set amount_prefix_long = "milli" %}
-{%   elif a.coinval >= 1000.0 %}
-{%     set coin_amount = ( a.coinval / 1000.0 ) %}
-{%     set amount_prefix_short = "K" %}
-{%     set amount_prefix_long = "kilo" %}
-{%   else %}
-{%     set coin_amount = a.coinval %}
-{%   endif %}
+{%   set coin_amount = a.coinval %}
 {%   set coin_name = ctb.conf.coins[a.coin].name %}
 {%   set coin_symbol = ctb.conf.coins[a.coin].symbol %}
-{%   set coin_amount_fmt = " %s%s%.6g %s%ss" % (amount_prefix_short, coin_symbol, coin_amount, amount_prefix_long, coin_name) %}
+{%   set coin_amount_fmt = " %s%.6g %ss" % (coin_symbol, coin_amount, coin_name) %}
 {% endif %}
 {% if a.type == 'givetip' and a.keyword and ctb.conf.keywords[a.keyword].message %}
 {%   set txt = ctb.conf.keywords[a.keyword].message %}

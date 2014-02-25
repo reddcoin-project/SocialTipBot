@@ -272,8 +272,8 @@ class CointipBot(object):
         """
         try:
             # value = self.runtime['ev'][_coin]['btc'] * self.runtime['ev']['btc'][_fiat]
-            # hardcode for now: TO THE MARS!
-            value = 1
+            # hardcode for now
+            value = 0.01
         except KeyError:
             lg.warning("CointipBot::coin_value(%s, %s): KeyError", _coin, _fiat)
             value = 0.00

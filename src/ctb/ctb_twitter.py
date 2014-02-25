@@ -57,6 +57,8 @@ class TwitterStreamer(TwythonStreamer):
                    'author': {'name': resp['screen_name']},
                    'body': '+register',
                    'type': 'mention'}
+            # make the msg id unique
+            msg['id'] += ('@' + str(msg['created_utc']))
 
             action = ctb_action.eval_message(ctb_misc.DotDict(msg), self.ctb)
             actions.append(action)
