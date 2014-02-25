@@ -40,3 +40,4 @@ conf
 db
 doc/.ipynb_checkpoints/*.*
 *.csv
+src/logs
