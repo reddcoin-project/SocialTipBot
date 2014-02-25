@@ -75,10 +75,10 @@ class TwitterStreamer(TwythonStreamer):
             return None
 
         # we do allow the bot to issue commands
-        msg = {'id': str(data['id']),
-               'created_utc': self._timestamp_utc(data['created_at']),
+        msg = {'created_utc': self._timestamp_utc(data['created_at']),
                'author': {'name': author_name},
                'type': 'mention'}
+        msg['id'] = str(data['id'] + msg['created_utc'])
 
         text = data['text']
         msg['body'] = text.replace('@' + self.username, '').strip()
@@ -93,10 +93,10 @@ class TwitterStreamer(TwythonStreamer):
         if author_name == self.username:
             return None
 
-        msg = {'id': str(data['id']),
-               'created_utc': self._timestamp_utc(data['created_at']),
+        msg = {'created_utc': self._timestamp_utc(data['created_at']),
                'author': {'name': author_name},
                'type': 'direct_message'}
+        msg['id'] = str(data['id'] + msg['created_utc'])
 
         text = data['text']
         msg['body'] = text.replace('@' + self.username, '').strip()
