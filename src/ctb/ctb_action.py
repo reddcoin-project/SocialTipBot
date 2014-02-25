@@ -824,7 +824,7 @@ class CtbAction(object):
             lg.debug("CtbAction::register(%s): user already exists", self.u_from.name)
             msg = self.ctb.jenv.get_template('already-registered.tpl').render(a=self, ctb=self.ctb)
             self.ctb.network.reply_msg(msg, self.msg)
-            self.save('failed')
+            # self.save('failed')
             return False
 
         result = self.u_from.register()
