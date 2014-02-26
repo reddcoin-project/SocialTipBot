@@ -505,8 +505,7 @@ class CtbAction(object):
         ctb_stats.update_user_stats(ctb=self.ctb, username=self.u_to.name)
 
         # Respond to tip comment
-        msg = self.ctb.jenv.get_template('confirmation.tpl').render(title='Expired', a=self, ctb=self.ctb,
-                                                                    source_link=self.msg.permalink if self.msg else None)
+        msg = self.ctb.jenv.get_template('confirmation.tpl').render(title='Expired', a=self, ctb=self.ctb, expired=True)
         lg.debug("CtbAction::expire(): " + msg)
         if self.ctb.network.conf.messages.expired:
             if not self.ctb.network.reply_msg(msg, self.msg):
