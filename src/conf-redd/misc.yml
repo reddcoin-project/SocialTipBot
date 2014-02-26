@@ -1,6 +1,6 @@
 times:
     sleep_seconds: 60
-    expire_pending_hours: 24
+    expire_pending_hours: 48
 
 backup:
     encryptionpassphrase: ''
