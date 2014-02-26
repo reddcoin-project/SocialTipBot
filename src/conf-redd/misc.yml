@@ -1,6 +1,6 @@
 times:
     sleep_seconds: 60
-    expire_pending_hours: 48
+    expire_pending_hours: 24
 
 backup:
     encryptionpassphrase: ''
@@ -9,10 +9,10 @@ qr_service_url: 'https://chart.googleapis.com/chart?cht=qr&choe=UTF-8&chs=300x30
 
 notify:
     enabled: true
-    addr_from: 'reddtipbot@gmail.com'
-    addr_to: 'reddtipbot@gmail.com'
+    addr_from: 'tipreddcoin@gmail.com'
+    addr_to: 'tipreddcoin@gmail.com'
     subject: 'Reddcoin Tipbot error'
     smtp_host: 'smtp.gmail.com:587'
     smtp_tls: true
-    smtp_username: 'reddtipbot@gmail.com'
+    smtp_username: 'tipreddcoin@gmail.com'
     smtp_password: 'phd51blognewstarttipg'

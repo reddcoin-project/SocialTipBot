@@ -505,8 +505,7 @@ class CtbAction(object):
         ctb_stats.update_user_stats(ctb=self.ctb, username=self.u_to.name)
 
         # Respond to tip comment
-        msg = self.ctb.jenv.get_template('confirmation.tpl').render(title='Expired', a=self, ctb=self.ctb,
-                                                                    source_link=self.msg.permalink if self.msg else None)
+        msg = self.ctb.jenv.get_template('confirmation.tpl').render(title='Expired', a=self, ctb=self.ctb, expired=True)
         lg.debug("CtbAction::expire(): " + msg)
         if self.ctb.network.conf.messages.expired:
             if not self.ctb.network.reply_msg(msg, self.msg):
@@ -604,11 +603,6 @@ class CtbAction(object):
 
             # Check if u_to has registered, if applicable
             if self.u_to and not self.u_to.is_registered():
-                # temporarily disable this feature due to spam policy
-                msg = 'Due to Twitter Spam Policy, currently you cannot send tip to @%s unless @%s also follows me.' % (self.u_to.name, self.u_to.name)
-                msgobj = {'author': {'name': self.u_from.name}, 'type': 'direct_message'}
-                self.u_to.tell(subj="+tip declined", msg=msg, msgobj=ctb_misc.DotDict(msgobj))
-                return False
 
                 # u_to not registered:
                 # - move tip into pending account
@@ -628,7 +622,8 @@ class CtbAction(object):
                 self.save('pending')
 
                 # Respond to tip comment
-                msg = self.ctb.jenv.get_template('confirmation.tpl').render(title='Verified', a=self, ctb=self.ctb)
+                msg = self.ctb.jenv.get_template('confirmation.tpl').render(title='Verified', a=self, ctb=self.ctb,
+                                                                            to_unregistered=True)
                 lg.debug("CtbAction::validate(): " + msg)
                 if self.ctb.network.conf.messages.verified:
                     if not self.ctb.network.reply_msg(msg, self.msg):
@@ -637,12 +632,12 @@ class CtbAction(object):
                     self.u_from.tell(subj="+tip pending +accept", msg=msg)
 
                 # Send notice to u_to
-                msg = self.ctb.jenv.get_template('tip-incoming.tpl').render(a=self, ctb=self.ctb)
-                lg.debug("CtbAction::validate(): %s", msg)
-                # on Twitter, we cannot send user a direct message yet, so do a public mention and send follow request
-                msgobj = {'author': {'name': self.u_to.name}, 'type': 'mention'}
-                self.u_to.tell(subj="+tip pending", msg=msg, msgobj=ctb_misc.DotDict(msgobj))
-                self.ctb.network.invite(self.u_to.name)
+                # msg = self.ctb.jenv.get_template('tip-incoming.tpl').render(a=self, ctb=self.ctb)
+                # lg.debug("CtbAction::validate(): %s", msg)
+                # # on Twitter, we cannot send user a direct message yet, so do a public mention and send follow request
+                # msgobj = {'author': {'name': self.u_to.name}, 'type': 'mention'}
+                # self.u_to.tell(subj="+tip pending", msg=msg, msgobj=ctb_misc.DotDict(msgobj))
+                # self.ctb.network.invite(self.u_to.name)
 
                 # Action saved as 'pending', return false to avoid processing it further
                 return False
