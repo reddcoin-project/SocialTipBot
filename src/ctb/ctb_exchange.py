@@ -30,12 +30,11 @@ class CtbExchange(object):
     def __init__(self, _conf=None):
         """
         Initialize CtbExchange with given parameters.
-            _conf is an exchange config dictionary defind in conf/exchanges.yml
+            _conf is an exchange config dictionary defined in conf/exchanges.yml
         """
 
-        if not _conf or not hasattr(_conf, 'urlpaths') or not hasattr(_conf, 'jsonpaths') or not hasattr(_conf,
-                                                                                                         'coinlist') or not hasattr(
-                _conf, 'fiatlist'):
+        if not _conf or not hasattr(_conf, 'urlpaths') or not hasattr(_conf, 'jsonpaths') or \
+                not hasattr(_conf, 'coinlist') or not hasattr(_conf, 'fiatlist'):
             raise Exception("CtbExchange::__init__(): _conf is empty or invalid")
 
         self.conf = _conf
