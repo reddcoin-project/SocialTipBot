@@ -605,7 +605,7 @@ class CtbAction(object):
             # Check if u_to has registered, if applicable
             if self.u_to and not self.u_to.is_registered():
                 # temporarily disable this feature due to spam policy
-                msg = 'Currently you cannot send tip to %s unless %s follows me, due to Twitter Spam Policy.' % (u_to.name, u_to.name)
+                msg = 'Currently you cannot send tip to %s unless %s follows me, due to Twitter Spam Policy.' % (self.u_to.name, self.u_to.name)
                 msgobj = {'author': {'name': self.u_from.name}, 'type': 'direct_message'}
                 self.u_to.tell(subj="+tip declined", msg=msg, msgobj=ctb_misc.DotDict(msgobj))
                 return False
