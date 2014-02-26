@@ -1,9 +1,9 @@
 auth:
-    user: 'itipyou'
-    app_key: 'oEmuw7DXPCAnucHW19KNXw'
-    app_secret: 'scrPYqPCNZEcjyLNAfTrZqa87jwdgfQT3pA003OYJ0'
-    oauth_token: '2352146539-h0227lcGuBEyzIhnIT8kl0k9pFRhfx2Bb1OP6ey'
-    oauth_token_secret: 'iUl0fs8sQnvSXIt2I8mReW1VL2fJuePesMiD10pEsbwMq'
+    user: 'tipreddcoin'
+    app_key: '9HDzugNwT22Xlcw0EGQfg'
+    app_secret: '8OjJWIdIpErtBd8RcYAhwt9kixoIfOPA1GiM6mf0M'
+    oauth_token: '2357688096-NtaUt52rHmqCCX2hz9t1gEcTjMnEbsvdX0pRZqp'
+    oauth_token_secret: 'TjUHsf68MWCRzCtjjhB05S6OEdCjPMQIU00rL8dH0SH5a'
 
 help:
     enabled: true
@@ -22,7 +22,7 @@ messages:
 
 banned_users:
     method: list
-    list: ['reddtipbot', 'bitcointip', 'altcointip', 'dogetipbot', 'itipyou']
+    list: ['bitcointip', 'altcointip', 'dogetipbot', 'tipdoge']
 
 stats:
     enabled: false
