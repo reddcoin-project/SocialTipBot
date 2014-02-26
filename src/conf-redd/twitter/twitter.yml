@@ -22,7 +22,7 @@ messages:
 
 banned_users:
     method: list
-    list: ['reddtipbot', 'bitcointip', 'altcointip', 'dogetipbot', 'itipyou']
+    list: ['reddtipbot', 'bitcointip', 'altcointip', 'dogetipbot', 'itipyou', 'tipdoge]
 
 stats:
     enabled: false
