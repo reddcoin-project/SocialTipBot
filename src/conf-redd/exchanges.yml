@@ -1,5 +1,5 @@
 poloniex:
-    enabled: true
+    enabled: false
     domain: 'poloniex.com'
     https: true
     urlpaths: ['/public?command=returnOrderBook&currencyPair={THING_TO}_{THING_FROM}']
@@ -10,11 +10,11 @@ poloniex:
 
 
 cryptorush:
-    enabled: false
+    enabled: true
     domain: 'cryptorush.in'
     https: true
     urlpaths: ['/api.php?get=marketv2&m={THING_FROM}&b={THING_TO}&key=66bd832e72fdcbc35f77970715765571a745e5c9&id=laudney&json=true']
-    jsonpaths: ['price']
+    jsonpaths: ['{THING_FROM}/{THING_TO}.current_bid', '{THING_FROM}/{THING_TO}.current_ask']
     coinlist: ['btc','rdd']
     fiatlist: []
-    uppercase: false
+    uppercase: true

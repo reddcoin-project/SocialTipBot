@@ -282,7 +282,7 @@ actions:
         simple: true
         regex: '(\+)(history)'
     rates:
-        enabled: false
+        enabled: true
         public: false
         simple: true
         regex: '(\+)(rates)'
