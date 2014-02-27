@@ -351,7 +351,7 @@ class CtbAction(object):
         lg.debug("> CtbAction::help()")
 
         # Send message to user
-        msg = self.ctb.jenv.get_template('help.tpl').render()
+        msg = self.ctb.jenv.get_template('help.tpl').render(a=self)
         lg.debug("CtbAction::help(): %s", msg)
         self.ctb.network.reply_msg(msg, self.msg)
 
