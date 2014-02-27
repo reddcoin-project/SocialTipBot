@@ -1,3 +1,4 @@
+{{ '@' + a.u_from.name }}
 +register
 +info|balance|account
 +history

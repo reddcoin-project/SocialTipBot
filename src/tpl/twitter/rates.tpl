@@ -1,3 +1,4 @@
+{{ '@' + a.u_from.name }}
 {% for c in coins %}
 {{ "%s/BTC:" % c.upper() }}
 {%   for e in exchanges %}
