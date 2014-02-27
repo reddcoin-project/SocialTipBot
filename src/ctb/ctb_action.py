@@ -832,14 +832,21 @@ class CtbAction(object):
 
         # Save action to database
         if result:
-            self.save('completed')
-        else:
-            self.save('failed')
+            # Get pending actions
+            actions = get_actions(atype='givetip', to_user=self.u_from.name, state='pending', ctb=self.ctb)
+            if actions:
+                # Accept each action
+                for a in actions:
+                    a.givetip(is_pending=True)
+                    # Update u_from (tip action) stats
+                    ctb_stats.update_user_stats(ctb=a.ctb, username=a.u_from.name)
 
-        # Send welcome message to user
-        if result:
+            self.save('completed')
+            # Send welcome message to user
             msg = self.ctb.jenv.get_template('welcome.tpl').render(a=self, ctb=self.ctb)
             self.ctb.network.reply_msg(msg, self.msg)
+        else:
+            self.save('failed')
 
         lg.debug("< CtbAction::register() DONE")
         return result
