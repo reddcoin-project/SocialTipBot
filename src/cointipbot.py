@@ -298,7 +298,7 @@ class CointipBot(object):
         server.sendmail(self.conf.misc.notify.addr_from, self.conf.misc.notify.addr_to, msg.as_string())
         server.quit()
 
-    def __init__(self, self_checks=True, init_coins=True, init_db=True, init_logging=True, init_exchanges=False,
+    def __init__(self, self_checks=True, init_coins=True, init_db=True, init_logging=True, init_exchanges=True,
                  init_reddit=False, init_twitter=True):
         """
         Constructor. Parses configuration file and initializes bot.
