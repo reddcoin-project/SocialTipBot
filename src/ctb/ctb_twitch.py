@@ -1,89 +1,147 @@
-__author__ = 'bren'
+from irc.dict import IRCDict
+from irc.client import SimpleIRCClient
+from irc.bot import Channel, ServerSpec
 
 
-"""A simple example bot.
+class TwitchChatBot(SimpleIRCClient):
+    """A single-server IRC bot class.
 
-This is an example bot that uses the SingleServerIRCBot class from
-irc.bot.  The bot enters a channel and listens for commands in
-private messages and channel traffic.  Commands in channel messages
-are given by prefixing the text by the bot name followed by a colon.
-It also responds to DCC CHAT invitations and echos data sent in such
-sessions.
+    The bot tries to reconnect if it is disconnected.
 
-The known commands are:
+    The bot keeps track of the channels it has joined, the other
+    clients that are present in the channels and which of those that
+    have operator or voice modes.  The "database" is kept in the
+    self.channels attribute, which is an IRCDict of Channels.
+    """
 
-    stats -- Prints some channel information.
+    def __init__(self, server_list, channel_list, nickname, reconnection_interval=5, **connect_params):
+        """Constructor for SingleServerIRCBot objects.
 
-    disconnect -- Disconnect the bot.  The bot will try to reconnect
-                  after 60 seconds.
+        Arguments:
 
-    die -- Let the bot cease to exist.
-"""
+            server_list -- A list of ServerSpec objects or tuples of
+                           parameters suitable for constructing ServerSpec
+                           objects. Defines the list of servers the bot will
+                           use (in order).
 
-import irc.bot
-import irc.strings
+            channel_list -- A list of channel names to join
 
+            nickname -- The bot's nickname.
 
-class TestBot(irc.bot.SingleServerIRCBot):
-    def __init__(self, channel, nickname, password, server, port=6667):
-        irc.bot.SingleServerIRCBot.__init__(self, [(server, port, password)], nickname, nickname)
-        self.channel = channel
+            reconnection_interval -- How long the bot should wait
+                                     before trying to reconnect.
+
+            **connect_params -- parameters to pass through to the connect
+                                method.
+        """
+
+        super(TwitchChatBot, self).__init__()
+        self.nickname = nickname
+        self.__connect_params = connect_params
+
+        self.channels = IRCDict()
+        self.channel_list = channel_list
+
+        self.server_list = [
+            ServerSpec(*server) if isinstance(server, (tuple, list)) else server for server in server_list
+        ]
+        assert all(isinstance(server, ServerSpec) for server in self.server_list)
+
+        if not reconnection_interval or reconnection_interval < 0:
+            reconnection_interval = 2 ** 31
+        self.reconnection_interval = reconnection_interval
+
+    def _connected_checker(self):
+        if not self.connection.is_connected():
+            self.connection.execute_delayed(self.reconnection_interval,
+                                            self._connected_checker)
+            self.jump_server()
+
+    def _connect(self):
+        server = self.server_list[0]
+        try:
+            self.connect(server.host, server.port, self.nickname, server.password,
+                         ircname=self.nickname, **self.__connect_params)
+        except irc.client.ServerConnectionError:
+            pass
+
+    def on_disconnect(self, c, e):
+        self.channels = IRCDict()
+        self.connection.execute_delayed(self.reconnection_interval,
+                                        self._connected_checker)
+
+    def on_join(self, c, e):
+        ch = e.target
+        nick = e.source.nick
+        if nick == c.get_nickname():
+            self.channels[ch] = Channel()
+        self.channels[ch].add_user(nick)
+        print '%s ====>> %s' % (nick, ch)
+
+    def on_part(self, c, e):
+        ch = e.target
+        nick = e.source.nick
+        print '%s <<<<== %s' % (nick, ch)
+        if nick == c.get_nickname():
+            del self.channels[ch]
+        else:
+            self.channels[ch].remove_user(nick)
+
+    def on_nick(self, c, e):
+        before = e.source.nick
+        after = e.target
+        for ch in self.channels.values():
+            if ch.has_user(before):
+                ch.change_nick(before, after)
+                print '%s changed nickname to %s' % (before, after)
 
     def on_nicknameinuse(self, c, e):
         c.nick(c.get_nickname() + "_")
 
     def on_welcome(self, c, e):
-        c.join(self.channel)
+        for ch in self.channel_list:
+            c.join(ch)
 
     def on_privmsg(self, c, e):
-        self.do_command(e, e.arguments[0])
+        print 'privmsg: %s' % ' '.join(e.arguments)
 
     def on_pubmsg(self, c, e):
-        a = e.arguments[0].split(":", 1)
-        if len(a) > 1 and irc.strings.lower(a[0]) == irc.strings.lower(self.connection.get_nickname()):
-            self.do_command(e, a[1].strip())
-        return
+        print 'pubmsg: %s' % ' '.join(e.arguments)
 
-    def on_dccmsg(self, c, e):
-        pass
+    def disconnect(self, msg="disconnecting"):
+        """Disconnect the bot.
 
-    def on_dccchat(self, c, e):
-        pass
+        The bot will try to reconnect after a while.
 
-    def do_command(self, e, cmd):
-        nick = e.source.nick
-        c = self.connection
+        Arguments:
 
-        if cmd == "disconnect":
-            self.disconnect()
-        elif cmd == "die":
-            self.die()
-        elif cmd == "stats":
-            for chname, chobj in self.channels.items():
-                c.notice(nick, "--- Channel statistics ---")
-                c.notice(nick, "Channel: " + chname)
-                users = chobj.users()
-                users.sort()
-                c.notice(nick, "Users: " + ", ".join(users))
-                opers = chobj.opers()
-                opers.sort()
-                c.notice(nick, "Opers: " + ", ".join(opers))
-                voiced = chobj.voiced()
-                voiced.sort()
-                c.notice(nick, "Voiced: " + ", ".join(voiced))
-        else:
-            c.notice(nick, "Not understood: " + cmd)
+            msg -- Quit message.
+        """
+        self.connection.disconnect(msg)
+
+    def jump_server(self, msg="switching server"):
+        """Connect to a new server, possibly disconnecting from the current.
+
+        The bot will skip to next server in the server_list each time
+        jump_server is called.
+        """
+        if self.connection.is_connected():
+            self.connection.disconnect(msg)
+
+        self.server_list.append(self.server_list.pop(0))
+        self._connect()
+
+    def start(self):
+        self._connect()
+        super(TwitchChatBot, self).start()
 
 
-def main():
+if __name__ == "__main__":
     server = 'irc.twitch.tv'
     port = 6667
-    channel = 'tipredd'
+    ch = '#reynad27'
     nickname = 'tipreddcoin'
     password = 'oauth:pi5oz89kcioi5650yo1qeo5xwppawq3'
 
-    bot = TestBot(channel, nickname, password, server, port)
+    bot = TwitchChatBot([(server, port, password)], [ch], nickname)
     bot.start()
-
-if __name__ == "__main__":
-    main()
