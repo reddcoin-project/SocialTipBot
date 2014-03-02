@@ -85,12 +85,12 @@ class TwitchChatBot(SimpleIRCClient):
         if nick == c.get_nickname():
             self.channels[ch] = Channel()
         self.channels[ch].add_user(nick)
-        print '%s ====>> %s' % (nick, ch)
+        lg.debug('TwitchChatBot::on_join: %s =====>>> %s', nick, ch)
 
     def on_part(self, c, e):
         ch = e.target
         nick = e.source.nick
-        print '%s <<<<== %s' % (nick, ch)
+        lg.debug('TwitchChatBot::on_part: %s <<<===== %s', nick, ch)
         if nick == c.get_nickname():
             del self.channels[ch]
         else:
