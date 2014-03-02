@@ -1,0 +1,1 @@
+{{ '@' + user_from }}, your pending tips have been declined.

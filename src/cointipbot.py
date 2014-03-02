@@ -19,6 +19,7 @@
 from ctb import ctb_action, ctb_coin, ctb_db, ctb_exchange, ctb_log, ctb_misc, ctb_user
 from ctb.ctb_network import RedditNetwork
 from ctb.ctb_twitter import TwitterNetwork
+from ctb.ctb_twitch import TwitchNetwork
 
 import logging
 import smtplib
@@ -96,7 +97,7 @@ class CointipBot(object):
                 lg.debug("CointipBot::parse_config(): reading %s", f)
                 conf[f.split('.')[0]] = yaml.load(open(path))
 
-            for folder in ['reddit', 'twitter']:
+            for folder in ['reddit', 'twitter', 'twitch']:
                 conf[folder] = {}
                 for path in glob.glob(prefix + folder + '/*.yml'):
                     f = ntpath.basename(path)
@@ -298,8 +299,8 @@ class CointipBot(object):
         server.sendmail(self.conf.misc.notify.addr_from, self.conf.misc.notify.addr_to, msg.as_string())
         server.quit()
 
-    def __init__(self, self_checks=True, init_coins=True, init_db=True, init_logging=True, init_exchanges=True,
-                 init_reddit=False, init_twitter=True):
+    def __init__(self, self_checks=True, init_coins=True, init_db=True, init_logging=True, init_exchanges=False,
+                 init_reddit=False, init_twitter=True, init_twitch=False):
         """
         Constructor. Parses configuration file and initializes bot.
         """
@@ -334,6 +335,10 @@ class CointipBot(object):
             self.conf.network = self.conf.twitter.twitter
             self.conf.regex = self.conf.twitter.regex
             self.network = TwitterNetwork(self.conf.network, self)
+        elif init_twitch:
+            self.conf.network = self.conf.twitch.twitch
+            self.conf.regex = self.conf.twitch.regex
+            self.network = TwitchNetwork(self.conf.network, self)
 
         ctb_action.init_regex(self)
         self.network.connect()
@@ -386,7 +391,7 @@ class CointipBot(object):
                 self.network.check_mentions(self)
 
                 # Sleep
-                if self.network.name != 'twitter':
+                if self.network.name == 'reddit':
                     lg.debug("CointipBot::main(): sleeping for %s seconds...", self.conf.misc.times.sleep_seconds)
                     time.sleep(self.conf.misc.times.sleep_seconds)
 

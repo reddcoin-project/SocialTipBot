@@ -9,12 +9,15 @@ from datetime import datetime
 from dateutil.parser import parse
 
 from irc.dict import IRCDict
-from irc.client import SimpleIRCClient
+from irc.client import SimpleIRCClient, ServerConnectionError
 from irc.bot import Channel, ServerSpec
 
 from ctb_network import CtbNetwork
 import ctb_action
 import ctb_misc
+
+
+lg = logging.getLogger('cointipbot')
 
 
 class TwitchChatBot(SimpleIRCClient):
@@ -68,7 +71,7 @@ class TwitchChatBot(SimpleIRCClient):
         try:
             self.connect(server.host, server.port, self.nickname, server.password,
                          ircname=self.nickname, **self.__connect_params)
-        except irc.client.ServerConnectionError:
+        except ServerConnectionError:
             pass
 
     def on_disconnect(self, c, e):
@@ -116,6 +119,8 @@ class TwitchChatBot(SimpleIRCClient):
         nick = e.source.nick
         text = ' '.join(e.arguments)
 
+        lg.debug('TwitchChatBot::on_pubmsg(): %s on %s: %s', nick, ch, text)
+
         # ignore my own message
         if nick == self.username:
             return None
@@ -130,14 +135,17 @@ class TwitchChatBot(SimpleIRCClient):
 
         now = datetime.utcnow().replace(tzinfo=pytz.utc)
         msg = {'created_utc': calendar.timegm(now.utctimetuple()),
-               'author': {'name': author_name},
+               'author': {'name': nick},
                'channel': e.target}
         msg['id'] = str(msg['created_utc'])
         msg['body'] = text
         print msg
 
         action = ctb_action.eval_message(ctb_misc.DotDict(msg), self.ctb)
-        return action
+        if action:
+            lg.info("TwitchChatBot::on_pubmsg(): %s from %s", action.type, action.u_from.name)
+            lg.debug("TwitchChatBot::on_pubmsg(): comment body: <%s>", action.msg.body)
+            action.do()
 
     def disconnect(self, msg="disconnecting"):
         self.connection.disconnect(msg)
@@ -183,6 +191,7 @@ class TwitchNetwork(CtbNetwork):
 
         self.conn = TwitchChatBot([(self.server, self.port, self.password)], self.channel_list, self.user)
         self.conn.username = self.user
+        self.conn.ctb = self.ctb
 
         lg.info('TwitchNetwork::connect(): connected to Twitch Chat IRC Server.')
         return None
@@ -195,8 +204,7 @@ class TwitchNetwork(CtbNetwork):
             if msgobj:
                 self.reply_msg(body, msgobj)
             else:
-                lg.debug("< TwitchNetwork::send_msg: sending direct message to %s: %s", user_to, body)
-                lg.debug("< TwitchNetwork::send_msg to %s DONE", user_to)
+                lg.debug("< TwitchNetwork::send_msg: missing channel when sending msg to %s: %s", user_to, body)
 
         except Exception as e:
             lg.error("TwitchNetwork::send_msg: exception: %s", e)
@@ -207,6 +215,8 @@ class TwitchNetwork(CtbNetwork):
             return True
 
     def reply_msg(self, body, msgobj):
+        # IRC PRIVMSG doesn't allow \n
+        body = body.replace('\n', ' ')
         try:
             if msgobj is None:
                 pass

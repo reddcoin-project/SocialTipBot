@@ -767,7 +767,7 @@ class CtbAction(object):
         # Check if user exists
         if not self.u_from.is_registered():
             msg = self.ctb.jenv.get_template('not-registered.tpl').render(a=self, ctb=self.ctb)
-            self.u_from.tell(subj="+info failed", msg=msg)
+            self.u_from.tell(subj="+info failed", msg=msg, msgobj=self.msg)
             return False
 
         # Info array to pass to template
