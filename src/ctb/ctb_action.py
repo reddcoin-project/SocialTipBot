@@ -1051,10 +1051,14 @@ def eval_message(msg, ctb):
 
             # Extract matched fields into variables
             u_from = msg.author
-            u_to = m.group(r.rg_to_user)[1:] if r.rg_to_user > 0 else msg['channel']
+            u_to = m.group(r.rg_to_user)[1:] if r.rg_to_user > 0 else None
             to_addr = m.group(r.rg_address) if r.rg_address > 0 else None
             amount = m.group(r.rg_amount) if r.rg_amount > 0 else None
             keyword = m.group(r.rg_keyword) if r.rg_keyword > 0 else None
+
+            # Twitch IRC specific
+            if u_to is None and hasattr(msg, 'channel'):
+                u_to = msg.channel[1:]
 
             # Ignore 'givetip' without u_to and without to_addr
             if r.action == 'givetip' and not u_to and not to_addr:
