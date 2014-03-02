@@ -1,21 +1,25 @@
+__author__ = 'laudney'
+
+import traceback
+import calendar
+import re
+import logging
+import pytz
+from datetime import datetime
+from dateutil.parser import parse
+
 from irc.dict import IRCDict
 from irc.client import SimpleIRCClient
 from irc.bot import Channel, ServerSpec
 
+from ctb_network import CtbNetwork
+import ctb_action
+import ctb_misc
+
 
 class TwitchChatBot(SimpleIRCClient):
-    """A single-server IRC bot class.
-
-    The bot tries to reconnect if it is disconnected.
-
-    The bot keeps track of the channels it has joined, the other
-    clients that are present in the channels and which of those that
-    have operator or voice modes.  The "database" is kept in the
-    self.channels attribute, which is an IRCDict of Channels.
-    """
-
     def __init__(self, server_list, channel_list, nickname, reconnection_interval=5, **connect_params):
-        """Constructor for SingleServerIRCBot objects.
+        """Constructor for TwitchChatBot objects.
 
         Arguments:
 
@@ -36,6 +40,8 @@ class TwitchChatBot(SimpleIRCClient):
         """
 
         super(TwitchChatBot, self).__init__()
+        self.connection.set_rate_limit(0.5)
+
         self.nickname = nickname
         self.__connect_params = connect_params
 
@@ -106,17 +112,34 @@ class TwitchChatBot(SimpleIRCClient):
         print 'privmsg: %s' % ' '.join(e.arguments)
 
     def on_pubmsg(self, c, e):
-        print 'pubmsg: %s' % ' '.join(e.arguments)
+        ch = e.target
+        nick = e.source.nick
+        text = ' '.join(e.arguments)
+
+        # ignore my own message
+        if nick == self.username:
+            return None
+
+        # for messages on my own channel, command must start with +
+        if ch == '#' + self.username and text[0] != '+':
+            return None
+
+        # for messages on other channels, command contain my name
+        if ch != '#' + self.username and '@' + self.username not in text:
+            return None
+
+        now = datetime.utcnow().replace(tzinfo=pytz.utc)
+        msg = {'created_utc': calendar.timegm(now.utctimetuple()),
+               'author': {'name': author_name},
+               'channel': e.target}
+        msg['id'] = str(msg['created_utc'])
+        msg['body'] = text
+        print msg
+
+        action = ctb_action.eval_message(ctb_misc.DotDict(msg), self.ctb)
+        return action
 
     def disconnect(self, msg="disconnecting"):
-        """Disconnect the bot.
-
-        The bot will try to reconnect after a while.
-
-        Arguments:
-
-            msg -- Quit message.
-        """
         self.connection.disconnect(msg)
 
     def jump_server(self, msg="switching server"):
@@ -131,15 +154,88 @@ class TwitchChatBot(SimpleIRCClient):
         self.server_list.append(self.server_list.pop(0))
         self._connect()
 
+    def send_msg(self, channel, msg):
+        self.connection.privmsg(channel, msg)
+
     def start(self):
         self._connect()
         super(TwitchChatBot, self).start()
 
 
+class TwitchNetwork(CtbNetwork):
+    def __init__(self, conf, ctb):
+        CtbNetwork.__init__(self, "twitch")
+        self.conf = conf
+        self.ctb = ctb
+        self.db = ctb.db
+        self.user = conf.auth.user
+        self.password = conf.auth.password
+        self.server = conf.auth.server
+        self.port = conf.auth.port
+        self.channel_list = conf.channels.list
+        self.conn = None
+
+    def connect(self):
+        """
+        Returns a Twitch Chat Bot object
+        """
+        lg.debug('TwitchNetwork::connect(): connecting to Twitch Chat IRC Server...')
+
+        self.conn = TwitchChatBot([(self.server, self.port, self.password)], self.channel_list, self.user)
+        self.conn.username = self.user
+
+        lg.info('TwitchNetwork::connect(): connected to Twitch Chat IRC Server.')
+        return None
+
+    def is_user_banned(self, user):
+        return False
+
+    def send_msg(self, user_to, subject, body, editor=None, msgobj=None):
+        try:
+            if msgobj:
+                self.reply_msg(body, msgobj)
+            else:
+                lg.debug("< TwitchNetwork::send_msg: sending direct message to %s: %s", user_to, body)
+                lg.debug("< TwitchNetwork::send_msg to %s DONE", user_to)
+
+        except Exception as e:
+            lg.error("TwitchNetwork::send_msg: exception: %s", e)
+            tb = traceback.format_exc()
+            lg.error("TwitchNetwork::send_msg: traceback: %s", tb)
+            return False
+        else:
+            return True
+
+    def reply_msg(self, body, msgobj):
+        try:
+            if msgobj is None:
+                pass
+            elif msgobj.channel:
+                lg.debug("< TwitchNetwork::reply_msg: sending message to %s on %s: %s",
+                         msgobj.author.name, msgobj.channel, body)
+                self.conn.send_msg(msgobj.channel, body)
+                lg.debug("< TwitchNetwork::reply_msg to %s on %s DONE", msgobj.author.name, msgobj.channel)
+            else:
+                s = "< TwitchNetwork::reply_msg: missing channel when sending message to %s: %s"
+                raise Exception(s % (msgobj.author.name, body))
+
+        except Exception as e:
+            lg.error("TwitchNetwork::reply_msg: exception: %s", e)
+            tb = traceback.format_exc()
+            lg.error("TwitchNetwork::reply_msg: traceback: %s", tb)
+            return False
+        else:
+            return True
+
+    def check_mentions(self, ctb):
+        lg.info("TwitchNetwork::check_mentions(): starting")
+        self.conn.start()
+
+
 if __name__ == "__main__":
     server = 'irc.twitch.tv'
     port = 6667
-    ch = '#reynad27'
+    ch = '#tipredd'
     nickname = 'tipreddcoin'
     password = 'oauth:pi5oz89kcioi5650yo1qeo5xwppawq3'
 

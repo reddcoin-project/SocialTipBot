@@ -4,6 +4,10 @@ auth:
     server: 'irc.twitch.tv'
     port: 6667
 
+channels:
+    method: list
+    list: ['#tipreddcoin', '#tipredd']
+
 help:
     enabled: true
     url: 'http://www.reddit.com/r/reddCoin/'
