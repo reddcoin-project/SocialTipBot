@@ -456,9 +456,9 @@ class CtbAction(object):
                 lg.debug("CtbAction::decline(): " + msg)
                 if self.ctb.network.conf.messages.declined:
                     if not self.ctb.network.praw_call(a.msg.reply, msg):
-                        a.u_from.tell(subj="+tip declined", msg=msg)
+                        a.u_from.tell(subj="+tip declined", msg=msg, msgobj=self.msg)
                 else:
-                    a.u_from.tell(subj="+tip declined", msg=msg)
+                    a.u_from.tell(subj="+tip declined", msg=msg, msgobj=self.msg)
 
             # Update u_from (decline action) stats
             ctb_stats.update_user_stats(ctb=self.ctb, username=self.u_from.name)
@@ -509,9 +509,9 @@ class CtbAction(object):
         lg.debug("CtbAction::expire(): " + msg)
         if self.ctb.network.conf.messages.expired:
             if not self.ctb.network.reply_msg(msg, self.msg):
-                self.u_from.tell(subj="+tip expired", msg=msg)
+                self.u_from.tell(subj="+tip expired", msg=msg, msgobj=self.msg)
         else:
-            self.u_from.tell(subj="+tip expired", msg=msg)
+            self.u_from.tell(subj="+tip expired", msg=msg, msgobj=self.msg)
 
         lg.debug("< CtbAction::expire() DONE")
         return True
@@ -527,14 +527,14 @@ class CtbAction(object):
             if not self.u_from.is_registered():
                 msg = self.ctb.jenv.get_template('not-registered.tpl').render(a=self, ctb=self.ctb)
                 lg.debug("CtbAction::validate(): %s", msg)
-                self.u_from.tell(subj="+tip failed", msg=msg)
+                self.u_from.tell(subj="+tip failed", msg=msg, msgobj=self.msg)
                 self.save('failed') if not is_pending else self.update('failed')
                 return False
 
             if self.u_to and not self.u_to.is_on_network(self.ctb.network.name):
                 msg = self.ctb.jenv.get_template('not-on-reddit.tpl').render(a=self, ctb=self.ctb)
                 lg.debug("CtbAction::validate(): %s", msg)
-                self.u_from.tell(subj="+tip failed", msg=msg)
+                self.u_from.tell(subj="+tip failed", msg=msg, msgobj=self.msg)
                 self.save('failed') if not is_pending else self.update('failed')
                 return False
 
@@ -542,7 +542,7 @@ class CtbAction(object):
             if not self.coin:
                 msg = self.ctb.jenv.get_template('no-coin-balances.tpl').render(a=self, ctb=self.ctb)
                 lg.debug("CtbAction::validate(): %s", msg)
-                self.u_from.tell(subj="+tip failed", msg=msg)
+                self.u_from.tell(subj="+tip failed", msg=msg, msgobj=self.msg)
                 self.save('failed') if not is_pending else self.update('failed')
                 return False
 
@@ -558,7 +558,7 @@ class CtbAction(object):
                 msg = self.ctb.jenv.get_template('tip-below-minimum.tpl').render(
                     min_value=self.ctb.conf.coins[self.coin].txmin[txkind], a=self, ctb=self.ctb)
                 lg.debug("CtbAction::validate(): " + msg)
-                self.u_from.tell(subj="+tip failed", msg=msg)
+                self.u_from.tell(subj="+tip failed", msg=msg, msgobj=self.msg)
                 self.save('failed') if not is_pending else self.update('failed')
                 return False
 
@@ -572,7 +572,7 @@ class CtbAction(object):
                                                                                    action_name='tip', a=self,
                                                                                    ctb=self.ctb)
                     lg.debug("CtbAction::validate(): " + msg)
-                    self.u_from.tell(subj="+tip failed", msg=msg)
+                    self.u_from.tell(subj="+tip failed", msg=msg, msgobj=self.msg)
                     self.save('failed') if not is_pending else self.update('failed')
                     return False
             elif self.addr_to:
@@ -586,7 +586,7 @@ class CtbAction(object):
                                                                                    action_name='withdraw', a=self,
                                                                                    ctb=self.ctb)
                     lg.debug("CtbAction::validate(): " + msg)
-                    self.u_from.tell(subj="+tip failed", msg=msg)
+                    self.u_from.tell(subj="+tip failed", msg=msg, msgobj=self.msg)
                     self.save('failed') if not is_pending else self.update('failed')
                     return False
 
@@ -597,7 +597,7 @@ class CtbAction(object):
                     # Send notice to u_from
                     msg = self.ctb.jenv.get_template('tip-already-pending.tpl').render(a=self, ctb=self.ctb)
                     lg.debug("CtbAction::validate(): " + msg)
-                    self.u_from.tell(subj="+tip failed", msg=msg)
+                    self.u_from.tell(subj="+tip failed", msg=msg, msgobj=self.msg)
                     self.save('failed') if not is_pending else self.update('failed')
                     return False
 
@@ -627,9 +627,9 @@ class CtbAction(object):
                 lg.debug("CtbAction::validate(): " + msg)
                 if self.ctb.network.conf.messages.verified:
                     if not self.ctb.network.reply_msg(msg, self.msg):
-                        self.u_from.tell(subj="+tip pending +accept", msg=msg)
+                        self.u_from.tell(subj="+tip pending +accept", msg=msg, msgobj=self.msg)
                 else:
-                    self.u_from.tell(subj="+tip pending +accept", msg=msg)
+                    self.u_from.tell(subj="+tip pending +accept", msg=msg, msgobj=self.msg)
 
                 # Send notice to u_to
                 # msg = self.ctb.jenv.get_template('tip-incoming.tpl').render(a=self, ctb=self.ctb)
@@ -647,7 +647,7 @@ class CtbAction(object):
                 if not self.ctb.coins[self.coin].validateaddr(_addr=self.addr_to):
                     msg = self.ctb.jenv.get_template('address-invalid.tpl').render(a=self, ctb=self.ctb)
                     lg.debug("CtbAction::validate(): " + msg)
-                    self.u_from.tell(subj="+tip failed", msg=msg)
+                    self.u_from.tell(subj="+tip failed", msg=msg, msgobj=self.msg)
                     self.save('failed') if not is_pending else self.update('failed')
                     return False
 
@@ -706,7 +706,7 @@ class CtbAction(object):
             # Send confirmation to u_to
             msg = self.ctb.jenv.get_template('tip-received.tpl').render(a=self, ctb=self.ctb)
             lg.debug("CtbAction::givetip(): " + msg)
-            self.u_to.tell(subj="+tip received", msg=msg)
+            self.u_to.tell(subj="+tip received", msg=msg, msgobj=self.msg)
 
             # This is not accept() of pending transaction, so post verification comment
             if not is_pending:
@@ -714,9 +714,9 @@ class CtbAction(object):
                 lg.debug("CtbAction::givetip(): " + msg)
                 if self.ctb.network.conf.messages.verified:
                     if not self.ctb.network.reply_msg(msg, self.msg):
-                        self.u_from.tell(subj="+tip succeeded", msg=msg)
+                        self.u_from.tell(subj="+tip succeeded", msg=msg, msgobj=self.msg)
                 else:
-                    self.u_from.tell(subj="+tip succeeded", msg=msg)
+                    self.u_from.tell(subj="+tip succeeded", msg=msg, msgobj=self.msg)
 
             lg.debug("< CtbAction::givetip() DONE")
             return True
@@ -736,7 +736,7 @@ class CtbAction(object):
 
                 # Send notice to u_from
                 msg = self.ctb.jenv.get_template('tip-went-wrong.tpl').render(a=self, ctb=self.ctb)
-                self.u_from.tell(subj="+tip failed", msg=msg)
+                self.u_from.tell(subj="+tip failed", msg=msg, msgobj=self.msg)
 
                 raise
 
@@ -748,9 +748,9 @@ class CtbAction(object):
             lg.debug("CtbAction::givetip(): " + msg)
             if self.ctb.network.conf.messages.verified:
                 if not self.ctb.network.reply_msg(msg, self.msg):
-                    self.u_from.tell(subj="+tip succeeded", msg=msg)
+                    self.u_from.tell(subj="+tip succeeded", msg=msg, msgobj=self.msg)
             else:
-                self.u_from.tell(subj="+tip succeeded", msg=msg)
+                self.u_from.tell(subj="+tip succeeded", msg=msg, msgobj=self.msg)
 
             lg.debug("< CtbAction::givetip() DONE")
             return True
