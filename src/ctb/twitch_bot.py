@@ -24,6 +24,8 @@ class TwitchChatBot(SimpleIRCClient):
                            objects. Defines the list of servers the bot will
                            use (in order).
 
+            channel_list -- A list of channel names to join
+
             nickname -- The bot's nickname.
 
             reconnection_interval -- How long the bot should wait
@@ -117,7 +119,7 @@ class TwitchChatBot(SimpleIRCClient):
         """
         self.connection.disconnect(msg)
 
-    def jump_server(self, msg="Changing servers"):
+    def jump_server(self, msg="switching server"):
         """Connect to a new server, possibly disconnecting from the current.
 
         The bot will skip to next server in the server_list each time
