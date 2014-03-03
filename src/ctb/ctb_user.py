@@ -167,7 +167,7 @@ class CtbUser(object):
             self.ctb.network.reply_msg(msg, msgobj)
         else:
             lg.debug("CtbUser::tell(%s): sending message", self.name)
-            self.ctb.network.send_msg(self.name, subj, msg, msgobj=msgobj)
+            self.ctb.network.send_msg(self.name, subj, msg)
 
         lg.debug("< CtbUser::tell(%s) DONE", self.name)
         return True

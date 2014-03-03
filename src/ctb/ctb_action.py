@@ -406,6 +406,8 @@ class CtbAction(object):
         if actions:
             # Accept each action
             for a in actions:
+                # a.msg is only set for Reddit. otherwise, pass on existing msg.
+                a.msg = a.msg or self.msg
                 a.givetip(is_pending=True)
                 # Update u_from (tip action) stats
                 ctb_stats.update_user_stats(ctb=a.ctb, username=a.u_from.name)
@@ -696,7 +698,7 @@ class CtbAction(object):
 
                 # Send notice to u_from
                 msg = self.ctb.jenv.get_template('tip-went-wrong.tpl').render(a=self, ctb=self.ctb)
-                self.u_from.tell(subj="+tip failed", msg=msg)
+                self.u_from.tell(subj="+tip failed", msg=msg, msgobj=self.msg)
 
                 raise Exception("CtbAction::givetip(): sendtouser() failed")
 
@@ -1243,9 +1245,6 @@ def get_actions(atype=None, state=None, coin=None, msg_id=None, created_utc=None
             r = []
             lg.debug("get_actions(): <%s>", sql)
             sqlexec = ctb.db.execute(sql)
-
-            blah = ctb.db.execute('SELECT COUNT(*) FROM t_action').fetchone()
-            print blah
 
             # for some reason the rowcount is always <= 0 when results exist
             # if sqlexec.rowcount <= 0:
