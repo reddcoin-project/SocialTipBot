@@ -10,7 +10,7 @@ poloniex:
 
 
 cryptorush:
-    enabled: true
+    enabled: false
     domain: 'cryptorush.in'
     https: true
     urlpaths: ['/api.php?get=marketv2&m={THING_FROM}&b={THING_TO}&key=66bd832e72fdcbc35f77970715765571a745e5c9&id=laudney&json=true']
@@ -18,3 +18,13 @@ cryptorush:
     coinlist: ['btc','rdd']
     fiatlist: []
     uppercase: true
+
+cryptocoincharts:
+    enabled: true
+    domain: 'cryptocoincharts.info'
+    https: false
+    urlpaths: ['/v2/api/tradingPair/{THING_FROM}_{THING_TO}']
+    jsonpaths: ['price']
+    coinlist: ['btc','rdd']
+    fiatlist: ['usd','eur']
+    uppercase: false
