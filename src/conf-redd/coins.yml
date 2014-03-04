@@ -10,9 +10,9 @@ rdd:
         givetip: 3
         withdraw: 3
     txmin:
-        givetip: 0.00000001
+        givetip: 0.05
         withdraw: 0.05
-    txfee: 0.001
+    txfee: 0.01
     walletpassphrase: '^phd51blognewstartredd$'
     explorer:
         address: 'http://blockexplorer.reddcoin.com/index.php?address='

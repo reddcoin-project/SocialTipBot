@@ -583,7 +583,7 @@ class CtbAction(object):
                 balance_need = self.coinval
                 # Add mandatory network transaction fee
                 balance_need += self.ctb.conf.coins[self.coin].txfee
-                if not balance_avail > balance_need or abs(balance_avail - balance_need) < 0.000001:
+                if balance_avail < balance_need:
                     msg = self.ctb.jenv.get_template('tip-low-balance.tpl').render(balance=balance_avail,
                                                                                    action_name='withdraw', a=self,
                                                                                    ctb=self.ctb)
