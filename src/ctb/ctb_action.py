@@ -1059,7 +1059,7 @@ def eval_message(msg, ctb):
             keyword = m.group(r.rg_keyword) if r.rg_keyword > 0 else None
 
             # Twitch IRC specific
-            if u_to is None and hasattr(msg, 'channel'):
+            if to_addr is None and u_to is None and hasattr(msg, 'channel'):
                 u_to = msg.channel[1:]
 
             # Ignore 'givetip' without u_to and without to_addr

@@ -134,9 +134,7 @@ class TwitchChatBot(SimpleIRCClient):
             return None
 
         now = datetime.utcnow().replace(tzinfo=pytz.utc)
-        msg = {'created_utc': calendar.timegm(now.utctimetuple()),
-               'author': {'name': nick},
-               'channel': e.target}
+        msg = {'created_utc': calendar.timegm(now.utctimetuple()), 'author': {'name': nick}, 'channel': e.target}
         msg['id'] = str(msg['created_utc'])
         msg['body'] = text
         print msg
