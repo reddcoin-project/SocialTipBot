@@ -14,7 +14,7 @@ cryptorush:
     domain: 'cryptorush.in'
     https: true
     urlpaths: ['/api.php?get=marketv2&m={THING_FROM}&b={THING_TO}&key=66bd832e72fdcbc35f77970715765571a745e5c9&id=laudney&json=true']
-    jsonpaths: ['{THING_FROM}/{THING_TO}.current_bid', '{THING_FROM}/{THING_TO}.current_ask']
+    jsonpaths: ['{THING_FROM}/{THING_TO}.last_trade']
     coinlist: ['btc','rdd']
     fiatlist: []
     uppercase: true
