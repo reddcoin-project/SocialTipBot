@@ -7,8 +7,8 @@ rdd:
     config_file: '~/.reddcoin/reddcoin.conf'
     config_rpcserver: '127.0.0.1'
     minconf:
-        givetip: 4
-        withdraw: 4
+        givetip: 3
+        withdraw: 3
     txmin:
         givetip: 0.00000001
         withdraw: 0.05
