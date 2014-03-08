@@ -82,7 +82,7 @@ class TwitterStreamer(TwythonStreamer):
         msg = {'created_utc': self._timestamp_utc(data['created_at']),
                'author': {'name': author_name},
                'type': 'mention'}
-        msg['id'] = str(data['id'] + msg['created_utc'])
+        msg['id'] = data['id_str'] + str(msg['created_utc'])[(30-len(data['id_str'])):]
 
         text = data['text']
         msg['body'] = text.replace('@' + self.username, '').strip()
@@ -100,7 +100,7 @@ class TwitterStreamer(TwythonStreamer):
         msg = {'created_utc': self._timestamp_utc(data['created_at']),
                'author': {'name': author_name},
                'type': 'direct_message'}
-        msg['id'] = str(data['id'] + msg['created_utc'])
+        msg['id'] = data['id_str'] + str(msg['created_utc'])[(30-len(data['id_str'])):]
 
         text = data['text']
         msg['body'] = text.replace('@' + self.username, '').strip()
