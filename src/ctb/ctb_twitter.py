@@ -217,13 +217,6 @@ class TwitterNetwork(CtbNetwork):
             return True
 
     def check_mentions(self, ctb):
-        actions = self.stream.follow_followers()
-        for action in actions:
-            if action:
-                lg.info("TwitterNetwork::check_mentions(): %s from %s", action.type, action.u_from.name)
-                lg.debug("TwitterNetwork::check_mentions(): comment body: <%s>", action.msg.body)
-                action.do()
-
         self.stream.user()
 
     def invite(self, user):
