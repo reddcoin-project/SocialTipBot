@@ -70,6 +70,10 @@ class TwitterStreamer(TwythonStreamer):
         return actions
 
     def _parse_mention(self, data):
+        # ignore retweets
+        if 'retweeted_status' in data:
+            return None
+
         author_name = data['user']['screen_name']
         if author_name == self.username or '@' + self.username not in data['text']:
             return None
