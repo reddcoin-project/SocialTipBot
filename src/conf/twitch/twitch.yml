@@ -6,7 +6,7 @@ auth:
 
 channels:
     method: list
-    list: ['#tipreddcoin', '#tipredd']
+    list: ['#tipreddcoin', '#lagtvmaximusblack', '#rotterdam08', '#painuser', '#incontroltv']
 
 help:
     enabled: true
