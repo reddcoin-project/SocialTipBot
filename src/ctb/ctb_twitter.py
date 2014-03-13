@@ -66,8 +66,9 @@ class TwitterStreamer(TwythonStreamer):
         return actions
 
     def _parse_event(self, data):
-        actions = self.follow_followers()
-        return actions
+        # actions = self.follow_followers()
+        # return actions
+        return None
 
     def _parse_mention(self, data):
         # ignore retweets
@@ -136,12 +137,13 @@ class TwitterStreamer(TwythonStreamer):
         print status_code
 
     def on_timeout(self):
-        actions = self.follow_followers()
-        for action in actions:
-            if action:
-                lg.info("TwitterStreamer::on_timeout(): %s from %s", action.type, action.u_from.name)
-                lg.debug("TwitterStreamer::on_timeout(): comment body: <%s>", action.msg.body)
-                action.do()
+        # actions = self.follow_followers()
+        # for action in actions:
+        #     if action:
+        #         lg.info("TwitterStreamer::on_timeout(): %s from %s", action.type, action.u_from.name)
+        #         lg.debug("TwitterStreamer::on_timeout(): comment body: <%s>", action.msg.body)
+        #         action.do()
+        pass
 
 
 class TwitterNetwork(CtbNetwork):
