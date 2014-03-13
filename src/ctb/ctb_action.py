@@ -570,7 +570,7 @@ class CtbAction(object):
                 # Tip to user (requires less confirmations)
                 balance_avail = self.u_from.get_balance(coin=self.coin, kind='givetip')
                 # Add mandatory network transaction fee
-                balance_net = self.coinval - self.ctb.conf.coins[self.coin].txfee
+                balance_net = balance_avail - self.ctb.conf.coins[self.coin].txfee
                 balance_need = self.coinval + self.ctb.conf.coins[self.coin].txfee
                 if balance_avail < balance_need:
                     msg = self.ctb.jenv.get_template('tip-low-balance.tpl').render(balance=balance_net,
@@ -584,7 +584,7 @@ class CtbAction(object):
                 # Tip/withdrawal to address (requires more confirmations)
                 balance_avail = self.u_from.get_balance(coin=self.coin, kind='withdraw')
                 # Add mandatory network transaction fee
-                balance_net = self.coinval - self.ctb.conf.coins[self.coin].txfee
+                balance_net = balance_avail - self.ctb.conf.coins[self.coin].txfee
                 balance_need = self.coinval + self.ctb.conf.coins[self.coin].txfee
                 if balance_avail < balance_need:
                     msg = self.ctb.jenv.get_template('tip-low-balance.tpl').render(balance=balance_net,
