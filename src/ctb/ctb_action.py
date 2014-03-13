@@ -569,8 +569,10 @@ class CtbAction(object):
             if self.u_to and not is_pending:
                 # Tip to user (requires less confirmations)
                 balance_avail = self.u_from.get_balance(coin=self.coin, kind='givetip')
-                if not balance_avail > self.coinval or abs(balance_avail - self.coinval) < 0.000001:
-                    msg = self.ctb.jenv.get_template('tip-low-balance.tpl').render(balance=balance_avail,
+                # Add mandatory network transaction fee
+                balance_need = self.coinval + self.ctb.conf.coins[self.coin].txfee
+                if not balance_avail < balance_need:
+                    msg = self.ctb.jenv.get_template('tip-low-balance.tpl').render(balance=balance_need,
                                                                                    action_name='tip', a=self,
                                                                                    ctb=self.ctb)
                     lg.debug("CtbAction::validate(): " + msg)
@@ -580,11 +582,10 @@ class CtbAction(object):
             elif self.addr_to:
                 # Tip/withdrawal to address (requires more confirmations)
                 balance_avail = self.u_from.get_balance(coin=self.coin, kind='withdraw')
-                balance_need = self.coinval
                 # Add mandatory network transaction fee
-                balance_need += self.ctb.conf.coins[self.coin].txfee
+                balance_need = self.coinval + self.ctb.conf.coins[self.coin].txfee
                 if balance_avail < balance_need:
-                    msg = self.ctb.jenv.get_template('tip-low-balance.tpl').render(balance=balance_avail,
+                    msg = self.ctb.jenv.get_template('tip-low-balance.tpl').render(balance=balance_need,
                                                                                    action_name='withdraw', a=self,
                                                                                    ctb=self.ctb)
                     lg.debug("CtbAction::validate(): " + msg)
