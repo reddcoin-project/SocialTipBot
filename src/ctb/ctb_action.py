@@ -396,10 +396,7 @@ class CtbAction(object):
 
         # Register as new user if necessary
         if not self.u_from.is_registered():
-            if self.u_from.register():
-                # send follow request
-                self.ctb.network.invite(self.u_from.name)
-            else:
+            if not self.u_from.register():
                 lg.warning("CtbAction::accept(): self.u_from.register() failed")
                 self.save('failed')
                 return False
@@ -851,7 +848,7 @@ class CtbAction(object):
 
             self.save('completed')
             # send follow request
-            self.ctb.network.invite(self.u_from.name)
+            # self.ctb.network.invite(self.u_from.name)
             # Send welcome message to user
             msg = self.ctb.jenv.get_template('welcome.tpl').render(a=self, ctb=self.ctb)
             self.ctb.network.reply_msg(msg, self.msg)

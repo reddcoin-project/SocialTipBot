@@ -4,9 +4,10 @@ __author__ = 'laudney'
 import traceback
 import calendar
 import re
+import time
 import logging
 from dateutil.parser import parse
-from twython import Twython, TwythonStreamer, TwythonError
+from twython import Twython, TwythonStreamer, TwythonRateLimitError, TwythonError
 
 from ctb_network import CtbNetwork
 import ctb_action
@@ -66,9 +67,8 @@ class TwitterStreamer(TwythonStreamer):
         return actions
 
     def _parse_event(self, data):
-        # actions = self.follow_followers()
-        # return actions
-        return None
+        actions = self.follow_followers()
+        return actions
 
     def _parse_mention(self, data):
         # ignore retweets
@@ -136,13 +136,12 @@ class TwitterStreamer(TwythonStreamer):
         print status_code
 
     def on_timeout(self):
-        # actions = self.follow_followers()
-        # for action in actions:
-        #     if action:
-        #         lg.info("TwitterStreamer::on_timeout(): %s from %s", action.type, action.u_from.name)
-        #         lg.debug("TwitterStreamer::on_timeout(): comment body: <%s>", action.msg.body)
-        #         action.do()
-        pass
+        actions = self.follow_followers()
+        for action in actions:
+            if action:
+                lg.info("TwitterStreamer::on_timeout(): %s from %s", action.type, action.u_from.name)
+                lg.debug("TwitterStreamer::on_timeout(): comment body: <%s>", action.msg.body)
+                action.do()
 
 
 class TwitterNetwork(CtbNetwork):
@@ -166,8 +165,7 @@ class TwitterNetwork(CtbNetwork):
         lg.debug('TwitterNetwork::connect(): connecting to Twitter...')
 
         self.conn = Twython(self.app_key, self.app_secret, self.oauth_token, self.oauth_token_secret)
-        self.stream = TwitterStreamer(self.app_key, self.app_secret, self.oauth_token, self.oauth_token_secret,
-                                      timeout=30)
+        self.stream = TwitterStreamer(self.app_key, self.app_secret, self.oauth_token, self.oauth_token_secret, timeout=30)
         self.conn.username = self.stream.username = self.user
         self.stream.conn = self.conn
         self.stream.ctb = self.ctb
@@ -218,7 +216,10 @@ class TwitterNetwork(CtbNetwork):
             return True
 
     def check_mentions(self, ctb):
-        self.stream.user()
+        try:
+            self.stream.user()
+        except TwythonRateLimitError:
+            time.sleep(15*60+30)
 
     def invite(self, user):
         try:
