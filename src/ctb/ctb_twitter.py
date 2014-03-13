@@ -121,7 +121,6 @@ class TwitterStreamer(TwythonStreamer):
         elif 'event' in data:
             actions = self._parse_event(data)
         else:
-            print data
             return
 
         if not isinstance(actions, list):
