@@ -570,9 +570,10 @@ class CtbAction(object):
                 # Tip to user (requires less confirmations)
                 balance_avail = self.u_from.get_balance(coin=self.coin, kind='givetip')
                 # Add mandatory network transaction fee
+                balance_net = self.coinval - self.ctb.conf.coins[self.coin].txfee
                 balance_need = self.coinval + self.ctb.conf.coins[self.coin].txfee
-                if not balance_avail < balance_need:
-                    msg = self.ctb.jenv.get_template('tip-low-balance.tpl').render(balance=balance_need,
+                if balance_avail < balance_need:
+                    msg = self.ctb.jenv.get_template('tip-low-balance.tpl').render(balance=balance_net,
                                                                                    action_name='tip', a=self,
                                                                                    ctb=self.ctb)
                     lg.debug("CtbAction::validate(): " + msg)
@@ -583,9 +584,10 @@ class CtbAction(object):
                 # Tip/withdrawal to address (requires more confirmations)
                 balance_avail = self.u_from.get_balance(coin=self.coin, kind='withdraw')
                 # Add mandatory network transaction fee
+                balance_net = self.coinval - self.ctb.conf.coins[self.coin].txfee
                 balance_need = self.coinval + self.ctb.conf.coins[self.coin].txfee
                 if balance_avail < balance_need:
-                    msg = self.ctb.jenv.get_template('tip-low-balance.tpl').render(balance=balance_need,
+                    msg = self.ctb.jenv.get_template('tip-low-balance.tpl').render(balance=balance_net,
                                                                                    action_name='withdraw', a=self,
                                                                                    ctb=self.ctb)
                     lg.debug("CtbAction::validate(): " + msg)
