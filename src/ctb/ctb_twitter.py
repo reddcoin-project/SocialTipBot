@@ -6,6 +6,8 @@ import calendar
 import re
 import time
 import logging
+import random
+from datetime import datetime
 from dateutil.parser import parse
 from twython import Twython, TwythonStreamer, TwythonRateLimitError, TwythonError
 
@@ -25,27 +27,34 @@ class TwitterStreamer(TwythonStreamer):
 
         return calendar.timegm(dt.utctimetuple())
 
+    @classmethod
+    def _timestamp_utc_now(cls):
+        dt = datetime.utcnow()
+        return calendar.timegm(dt.utctimetuple())
+
     def follow_followers(self):
         lg.debug('TwitterStreamer::follow_followers(): checking followers...')
 
+        # only get the latest followers but this relies on Twitter returns the latest followers first
         followers = []
-        for fid in self.conn.cursor(self.conn.get_followers_ids):
+        for fid in self.conn.cursor(self.conn.get_followers_ids(count=200)):
             followers.append(fid)
 
         friends = []
-        for fid in self.conn.cursor(self.conn.get_friends_ids):
+        for fid in self.conn.cursor(self.conn.get_friends_ids(count=5000)):
             friends.append(fid)
 
         pending = []
         for fid in self.conn.cursor(self.conn.get_outgoing_friendship_ids):
             pending.append(fid)
 
-        to_follow = list(set(followers).difference(set(friends)).difference(set(pending)))
-
+        to_follow = [f for f in followers if f not in friends and f not in pending]
+        # only follow 10 at a time
         actions = []
-        for user_id in to_follow:
+        for user_id in to_follow[:10]:
             try:
                 resp = self.conn.create_friendship(user_id=user_id)
+                time.sleep(random.randrange(1, 6))
             except TwythonError as e:
                 # either really failed (e.g. sent request before) or already friends
                 lg.warning("TwitterStreamer::follow_followers: failed to follow user %s: %s", user_id, e.msg)
@@ -54,7 +63,7 @@ class TwitterStreamer(TwythonStreamer):
                 lg.debug('TwitterStreamer::follow_followers(): just sent request to follow user %s', user_id)
 
             msg = {'id': str(user_id),
-                   'created_utc': self._timestamp_utc(resp['created_at']),
+                   'created_utc': self._timestamp_utc_now(),
                    'author': {'name': resp['screen_name']},
                    'body': '+register',
                    'type': 'mention'}
@@ -80,7 +89,7 @@ class TwitterStreamer(TwythonStreamer):
             return None
 
         # we do allow the bot to issue commands
-        msg = {'created_utc': self._timestamp_utc(data['created_at']),
+        msg = {'created_utc': self._timestamp_utc_now(),
                'author': {'name': author_name},
                'type': 'mention'}
         msg['id'] = data['id_str'] + str(msg['created_utc'])[(30-len(data['id_str'])):]
@@ -98,7 +107,7 @@ class TwitterStreamer(TwythonStreamer):
         if author_name == self.username:
             return None
 
-        msg = {'created_utc': self._timestamp_utc(data['created_at']),
+        msg = {'created_utc': self._timestamp_utc_now(),
                'author': {'name': author_name},
                'type': 'direct_message'}
         msg['id'] = data['id_str'] + str(msg['created_utc'])[(30-len(data['id_str'])):]
