@@ -76,8 +76,13 @@ class TwitterStreamer(TwythonStreamer):
         return actions
 
     def _parse_event(self, data):
-        actions = self.follow_followers()
-        return actions
+        # do not process event more than once per minute
+        if (datetime.utcnow() - self.last_event).seconds > 60:
+            actions = self.follow_followers()
+            self.last_event = datetime.utcnow()
+            return actions
+        else:
+            return None
 
     def _parse_mention(self, data):
         # ignore retweets
@@ -132,6 +137,9 @@ class TwitterStreamer(TwythonStreamer):
         else:
             return
 
+        if not actions:
+            return
+
         if not isinstance(actions, list):
             actions = [actions]
 
@@ -178,6 +186,7 @@ class TwitterNetwork(CtbNetwork):
         self.conn.username = self.stream.username = self.user
         self.stream.conn = self.conn
         self.stream.ctb = self.ctb
+        self.stream.last_event = datetime.utcnow()
 
         lg.info("TwitterNetwork::connect(): logged in to Twitter")
         return None
