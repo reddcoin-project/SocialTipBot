@@ -1,6 +1,5 @@
 __author__ = 'bren'
 
-
 import time
 import random
 import traceback
@@ -20,7 +19,7 @@ if __name__ == '__main__':
 
     # find all successfully registered users
     registered = []
-    sql = "SELECT from_user FROM t_action where type = 'register' and state = 'completed'"
+    sql = "SELECT from_user FROM t_action WHERE type = 'register' AND state = 'completed'"
     for sqlrow in db.execute(sql):
         registered.append(sqlrow['from_user'])
 
@@ -32,18 +31,29 @@ if __name__ == '__main__':
     oauth_token_secret = 'TjUHsf68MWCRzCtjjhB05S6OEdCjPMQIU00rL8dH0SH5a'
 
     twitter = Twython(app_key, app_secret, oauth_token, oauth_token_secret)
-    for screen_name in registered:
+
+    friends = []
+    for fid in twitter.cursor(twitter.get_friends_ids, count=5000):
+        friends.append(fid)
+
+    pending = []
+    for fid in twitter.cursor(twitter.get_outgoing_friendship_ids):
+        pending.append(fid)
+
+    to_follow = [f for f in registered if f not in friends and f not in pending]
+
+    for screen_name in to_follow:
         if screen_name == 'tipreddcoin':
             continue
 
         try:
+            print screen_name
             twitter.create_friendship(screen_name=screen_name)
         except TwythonError as e:
             # either really failed (e.g. sent request before) or already friends
             print "failed to follow user %s: %s" % (user, e.msg)
             tb = traceback.format_exc()
             print tb
-            break
 
         # random interval
         time.sleep(random.randrange(5, 15))

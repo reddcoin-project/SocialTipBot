@@ -37,11 +37,11 @@ class TwitterStreamer(TwythonStreamer):
 
         # only get the latest followers but this relies on Twitter returns the latest followers first
         followers = []
-        for fid in self.conn.cursor(self.conn.get_followers_ids(count=200)):
+        for fid in self.conn.cursor(self.conn.get_followers_ids, count=200):
             followers.append(fid)
 
         friends = []
-        for fid in self.conn.cursor(self.conn.get_friends_ids(count=5000)):
+        for fid in self.conn.cursor(self.conn.get_friends_ids, count=5000):
             friends.append(fid)
 
         pending = []
