@@ -49,7 +49,7 @@ class TwitterStreamer(TwythonStreamer):
             pending.append(fid)
 
         lg.debug('TwitterStreamer::follow_followers(): looking for new followers')
-        to_follow = [f for f in followers if f not in friends and f not in pending]
+        to_follow = [f for f in followers[:100] if f not in friends and f not in pending]
         lg.debug('TwitterStreamer::follow_followers(): about to send follow request')
 
         # only follow 10 at a time
@@ -57,7 +57,7 @@ class TwitterStreamer(TwythonStreamer):
         for user_id in to_follow[:10]:
             try:
                 resp = self.conn.create_friendship(user_id=user_id)
-                time.sleep(random.randrange(1, 6))
+                time.sleep(1)
             except TwythonError as e:
                 # either really failed (e.g. sent request before) or already friends
                 lg.warning("TwitterStreamer::follow_followers: failed to follow user %s: %s", user_id, e.msg)
