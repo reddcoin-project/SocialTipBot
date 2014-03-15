@@ -33,7 +33,7 @@ class TwitterStreamer(TwythonStreamer):
         return calendar.timegm(dt.utctimetuple())
 
     def follow_followers(self):
-        lg.debug('TwitterStreamer::follow_followers(): checking followers...')
+        lg.debug('TwitterStreamer::follow_followers(): started')
 
         # only get the latest followers but this relies on Twitter returns the latest followers first
         followers = []
@@ -48,7 +48,10 @@ class TwitterStreamer(TwythonStreamer):
         for fid in self.conn.cursor(self.conn.get_outgoing_friendship_ids):
             pending.append(fid)
 
+        lg.debug('TwitterStreamer::follow_followers(): looking for new followers')
         to_follow = [f for f in followers if f not in friends and f not in pending]
+        lg.debug('TwitterStreamer::follow_followers(): about to send follow request')
+
         # only follow 10 at a time
         actions = []
         for user_id in to_follow[:10]:
