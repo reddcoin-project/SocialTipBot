@@ -37,7 +37,7 @@ class TwitterStreamer(TwythonStreamer):
 
         # only get the latest followers but this relies on Twitter returns the latest followers first
         followers = []
-        for fid in self.conn.cursor(self.conn.get_followers_ids, count=200):
+        for fid in self.conn.cursor(self.conn.get_followers_ids, count=5000):
             followers.append(fid)
 
         friends = []
@@ -240,6 +240,7 @@ class TwitterNetwork(CtbNetwork):
         try:
             self.stream.user()
         except TwythonRateLimitError:
+            lg.error('TwitterNetwork::check_mentions(): Twitter API Rate Limit Breached. Sleep 15m30s')
             time.sleep(15*60+30)
 
     def invite(self, user):
