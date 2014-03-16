@@ -164,6 +164,7 @@ class CtbUser(object):
             return False
 
         if msgobj:
+            msgobj.author.name = self.name
             self.ctb.network.reply_msg(msg, msgobj)
         else:
             lg.debug("CtbUser::tell(%s): sending message", self.name)
