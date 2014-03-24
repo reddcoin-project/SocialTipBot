@@ -79,6 +79,11 @@ class TwitterStreamer(TwythonStreamer):
         return actions
 
     def _parse_event(self, data):
+        # check pending tips
+        if (datetime.utcnow() - self.last_expiry).seconds > 60 * 60:
+            self.ctb.expire_pending_tips()
+            self.last_expiry = datetime.utcnow()
+
         # do not process event more than once per minute
         if (datetime.utcnow() - self.last_event).seconds > 60:
             actions = self.follow_followers()
@@ -189,7 +194,7 @@ class TwitterNetwork(CtbNetwork):
         self.conn.username = self.stream.username = self.user
         self.stream.conn = self.conn
         self.stream.ctb = self.ctb
-        self.stream.last_event = datetime.utcnow()
+        self.stream.last_event = self.stream.last_expiry = datetime.utcnow()
 
         lg.info("TwitterNetwork::connect(): logged in to Twitter")
         return None
