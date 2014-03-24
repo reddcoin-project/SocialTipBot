@@ -6,6 +6,6 @@
 {%   set address_fmt = i.address %}
 {%   set coin_bal_fmt = "%.9g" % i.balance %}
 coin={{ name_fmt }}
-address={{ address_fmt }}
+deposit address={{ address_fmt }}
 balance={{ coin_bal_fmt }}
 {% endfor %}
