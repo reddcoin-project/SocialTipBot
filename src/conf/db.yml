@@ -106,7 +106,7 @@ sql:
     sql: "SELECT created_utc, type, state, from_user, to_user, to_addr, coin_val, coin, txid FROM t_action WHERE type IN ('givetip', 'redeem', 'withdraw') AND (from_user=? OR to_user=?) ORDER BY created_utc DESC LIMIT ?"
     limit: 1
   usersent:
-    sql: "SELECT sum(coin_val) AS sent FROM t_action WHERE type = 'givetip' AND state IN ('completed', 'pending') and from_user=?"
+    sql: "SELECT sum(coin_val) AS sent FROM t_action WHERE type = 'givetip' AND state != 'failed' and from_user=?"
   userreceived:
     sql: "SELECT sum(coin_val) AS received FROM t_action WHERE type = 'givetip' AND state = 'completed' and to_user=?"
   tips:

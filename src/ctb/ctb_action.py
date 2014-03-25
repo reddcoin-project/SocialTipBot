@@ -416,7 +416,7 @@ class CtbAction(object):
         self.ctb.network.reply_msg(msg, self.msg)
 
         # Save as completed
-        self.save('completed')
+        # self.save('completed')
 
         lg.debug("< CtbAction::summary() DONE")
         return True
