@@ -281,6 +281,11 @@ actions:
         public: false
         simple: true
         regex: '(\+)(history)'
+    summary:
+        enabled: true
+        public: false
+        simple: true
+        regex: '(\+)(summary)'
     rates:
         enabled: true
         public: false

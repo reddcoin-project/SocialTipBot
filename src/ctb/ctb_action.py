@@ -329,6 +329,9 @@ class CtbAction(object):
         if self.type == 'history':
             return self.history()
 
+        if self.type == 'summary':
+            return self.summary()
+
         if self.type == 'info':
             return self.info()
 
@@ -386,6 +389,36 @@ class CtbAction(object):
         self.save('completed')
 
         lg.debug("< CtbAction::history() DONE")
+        return True
+
+    def summary(self):
+        """
+        Provide user with summary of total amount sent and received
+        """
+        lg.debug("> CtbAction::summary()")
+
+        sql_sent = self.ctb.conf.db.sql.usersent.sql
+        sql_received = self.ctb.conf.db.sql.userreceived.sql
+        total_sent = total_received = 0
+
+        sqlexec = self.ctb.db.execute(sql_sent, [self.u_from.name.lower()])
+        for m in sqlexec:
+            total_sent = m['sent']
+
+        sqlexec = self.ctb.db.execute(sql_received, [self.u_from.name.lower()])
+        for m in sqlexec:
+            total_received = m['received']
+
+        # Send message to user
+        msg = self.ctb.jenv.get_template('summary.tpl').render(total_sent=total_sent, total_received=total_received,
+                                                               a=self, ctb=self.ctb)
+        lg.debug("CtbAction::summary(): %s", msg)
+        self.ctb.network.reply_msg(msg, self.msg)
+
+        # Save as completed
+        self.save('completed')
+
+        lg.debug("< CtbAction::summary() DONE")
         return True
 
     def accept(self):
