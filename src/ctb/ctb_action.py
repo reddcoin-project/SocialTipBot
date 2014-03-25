@@ -35,7 +35,7 @@ class CtbAction(object):
     Action class for cointip bot
     """
 
-    type = None           # 'accept', 'decline', 'help',  'history', 'info', 'register', 'givetip', 'withdraw', 'rates'
+    type = None           # 'accept', 'decline', 'help',  'history', 'summary', 'info', 'register', 'givetip', 'withdraw', 'rates'
     state = None          # 'completed', 'pending', 'failed', 'declined'
     txid = None           # cryptocoin transaction id, a 64-char string, if applicable
 
