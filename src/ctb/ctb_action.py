@@ -399,19 +399,21 @@ class CtbAction(object):
 
         sql_sent = self.ctb.conf.db.sql.usersent.sql
         sql_received = self.ctb.conf.db.sql.userreceived.sql
-        total_sent = total_received = 0
 
         sqlexec = self.ctb.db.execute(sql_sent, [self.u_from.name.lower()])
         for m in sqlexec:
-            total_sent = m['sent']
+            total_sent = m['sent'] or 0
+            count_sent = m['count'] or 0
 
         sqlexec = self.ctb.db.execute(sql_received, [self.u_from.name.lower()])
         for m in sqlexec:
-            total_received = m['received']
+            total_received = m['received'] or 0
+            count_received = m['count'] or 0
 
         # Send message to user
-        msg = self.ctb.jenv.get_template('summary.tpl').render(total_sent=total_sent, total_received=total_received,
-                                                               a=self, ctb=self.ctb)
+        msg = self.ctb.jenv.get_template('summary.tpl').render(total_sent=total_sent, count_sent=count_sent,
+                                                               total_received=total_received,
+                                                               count_received=count_received, a=self, ctb=self.ctb)
         lg.debug("CtbAction::summary(): %s", msg)
         self.ctb.network.reply_msg(msg, self.msg)
 
