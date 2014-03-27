@@ -51,6 +51,15 @@ class Economy:
         results['timestamp'] = map(pytz.utc.localize, dts)
         return results
 
+    def recent_joiners(self, limit=100):
+        sql = "SELECT created_utc AS timestamp, from_user, type FROM t_action where state ='completed' "
+        sql += "AND type = 'register' ORDER BY timestamp DESC LIMIT ?"
+        sqlexec = self.db.execute(sql, limit)
+        results = pd.DataFrame(sqlexec.fetchall(), columns=sqlexec.keys())
+        dts = map(datetime.fromtimestamp, results['timestamp'])
+        results['timestamp'] = map(pytz.utc.localize, dts)
+        return results
+
 
 if __name__ == '__main__':
     dsn_url = 'sqlite:///../db/twitter-live1.db'
@@ -58,3 +67,4 @@ if __name__ == '__main__':
     tippers = economy.top_tippers()
     receivers = economy.top_receivers()
     transactions = economy.recent_transactions('completed')
+    joiners = economy.recent_joiners()
