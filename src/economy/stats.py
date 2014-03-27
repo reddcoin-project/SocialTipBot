@@ -28,24 +28,24 @@ class Economy:
         self.metadata.create_all(engine)
         return engine.connect()
 
-    def top_tippers(self):
+    def top_tippers(self, limit=100):
         sql = "SELECT from_user as user, sum(coin_val) AS amount FROM t_action WHERE type = 'givetip' "
-        sql += "AND state != 'failed' GROUP BY from_user ORDER BY amount DESC"
-        sqlexec = self.db.execute(sql)
+        sql += "AND state != 'failed' GROUP BY from_user ORDER BY amount DESC LIMIT ?"
+        sqlexec = self.db.execute(sql, limit)
         results = pd.DataFrame(sqlexec.fetchall(), columns=sqlexec.keys())
         return results
 
-    def top_receivers(self):
+    def top_receivers(self, limit=100):
         sql = "SELECT to_user as user, sum(coin_val) AS amount FROM t_action WHERE type = 'givetip' "
-        sql += "AND state = 'completed' GROUP BY to_user ORDER BY amount DESC"
-        sqlexec = self.db.execute(sql)
+        sql += "AND state = 'completed' GROUP BY to_user ORDER BY amount DESC LIMIT ?"
+        sqlexec = self.db.execute(sql, limit)
         results = pd.DataFrame(sqlexec.fetchall(), columns=sqlexec.keys())
         return results
 
-    def recent_transactions(self):
-        sql = "SELECT from_user, to_user, coin_val AS amount, created_utc AS timestamp FROM t_action "
-        sql += "WHERE type = 'givetip' AND state = 'completed' ORDER BY timestamp DESC"
-        sqlexec = self.db.execute(sql)
+    def recent_transactions(self, state, limit=100):
+        sql = "SELECT created_utc AS timestamp, from_user, to_user, coin_val AS amount, state FROM t_action "
+        sql += "WHERE type = 'givetip' AND state = ? ORDER BY timestamp DESC LIMIT ?"
+        sqlexec = self.db.execute(sql, [state, limit])
         results = pd.DataFrame(sqlexec.fetchall(), columns=sqlexec.keys())
         dts = map(datetime.fromtimestamp, results['timestamp'])
         results['timestamp'] = map(pytz.utc.localize, dts)
@@ -57,4 +57,4 @@ if __name__ == '__main__':
     economy = Economy(dsn_url)
     tippers = economy.top_tippers()
     receivers = economy.top_receivers()
-    transactions = economy.recent_transactions()
+    transactions = economy.recent_transactions('completed')
