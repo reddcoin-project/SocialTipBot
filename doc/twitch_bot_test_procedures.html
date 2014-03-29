@@ -1694,20 +1694,20 @@ init_mathjax();
 <body>
 
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="how-to-use-reddcoin-tipbot-on-twitch-tv-tipreddcoin">How to Use Reddcoin Tipbot on Twitch TV (tipreddcoin)</h1>
-<p>by laudney (Reddit) / <span class="citation">@laudney</span> (Twitter) / tipreddcoin@gmail.com / donation Rppgy8PHbBrknXfDmfEmqZXTKMR1yiwVtB</p>
+<h1 id="user-guide-reddcoin-tipbot-on-twitch-tv-tipreddcoin">User Guide: Reddcoin Tipbot on Twitch TV (tipreddcoin)</h1>
+<p>by /u/laudney (Reddit) / <span class="citation">@laudney</span> (Twitter) / ren@reddcoin.com / Rppgy8PHbBrknXfDmfEmqZXTKMR1yiwVtB</p>
 </div>
 <div class="text_cell_render border-box-sizing rendered_html">
-<h4 id="warning-this-is-beta-software-without-warranty">WARNING: THIS IS BETA SOFTWARE WITHOUT WARRANTY</h4>
+<h4 id="warning-this-is-beta-software-without-warranty.">WARNING: THIS IS BETA SOFTWARE WITHOUT WARRANTY.</h4>
 </div>
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="reddcoin-tipbot-on-twitch-tv-tipreddcoin">Reddcoin Tipbot on Twitch TV (tipreddcoin)</h2>
-<p>The bot is registered under the user name <strong>tipreddcoin</strong> and has its own <strong>IRC chat channel #tipreddcoin</strong>. The bot also joins the IRC channels of certain streamers so that their viewers can donate Reddcoins by sending commands to <em>tipreddcoin</em> in the channels.</p>
+<p>The bot is registered under the user name <strong>tipreddcoin</strong> and has its own <strong>IRC chat channel #tipreddcoin</strong>. The bot also joins the IRC channels of Team Reddcoin streamers so that their viewers can donate Reddcoins by sending commands to <em>tipreddcoin</em> in the channels.</p>
 <p>You can join the channel <em>#tipreddcoin</em> by visiting http://www.twitch.tv/tipreddcoin</p>
 <p>There are a few things very important to know about Twitch Chat:</p>
 <ul>
-<li><p>Twitch Chat imposes extremely strict rate limit. <strong>Any participant sending more than 20 messages in 30 seconds is globally banned for 8 hours. As a result, the bot is extra conservative and never sends more than one message every two seconds.</strong> Compared to Twitter Tipbot, this Twitch Tipbot will show noticeable delay in response.</p></li>
-<li><p><strong>Twitch Chat servers are lossy. A small percentage of messages can be lost or delayed for up to 30 seconds.</strong> There is nothing I can do about it.</p></li>
+<li><p>Twitch Chat imposes extremely strict rate limit. <strong>Any participant sending more than 20 messages in 30 seconds is globally banned for 8 hours. As a result, the bot is extra conservative and never sends more than one message every two seconds.</strong> Compared to Twitter Tipbot, this Twitch Tipbot may show noticeable delay in response especially under heavy load.</p></li>
+<li><p><strong>Twitch Chat servers are lossy. A small percentage of messages can be lost or delayed for up to 30 seconds.</strong> There is no solution for this.</p></li>
 </ul>
 </div>
 <div class="text_cell_render border-box-sizing rendered_html">
@@ -1717,54 +1717,48 @@ init_mathjax();
 <p>It's very similar on Twitch TV. There are two ways you can interact with <em>tipreddcoin</em>: its own channel <em>#tipreddcoin</em> or public channels (of streamers). In channel <em>#tipreddcoin</em>, <strong>all messages should contain commands only and start with +</strong>. In public channels, you should <strong>prepend commands with <span class="citation">@tipreddcoin</span> but the commands can appear anywhere in your messages</strong>.</p>
 </div>
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="step-1.-self-registration">Step 1. Self Registration</h2>
+<h2 id="self-registration">1. Self Registration</h2>
 <ol style="list-style-type: decimal">
 <li>Either join channel <em>#tipreddcoin</em> and send &quot;+register&quot; or join any public channel for which <em>tipreddcoin</em> is also a viewer and send &quot;<span class="citation">@tipreddcoin</span> +register&quot;.</li>
-<li>Once you receive confirmation of successful registrion, it's time to test &quot;+info&quot; command.</li>
+<li>Once you receive confirmation of successful registration, you can now send &quot;+info&quot; command.</li>
 <li>If you are in channel #tipreddcoin, send &quot;+info&quot;.</li>
 <li>If you are in other channels monitored by <em>tipreddcion</em>, send &quot;<span class="citation">@tipreddcoin</span> +info&quot; and you should get back account information in a message posted to the channel by the bot.</li>
 </ol>
 </div>
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="step-2.-simple-commands">Step 2. Simple Commands</h2>
+<h2 id="simple-commands">2. Simple Commands</h2>
 <ol style="list-style-type: decimal">
-<li>We have the following simple commands. By simple, it means 'single-word'.</li>
-<li>&quot;+register&quot;: you should get back a message saying you are already registerd.</li>
-<li>&quot;+accept&quot;: you should get back a message saying you don't have any pending tips. pending tips only apply if someone else sends you a tip and you are yet to be registered.</li>
-<li>&quot;+history&quot;: you should get back a message saying you have 0 transaction.</li>
-<li>&quot;+help&quot;: you should get back a list of most commonly used commands.</li>
+<li><em>tipreddcoin</em> accepts several simple commands. By &quot;simple&quot;, it means 'single-word'.</li>
+<li>&quot;+register&quot;: explicit registration.</li>
+<li>&quot;+accept&quot;: if you are unregistered, use this command to accept all pending tips sent by other already registered users.</li>
+<li>&quot;+history&quot;: details of the last transaction.</li>
+<li>&quot;+rates&quot;: latest market prices of RDD/BTC from several exchanges.</li>
+<li>&quot;+summary&quot;: total number of tips and amount of RDD you have sent and received.</li>
 </ol>
 </div>
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="step-3.-give-tips-to-other-registered-users">Step 3. Give Tips to other Registered Users</h2>
+<h2 id="give-tips-to-twitch-users">3. Give Tips to Twitch Users</h2>
 <ol style="list-style-type: decimal">
-<li>Now the fun parts. At this stage, I'd like you to focus on tipping others already registered with the bot.</li>
-<li>The simplest tipping command is this: +tip <span class="citation">@laudney</span> 100 RDD in channel <em>#tipreddcoin</em>. Prepend '<span class="citation">@tipreddcoin</span> ' to make it work in other channels.</li>
-<li><strong>If you omit the recipient in the command, eg. +tip 100 RDD, the tip is sent to the owner of the channel.</strong> This is expected to be the most commonly used command by viewers to tip streamers.</li>
-<li>Bot supports a large number of variations. Let's go through them:</li>
+<li>The simplest tipping command follows this format: +tip <span class="citation">@recipient</span> amount RDD where amount is a number.</li>
+<li><strong>If you omit the <span class="citation">@recipient</span> in the command, eg. +tip 100 RDD, the tip is sent to the owner of the channel.</strong> This is expected to be the most commonly used command by viewers to tip streamers.</li>
+<li><em>tipreddcoin</em> recognises a large number of variations. Let's go through them:</li>
 <li>+tip can be replaced by +give, +send, +pay</li>
-<li><strong>You can reverse the order of ammount and currency but then you must remove the space in between</strong>, e.g. +pay <span class="citation">@laudney</span> RDD100</li>
-<li>You can replace <span class="citation">@laudney</span> (i.e. the user name) with a wallet address, which is then equivalent to +withdraw command.</li>
-<li>You can replace amount with one of the keywords which will do two things a) choose an amount for you b) also generate very fun message!!</li>
-<li>All the keywords are listed in this Regular Expressoin: '(all|flip|megaflip|gigaflip|roll|megaroll|gigaroll|sushi|random01|random05|random1|random3|random5|random10|random15|random25|random50|random100|random250|random500|random1000|upvote|pi|e|leet|quarter|half|cookie|nothing|gum|beer|nicebeer|hug|kiss|nyan|highfive|fart|coffee)'</li>
-<li>As before, <strong>if you use keyword but put it behind RDD, you must remove the space in between.</strong>, e.g. +tip <span class="citation">@laudney</span> RDDsushi. You see, it's a <em>play on the world</em>: RDDsushi, Rddbeer, RDDnicebeer, RDDflip</li>
-<li>So go forth and try funky commands like: +pay <span class="citation">@laudney</span> nyan RDD</li>
+<li>You can reverse the order of ammount and currency but you must remove any space in between, e.g. +pay <span class="citation">@recipient</span> RDD100</li>
+<li>You can replace <span class="citation">@recipient</span> with a Reddcoin wallet address</li>
+<li>You can replace amount with one of the keywords which will do two things a) choose an amount for you b) also generate very fun message!</li>
+<li>All the keywords are listed in this Regular Expression: (all|flip|megaflip|gigaflip|roll|megaroll|gigaroll|sushi|pi|e|leet|quarter|half|cookie|gum|beer|nicebeer|hug|kiss|highfive|fart|coffee)</li>
 </ol>
 </div>
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="step-4.-withdraw">Step 4. Withdraw</h2>
-<ol style="list-style-type: decimal">
-<li>The syntax of &quot;+withdraw&quot; is very similar to &quot;+tip&quot;: +withdraw address amount RDD</li>
-<li>You can replace amount with any keyword in the same way as described in the previous section.</li>
-</ol>
+<h2 id="withdraw">4. Withdraw</h2>
+<p>The syntax of &quot;+withdraw&quot; is very similar to &quot;+tip&quot;: +withdraw address amount RDD</p>
 </div>
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="step-5.-give-tips-to-unregistered-users">Step 5. Give Tips to Unregistered Users</h2>
-<p>If you send command +tip <span class="citation">@total_stranger</span> 100 RDD, the several things should happen:</p>
+<h2 id="give-tips-to-unregistered-twitch-users">5. Give Tips to Unregistered Twitch Users</h2>
+<p>When you tip someone who is not yet registered with <em>tipreddcoin</em>, there is one extra step you need to do. When you send command: +tip <span class="citation">@total_stranger</span> 100 RDD, the following will happen:</p>
 <ol style="list-style-type: decimal">
-<li>Your tip is taken from your wallet and put inside the wallet of the bot. The tip is marked pending.</li>
-<li><em>tipreddcoin</em> sends a public message to the channel: <span class="citation">@total_stranger</span>, <span class="citation">@laudney</span> has sent you a tip of 100 RDD. Please rely with +accept etc etc.</li>
-<li>So hopefully, <span class="citation">@total_stranger</span> notices the public message and send &quot;+accept&quot; to claim the pending tip.</li>
+<li>Your tip is taken from your wallet and put inside the private wallet of the bot. The tip is marked as pending.</li>
+<li>You have to make sure <span class="citation">@total_stranger</span> accept the pending tip by sending &quot;+accept&quot; command to <em>tipreddcoin</em>.</li>
 </ol>
 </div>
 </body>
