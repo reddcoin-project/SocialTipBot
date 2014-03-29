@@ -1694,72 +1694,60 @@ init_mathjax();
 <body>
 
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="how-to-test-reddcoin-tipbot-on-twitter-tipreddcoin">How to Test Reddcoin Tipbot on Twitter (<span class="citation">@tipreddcoin</span>)</h1>
-<p>by laudney (Reddit) / <span class="citation">@laudney</span> (Twitter) / reddtipbot@gmail.com</p>
+<h1 id="user-guide-reddcoin-tipbot-on-twitter-tipreddcoin">User Guide: Reddcoin Tipbot on Twitter (<span class="citation">@tipreddcoin</span>)</h1>
+<p>by /u/laudney (Reddit) / <span class="citation">@laudney</span> (Twitter) / ren@reddcoin.com / Rppgy8PHbBrknXfDmfEmqZXTKMR1yiwVtB</p>
 </div>
 <div class="text_cell_render border-box-sizing rendered_html">
-<h4 id="warning-this-is-beta-software-without-warranty.-server-may-reboot-or-stay-temporarily-offline.-you-may-lose-all-your-coins-in-the-wallet.-dont-test-with-what-you-cannot-lose.">WARNING: THIS IS BETA SOFTWARE WITHOUT WARRANTY. SERVER MAY REBOOT OR STAY TEMPORARILY OFFLINE. YOU MAY LOSE ALL YOUR COINS IN THE WALLET. DON'T TEST WITH WHAT YOU CANNOT LOSE.</h4>
+<h4 id="warning-this-is-beta-software-without-warranty.">WARNING: THIS IS BETA SOFTWARE WITHOUT WARRANTY.</h4>
 </div>
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="reddcoin-tipbot-on-twitter-tipreddcoin">Reddcoin Tipbot on Twitter (<span class="citation">@tipreddcoin</span>)</h2>
-<p>The bot is registered under the handle <span class="citation">@tipreddcoin</span>. The bot automatically approves any <em>follow request</em>. Below I lay out in details all the steps to test. Please follow them in sequence and contact me with any bug report or improvement suggestion.</p>
-<p>In each step I describe the expected behavior. If the expected behavior doesn't happen, please file a report. If the expected behavior requires further refinement, please also file a report.</p>
-<p>Thank you for your time and efforts!</p>
+<p>The bot is registered under the handle <span class="citation">@tipreddcoin</span>. The bot automatically approves any follow request. Below I lay out in details all the steps to register and interact with the bot. Please contact me with any bug report or improvement suggestion.</p>
+<p><span class="citation">@tipreddcoin</span> accepts all commands in both direct messages and public tweets. You should get back responses in corresponding format. The difference between the two is: in public tweets, you need to put <span class="citation">@tipreddcoin</span> at the beginning of the tweet so it's considered a <span class="citation">@reply</span> to the bot. In direct messages, there is no need for that.</p>
 </div>
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="test-part-1.-self-registration">Test Part 1. Self Registration</h2>
+<h2 id="self-registration">1. Self Registration</h2>
 <ol style="list-style-type: decimal">
-<li>Follow <span class="citation">@tipreddcoin</span>. This will trigger three things. 1) <span class="citation">@tipreddcoin</span> will immediately send you a follow request. Please accept it asap. 2) <span class="citation">@tipreddcoin</span> will also immediately create an account for you, including your Reddcoin address. 3) <span class="citation">@tipreddcoin</span> will then mention you in a public tweet to inform you of the success of registrion and ask you to get more information with &quot;+info&quot; command. The reason a public tweet is used is mostly due to the fact that sending direct message is forbidden until after you accept bot's follow request. Please check all three things happen.</li>
-<li>Once you accept the follow request from <span class="citation">@tipreddcoin</span>, it's time to test +info command.</li>
-<li>Using direct message, send &quot;+info&quot; to <span class="citation">@tipreddcoin</span>. In your message body, you can put in any random stuff as long as &quot;+info&quot; appears in the text and with space around it. Try different variations and see whether you get account info back each time.</li>
-<li>Using public tweets, send &quot;<span class="citation">@tipreddcoin</span> +info&quot; and you should get back account information in a public tweet from bot.</li>
+<li>Follow <span class="citation">@tipreddcoin</span>. This will trigger three things. 1) <span class="citation">@tipreddcoin</span> will immediately send you a follow request. Please accept it ASAP. 2) <span class="citation">@tipreddcoin</span> will also immediately create a Reddcoin account for you, including your Reddcoin address. 3) <span class="citation">@tipreddcoin</span> will then reply to you in a public tweet to inform you of the success of registrion and ask you to get more information with &quot;+info&quot; command. The reason a public tweet is used is due to the fact that sending direct message is forbidden until after you accept bot's follow request.</li>
+<li>Once you accept the follow request from <span class="citation">@tipreddcoin</span>, You can now send +info command.</li>
+<li>Using direct message, send &quot;+info&quot; to <span class="citation">@tipreddcoin</span>. In your message body, you can put in any random text as long as &quot;+info&quot; appears in the text and with space around it.</li>
+<li>Using public tweets, you can send &quot;<span class="citation">@tipreddcoin</span> +info&quot; and you will get back account information in a public tweet from bot.</li>
 </ol>
 </div>
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="test-part-2.-simple-commands">Test Part 2. Simple Commands</h2>
+<h2 id="simple-commands">2. Simple Commands</h2>
 <ol style="list-style-type: decimal">
-<li>We have the following simple commands to test. By simple, it means 'single-word'. Please test each command in both direct messages and public tweet. You should get back responses in corresponding format. The difference between the two is: in public tweets, you need to put <span class="citation">@tipreddcoin</span> at the beginning of the tweet so it's considered a <span class="citation">@reply</span> to the bot. In direct message, there is no need for that.</li>
-<li>&quot;+register&quot;: you should get back a message saying you are already registerd.</li>
-<li>&quot;+accept&quot;: you should get back a message saying you don't have any pending tips. pending tips only apply if someone else sends you a tip and you are yet to be registered.</li>
-<li>&quot;+decline&quot;: you should get back the same message as you get for &quot;+accept&quot;.</li>
-<li>&quot;+history&quot;: you should get back a message saying you have 0 transaction.</li>
-<li>&quot;+rates&quot;: you should get back a message saying the command is disabled.</li>
+<li><span class="citation">@tipreddcoin</span> accepts several simple commands. By &quot;simple&quot;, it means 'single-word'.</li>
+<li>&quot;+register&quot;: explicit registration.</li>
+<li>&quot;+accept&quot;: if you are unregistered, use this command to accept all pending tips sent by other already registered users.</li>
+<li>&quot;+history&quot;: details of the last transaction.</li>
+<li>&quot;+rates&quot;: latest market prices of RDD/BTC from several exchanges.</li>
+<li>&quot;+summary&quot;: total number of tips and amount of RDD you have sent and received.</li>
 </ol>
 </div>
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="test-part-3.-give-tips-to-other-registered-users">Test Part 3. Give Tips to other Registered Users</h2>
+<h2 id="give-tips-to-twitter-users">3. Give Tips to Twitter Users</h2>
 <ol style="list-style-type: decimal">
-<li>Now the fun parts. At this stage, I'd like you to focus on tipping others already registered with the bot. You can find out who are registered by looking at the Followed and Following of the bot.</li>
-<li>The simplest tipping command is this: +tip <span class="citation">@laudney</span> 100 RDD in a direct message. Prepend '<span class="citation">@tipreddcoin</span> ' to make it work in a public tweet.</li>
-<li><strong>Unlike Reddit, in twitter you must always specify target screen name.</strong></li>
-<li>Bot supports a large number of variations. Let's go through them:</li>
+<li>The simplest tipping command follows this format: +tip <span class="citation">@recipient_screen_name</span> amount RDD where amount is a number.</li>
+<li>Unlike Reddit, on Twitter you must always specify recipient screen name.</li>
+<li><span class="citation">@tipreddcoin</span> recognises a large number of variations. Let's go through them:</li>
 <li>+tip can be replaced by +give, +send, +pay</li>
-<li><strong>You can reverse the order of ammount and currency but you must NOT put space in between</strong>, e.g. +pay <span class="citation">@laudney</span> RDD100</li>
-<li>You can replace <span class="citation">@laudney</span> (i.e. the screen name) with a wallet address</li>
-<li>You can replace amount with one of the keywords which will do two things a) choose an amount for you b) also generate very fun message!!</li>
-<li>All the keywords are listed in this Regular Expressoin: '(all|flip|megaflip|gigaflip|roll|megaroll|gigaroll|sushi|random01|random05|random1|random3|random5|random10|random15|random25|random50|random100|random250|random500|random1000|upvote|pi|e|leet|quarter|half|cookie|nothing|gum|beer|nicebeer|hug|kiss|nyan|highfive|fart|coffee)'</li>
-<li>However, <strong>if you use keyword but put it behind RDD, you must NOT put space in between.</strong>, e.g. +tip <span class="citation">@laudney</span> RDDsushi. You see, it's a <em>play on the world</em>: RDDsushi, Rddbeer, RDDnicebeer, RDDflip</li>
-<li>So go forth and try funky commands like: +pay <span class="citation">@laudney</span> nyan RDD</li>
+<li>You can reverse the order of ammount and currency but you must remove any space in between, e.g. +pay <span class="citation">@recipient_screen_name</span> RDD100</li>
+<li>You can replace <span class="citation">@recipient_screen_name</span> with a Reddcoin wallet address</li>
+<li>You can replace amount with one of the keywords which will do two things a) choose an amount for you b) also generate very fun message!</li>
+<li>All the keywords are listed in this Regular Expression: (all|flip|megaflip|gigaflip|roll|megaroll|gigaroll|sushi|pi|e|leet|quarter|half|cookie|gum|beer|nicebeer|hug|kiss|highfive|fart|coffee)</li>
 </ol>
 </div>
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="test-part-4.-withdraw">Test Part 4. Withdraw</h2>
-<ol style="list-style-type: decimal">
-<li>The syntax of &quot;+withdraw&quot; is very similar to &quot;+tip&quot;: +withdraw address amount RDD</li>
-<li>You can switch the order of amount and RDD</li>
-<li>You can replace amount with any keyword in the same way as described in the previous section.</li>
-</ol>
+<h2 id="withdraw">4. Withdraw</h2>
+<p>The syntax of &quot;+withdraw&quot; is very similar to &quot;+tip&quot;: +withdraw address amount RDD</p>
 </div>
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="test-part-5.-give-tips-to-unregistered-users">Test Part 5. Give Tips to Unregistered Users</h2>
-<p>Now here is the tricky bit. When you tip someone who is not yet registered with the bot, which means he/she and <span class="citation">@tipreddcoin</span> don't follow each other. So if you send command +tip <span class="citation">@total_stranger</span> 100 RDD, the several things should happen:</p>
+<h2 id="give-tips-to-unregistered-twitter-users">5. Give Tips to Unregistered Twitter Users</h2>
+<p>When you tip someone who is not yet registered with <span class="citation">@tipreddcoin</span>, there is one extra step you need to do. When you send command: +tip <span class="citation">@total_stranger</span> 100 RDD, the following will happen:</p>
 <ol style="list-style-type: decimal">
-<li>Your tip is taken from your wallet and put inside the wallet of the bot. The tip is marked pending.</li>
-<li><span class="citation">@tipreddcoin</span> send a <em>follow request</em> to <span class="citation">@total_stranger</span></li>
-<li><span class="citation">@tipreddcoin</span> also sends a public tweet: <span class="citation">@total_stranger</span>, <span class="citation">@laudney</span> has sent you a tip of 100 RDD. Please rely with +accept etc etc.</li>
-<li><span class="citation">@tipreddcoin</span> cannot send direct message to <span class="citation">@total_stranger</span> until they follow each other.</li>
-<li>So hopefully, <span class="citation">@total_stranger</span> notices the public tweet (i.e. mention) and the follow request and respond to both.</li>
-<li>When <span class="citation">@total_stranger</span> accepts the follow request and respond +accept to <span class="citation">@tipreddcoin</span>, he/she should immediately receive the pending tip.</li>
+<li>Your tip is taken from your wallet and put inside the private wallet of the bot. The tip is marked as pending.</li>
+<li>You have to make sure <span class="citation">@total_stranger</span> accept the pending tip by either following <span class="citation">@tipreddcoin</span> or sending it &quot;+accept&quot; command.</li>
 </ol>
 </div>
 </body>
