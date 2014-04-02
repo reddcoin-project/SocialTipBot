@@ -1,7 +1,9 @@
 __author__ = 'laudney'
 
 
+from datetime import date
 import praw
+from jinja2 import Environment, FileSystemLoader
 from collections import defaultdict
 import pandas as pd
 import numpy as np
@@ -16,8 +18,7 @@ def _login():
     return reddit
 
 
-def _full_score(reddit):
-    subreddit = reddit.get_subreddit('reddCoin')
+def _full_score(subreddit):
     submissions = subreddit.search('*', period='day', sort='new', limit=None)
 
     submission_obj = []
@@ -47,9 +48,19 @@ def _full_score(reddit):
     full_score['total_score'] = full_score.sum(axis=1)
     full_score = full_score.ix[full_score.index - _ignore_users]
     full_score.sort(columns='total_score', ascending=False, inplace=True)
+    full_score.index.name = 'username'
     return full_score
 
 
 if __name__ == '__main__':
     reddit = _login()
-    full_score = _full_score(reddit)
+    subreddit = reddit.get_subreddit('reddCoin')
+    jenv = Environment(trim_blocks=True, loader=FileSystemLoader('.'))
+
+    full_score = _full_score(subreddit)
+
+    df = full_score.applymap(lambda x: str(int(x))).iloc[:10].reset_index()
+    msg = jenv.get_template('karma.tpl').render(df=df)
+
+    subject = 'Top Contributors %s' % date.today()
+    post = reddit.submit(subreddit, subject, msg)
