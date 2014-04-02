@@ -7,10 +7,17 @@ import pandas as pd
 import numpy as np
 
 
-if __name__ == '__main__':
-    ignore_users = ['reddtipbot', 'ReddcoinRewards']
-    r = praw.Reddit(user_agent='Reddcoin Karma Tipbot')
-    subreddit = r.get_subreddit('reddCoin')
+_ignore_users = ['reddtipbot', 'ReddcoinRewards']
+
+
+def _login():
+    reddit = praw.Reddit(user_agent='Reddcoin Karma Tipbot')
+    reddit.login('ReddcoinRewards', 'phd51blognewstartreddr')
+    return reddit
+
+
+def _full_score(reddit):
+    subreddit = reddit.get_subreddit('reddCoin')
     submissions = subreddit.search('*', period='day', sort='new', limit=None)
 
     submission_obj = []
@@ -38,5 +45,11 @@ if __name__ == '__main__':
     s_reply.name = 'comment_replies'
     full_score = pd.concat([s_submission, s_comment, s_reply], axis=1).fillna(value=0)
     full_score['total_score'] = full_score.sum(axis=1)
-    full_score = full_score.ix[full_score.index - ignore_users]
+    full_score = full_score.ix[full_score.index - _ignore_users]
     full_score.sort(columns='total_score', ascending=False, inplace=True)
+    return full_score
+
+
+if __name__ == '__main__':
+    reddit = _login()
+    full_score = _full_score(reddit)
