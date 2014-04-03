@@ -2,6 +2,7 @@ __author__ = 'laudney'
 
 
 from datetime import date
+from pprint import pprint
 import praw
 import sys
 import time
@@ -15,7 +16,7 @@ import numpy as np
 
 
 _ignore_users = ['reddtipbot', 'ReddcoinRewards']
-_vote_threshold = 10
+_vote_threshold = 15
 
 
 def _login():
@@ -59,25 +60,31 @@ def _full_score(subreddit):
 
 
 def _top_posts(subreddit):
-    submissions = subreddit.search('*', period='hour', sort='new', limit=None)
+    submissions = subreddit.search('*', period='day', sort='new', limit=None)
 
-    submission_obj = []
+    # just to make sure returned posts are not double-counted
+    submission_rewards = {}
     comment_rewards = defaultdict(list)
 
     for s in submissions:
         if s.score >= _vote_threshold:
-            submission_obj.append(s)
+            submission_rewards[s.name] = s
 
-    for s in submission_obj:
+    for k, s in submission_rewards.iteritems():
         comment_authors = []
         comments = praw.helpers.flatten_tree(s.comments)
         for c in comments:
+            if c.body == '[deleted]':
+                continue
+
             author = str(c.author)
-            if author not in _ignore_users and author not in comment_authors and c.score > 0:
-                comment_rewards[s].append(c)
+            if _already_awarded(c):
+                comment_authors.append(author)
+            elif author not in _ignore_users and author not in comment_authors and c.score > 0:
+                comment_rewards[k].append(c)
                 comment_authors.append(author)
 
-    return comment_rewards
+    return submission_rewards, comment_rewards
 
 
 def _already_awarded(content):
@@ -89,7 +96,7 @@ def _already_awarded(content):
         return True
 
     for r in a:
-        if str(r.author) == 'ReddcoinAwards':
+        if str(r.author) == 'ReddcoinRewards':
             return True
 
     return False
@@ -126,20 +133,31 @@ if __name__ == '__main__':
 
     while True:
         try:
-            comment_rewards = _top_posts(subreddit)
-            for s, comment in comment_rewards.items():
+            submission_rewards, comment_rewards = _top_posts(subreddit)
+            for k, comment in comment_rewards.items():
+                s = submission_rewards[k]
                 if not _already_awarded(s):
+                    print '================================'
                     print s.title
+                    print '================================'
                     s.add_comment("**Reddcoin Bonus Rewards have been unlocked for this post!!** +/u/reddtipbot 100 RDD")
-                    for c in comment:
-                        if not _already_awarded(c):
-                            text = "You are receiving Reddcoin Bonus Rewards for active participation in community."
-                            text += " Thank you. +/u/reddtipbot 100 RDD"
-                            c.reply(text)
-            time.sleep(60 * 10)
+
+                for c in comment:
+                    if not _already_awarded(c):
+                        print '---------------------------------'
+                        print c.body
+                        print '---------------------------------'
+                        text = "You are receiving Reddcoin Bonus Rewards for active participation in community."
+                        text += " Thank you. +/u/reddtipbot 100 RDD"
+                        c.reply(text)
+
+            print 'Sleeping for 1h'
+            time.sleep(3600)
         except KeyboardInterrupt as e:
             sys.exit(1)
         except Exception as e:
             tb = traceback.format_exc()
             print tb
             _send_email(msg=tb)
+            print 'Sleeping for 1h'
+            time.sleep(3600)
