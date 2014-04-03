@@ -1,7 +1,7 @@
 __author__ = 'laudney'
 
 
-from datetime import date
+from datetime import date, datetime
 from pprint import pprint
 import praw
 import sys
@@ -38,11 +38,13 @@ def _full_score(subreddit):
         submission_score[str(s.author)][s.name] = s.score
 
     for s in submission_obj:
+        s.replace_more_comments(limit=None)
         comments = praw.helpers.flatten_tree(s.comments)
         for c in comments:
             author = str(c.author)
-            comment_score[author][c.name] = c.score
-            reply_score[author] = reply_score.get(author, 0) + len(c.replies)
+            if author not in _ignore_users:
+                comment_score[author][c.name] = c.score
+                reply_score[author] = reply_score.get(author, 0) + len(c.replies)
 
     s_submission = pd.Series({k: np.sum(v.values()) for k, v in submission_score.items()})
     s_comment = pd.Series({k: np.sum(v.values()) for k, v in comment_score.items()})
@@ -52,10 +54,14 @@ def _full_score(subreddit):
     s_comment.name = 'comment_net_votes'
     s_reply.name = 'comment_replies'
     full_score = pd.concat([s_submission, s_comment, s_reply], axis=1).fillna(value=0)
-    full_score['total_score'] = full_score.sum(axis=1)
+    full_score['total_karma'] = full_score.sum(axis=1)
     full_score = full_score.ix[full_score.index - _ignore_users]
     full_score.sort(columns='total_karma', ascending=False, inplace=True)
     full_score.index.name = 'username'
+    full_score.reset_index(inplace=True)
+    full_score.index = map(str, range(1, len(full_score) + 1))
+    full_score.index.name = 'ranking'
+    full_score.set_index('username', append=True, inplace=True)
     return full_score
 
 
@@ -72,6 +78,7 @@ def _top_posts(subreddit):
 
     for k, s in submission_rewards.iteritems():
         comment_authors = []
+        s.replace_more_comments(limit=None)
         comments = praw.helpers.flatten_tree(s.comments)
         for c in comments:
             if c.body == '[deleted]':
@@ -121,17 +128,21 @@ def _send_email(msg=None):
 if __name__ == '__main__':
     reddit = _login()
     subreddit = reddit.get_subreddit('reddCoin')
-    # jenv = Environment(trim_blocks=True, loader=FileSystemLoader('.'))
-    #
-    # full_score = _full_score(subreddit)
-    #
-    # df = full_score.applymap(lambda x: str(int(x))).iloc[:10].reset_index()
-    # msg = jenv.get_template('karma.tpl').render(df=df)
-    #
-    # subject = '[Karma Tipbot] Top Contributors %s' % date.today()
-    # post = reddit.submit(subreddit, subject, msg)
+    jenv = Environment(trim_blocks=True, loader=FileSystemLoader('.'))
 
     while True:
+        try:
+            if datetime.now().hour == 23:
+                full_score = _full_score(subreddit)
+                df = full_score.applymap(lambda x: str(int(x))).iloc[:10].reset_index()
+                msg = jenv.get_template('karma.tpl').render(df=df)
+                subject = 'Top Contributors %s' % date.today()
+                post = reddit.submit(subreddit, subject, msg)
+        except Exception as e:
+            tb = traceback.format_exc()
+            print tb
+            _send_email(msg=tb)
+
         try:
             submission_rewards, comment_rewards = _top_posts(subreddit)
             for k, comment in comment_rewards.items():
