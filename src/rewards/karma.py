@@ -72,6 +72,7 @@ def _top_posts(subreddit):
 
     for k, s in submission_rewards.iteritems():
         comment_authors = []
+        s.replace_more_comments(limit=None)
         comments = praw.helpers.flatten_tree(s.comments)
         for c in comments:
             if c.body == '[deleted]':
