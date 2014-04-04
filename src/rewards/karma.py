@@ -132,7 +132,7 @@ if __name__ == '__main__':
 
     while True:
         try:
-            if datetime.now().hour == 23:
+            if datetime.utcnow().hour == 22:
                 full_score = _full_score(subreddit)
                 df = full_score.applymap(lambda x: str(int(x))).iloc[:10].reset_index()
                 msg = jenv.get_template('karma.tpl').render(df=df)
@@ -162,7 +162,7 @@ if __name__ == '__main__':
                         text += " Thank you. +/u/reddtipbot 100 RDD"
                         c.reply(text)
 
-            print 'Sleeping for 1h'
+            print '%s: Sleeping for 1h' % datetime.utcnow()
             time.sleep(3600)
         except KeyboardInterrupt as e:
             sys.exit(1)
@@ -170,5 +170,5 @@ if __name__ == '__main__':
             tb = traceback.format_exc()
             print tb
             _send_email(msg=tb)
-            print 'Sleeping for 1h'
+            print '%s: Sleeping for 1h' % datetime.utcnow()
             time.sleep(3600)
