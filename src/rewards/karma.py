@@ -148,16 +148,16 @@ if __name__ == '__main__':
             for k, comment in comment_rewards.items():
                 s = submission_rewards[k]
                 if not _already_awarded(s):
-                    print '================================'
-                    print s.title
-                    print '================================'
+                    # print '================================'
+                    # print s.title
+                    # print '================================'
                     s.add_comment("**Reddcoin Bonus Rewards have been unlocked for this post!!** +/u/reddtipbot 100 RDD")
 
                 for c in comment:
                     if not _already_awarded(c):
-                        print '---------------------------------'
-                        print c.body
-                        print '---------------------------------'
+                        # print '---------------------------------'
+                        # print c.body
+                        # print '---------------------------------'
                         text = "You are receiving Reddcoin Bonus Rewards for active participation in community."
                         text += " Thank you. +/u/reddtipbot 100 RDD"
                         c.reply(text)
