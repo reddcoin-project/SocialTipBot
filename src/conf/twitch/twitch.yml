@@ -6,7 +6,7 @@ auth:
 
 channels:
     method: list
-    list: ['#tipreddcoin', '#dracothedot', '#arithes', '#dirtypawstest', '#pox_eeeeeeeeeee', '#GameroftheBeer', '#erratica', '#mwthink', '#gorgntv']
+    list: ['#tipreddcoin', '#dracothedot', '#arithes', '#dirtypawstest', '#pox_eeeeeeeeeee', '#GameroftheBeer', '#erratica', '#mwthink', '#gorgntv', '#toxiceuphoria']
 
 help:
     enabled: true
