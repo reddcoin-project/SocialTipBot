@@ -16,7 +16,7 @@ import numpy as np
 
 
 _ignore_users = ['reddtipbot', 'ReddcoinRewards']
-_vote_threshold = 15
+_vote_threshold = 20
 
 
 def _login():
@@ -73,7 +73,7 @@ def _top_posts(subreddit):
     comment_rewards = defaultdict(list)
 
     for s in submissions:
-        if s.score >= _vote_threshold:
+        if not s.stickied and s.score >= _vote_threshold:
             submission_rewards[s.name] = s
 
     for k, s in submission_rewards.iteritems():
