@@ -9,7 +9,7 @@ scan:
 
 help:
     enabled: true
-    url: 'http://www.reddit.com/r/reddcoin/wiki/tipbot'
+    url: 'http://www.reddit.com/r/reddCoin/wiki/tipbot_reddit'
 
 contact:
     enabled: true
