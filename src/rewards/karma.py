@@ -138,37 +138,42 @@ if __name__ == '__main__':
                 msg = jenv.get_template('karma.tpl').render(df=df)
                 subject = 'Top Contributors %s' % date.today()
                 post = reddit.submit(subreddit, subject, msg)
-        except Exception as e:
-            tb = traceback.format_exc()
-            print tb
-            _send_email(msg=tb)
-
-        try:
-            submission_rewards, comment_rewards = _top_posts(subreddit)
-            for k, comment in comment_rewards.items():
-                s = submission_rewards[k]
-                if not _already_awarded(s):
-                    # print '================================'
-                    # print s.title
-                    # print '================================'
-                    s.add_comment("**Reddcoin Bonus Rewards have been unlocked for this post!!** +/u/reddtipbot 100 RDD")
-
-                for c in comment:
-                    if not _already_awarded(c):
-                        # print '---------------------------------'
-                        # print c.body
-                        # print '---------------------------------'
-                        text = "You are receiving Reddcoin Bonus Rewards for active participation in community."
-                        text += " Thank you. +/u/reddtipbot 100 RDD"
-                        c.reply(text)
 
             print '%s: Sleeping for 1h' % datetime.utcnow()
             time.sleep(3600)
-        except KeyboardInterrupt as e:
-            sys.exit(1)
         except Exception as e:
             tb = traceback.format_exc()
             print tb
             _send_email(msg=tb)
             print '%s: Sleeping for 1h' % datetime.utcnow()
             time.sleep(3600)
+
+        # try:
+        #     submission_rewards, comment_rewards = _top_posts(subreddit)
+        #     for k, comment in comment_rewards.items():
+        #         s = submission_rewards[k]
+        #         if not _already_awarded(s):
+        #             # print '================================'
+        #             # print s.title
+        #             # print '================================'
+        #             s.add_comment("**Reddcoin Bonus Rewards have been unlocked for this post!!** +/u/reddtipbot 100 RDD")
+        #
+        #         for c in comment:
+        #             if not _already_awarded(c):
+        #                 # print '---------------------------------'
+        #                 # print c.body
+        #                 # print '---------------------------------'
+        #                 text = "You are receiving Reddcoin Bonus Rewards for active participation in community."
+        #                 text += " Thank you. +/u/reddtipbot 100 RDD"
+        #                 c.reply(text)
+        #
+        #     print '%s: Sleeping for 1h' % datetime.utcnow()
+        #     time.sleep(3600)
+        # except KeyboardInterrupt as e:
+        #     sys.exit(1)
+        # except Exception as e:
+        #     tb = traceback.format_exc()
+        #     print tb
+        #     _send_email(msg=tb)
+        #     print '%s: Sleeping for 1h' % datetime.utcnow()
+        #     time.sleep(3600)
