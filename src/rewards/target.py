@@ -2,19 +2,23 @@ __author__ = 'laudney'
 
 
 from datetime import date, datetime
+import time
 from pprint import pprint
 import praw
 import praw.helpers
 import sys
 import re
-import time
 import traceback
+import shelve
 from jinja2 import Environment, FileSystemLoader
 import smtplib
 from email.mime.text import MIMEText
 from collections import defaultdict
 import pandas as pd
 import numpy as np
+
+
+_ignored_users = ['ReddcoinRewards', 'reddtipbot', 'dogecointip', 'bitcointip']
 
 
 def _login():
@@ -38,7 +42,10 @@ if __name__ == '__main__':
     stream = praw.helpers.comment_stream(reddit, 'rddtest', limit=None, verbosity=3)
     rg = _regex()
     for comment in stream:
-        author = comment.author
+        author = comment.author.name
+        if author in _ignored_users:
+            continue
+
         text = comment.body.lower()
         m = rg.search(text)
         if m:
@@ -50,6 +57,10 @@ if __name__ == '__main__':
                     break
 
             if not already:
+                store = shelve.open('tipping_campaigns')
+                store['_'.join((author, subreddit, keyword))] = (number, amount)
+                print store
+                store.close()
                 confo = 'confirmed: %s giving %s people in /r/%s %s RDD for keyword %s' % (author, number, subreddit,
-                                                                                        amount, keyword)
+                                                                                           amount, keyword)
                 comment.reply(confo)
