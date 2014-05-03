@@ -6,6 +6,7 @@ from pprint import pprint
 import praw
 import praw.helpers
 import sys
+import re
 import time
 import traceback
 from jinja2 import Environment, FileSystemLoader
@@ -22,19 +23,33 @@ def _login():
     return reddit
 
 
+def _regex():
+    init = '(\+?/u/ReddcoinRewards)'
+    subreddit = '(\w{3,20})'
+    keyword = '(\#?\w{3,20})'
+    number = '([0-9]{1,6})'
+    amount = '([0-9]{1,6})'
+    regex = '%s %s %s %s %s' % (init, subreddit, keyword, number, amount)
+    return re.compile(regex, re.IGNORECASE | re.DOTALL)
+
+
 if __name__ == '__main__':
     reddit = _login()
-    subreddit = reddit.get_subreddit('rddtest')
     stream = praw.helpers.comment_stream(reddit, 'rddtest', limit=None, verbosity=3)
+    rg = _regex()
     for comment in stream:
+        author = comment.author
         text = comment.body.lower()
-        if '#socialcurrency' in text:
+        m = rg.search(text)
+        if m:
+            subreddit, keyword, number, amount = m.groups()[1:]
             already = False
-            replies = comment.replies
-            for r in replies:
+            for r in comment.replies:
                 if str(r.author) == 'ReddcoinRewards':
                     already = True
                     break
 
             if not already:
-                comment.reply('I hear you!!')
+                confo = 'confirmed: %s giving %s people in /r/%s %s RDD for keyword %s' % (author, number, subreddit,
+                                                                                        amount, keyword)
+                comment.reply(confo)
