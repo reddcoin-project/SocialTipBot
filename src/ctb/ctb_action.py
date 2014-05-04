@@ -1189,7 +1189,7 @@ def eval_reddit_comment(comment, ctb):
                     fiat=r.fiat,
                     fiat_val=amount if r.fiat else None,
                     keyword=keyword,
-                    subr=comment.subreddit,
+                    subr='%s' % comment.subreddit,
                     ctb=ctb)
                 return action
             except CtbActionExc as e:
