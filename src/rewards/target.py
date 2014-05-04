@@ -3,26 +3,30 @@ __author__ = 'laudney'
 
 from datetime import date, datetime
 import time
-from pprint import pprint
-import praw
-import praw.helpers
 import sys
 import re
 import traceback
-import shelve
-from jinja2 import Environment, FileSystemLoader
+
+import praw
+import praw.helpers
+from praw.handlers import MultiprocessHandler
+
+from sqlitedict import SqliteDict
 import smtplib
 from email.mime.text import MIMEText
-from collections import defaultdict
-import pandas as pd
-import numpy as np
+
+import gevent
+import gevent.monkey
+gevent.monkey.patch_all()
 
 
-_ignored_users = ['ReddcoinRewards', 'reddtipbot', 'dogecointip', 'bitcointip']
+ignored_users = ['ReddcoinRewards', 'reddtipbot', 'dogecointip', 'bitcointip']
+db_campaign = SqliteDict('tipping_campaign.db', autocommit=True)
+db_progress = SqliteDict('tipping_progress.db', autocommit=True)
 
 
 def _login():
-    reddit = praw.Reddit(user_agent='Reddcoin Comment Stream Tipbot')
+    reddit = praw.Reddit(user_agent='Reddcoin Comment Stream Tipbot', handler=MultiprocessHandler())
     reddit.login('ReddcoinRewards', 'phd51blognewstartreddr')
     return reddit
 
@@ -37,13 +41,41 @@ def _regex():
     return re.compile(regex, re.IGNORECASE | re.DOTALL)
 
 
+def _campaign(author, subreddit, keyword, number, amount):
+    reddit = _login()
+    key = '_'.join((author, subreddit, keyword))
+    print 'Campaign started: %s' % key
+
+    stream = praw.helpers.comment_stream(reddit, subreddit, limit=None, verbosity=3)
+    for comment in stream:
+        author = comment.author.name
+        if author in ignored_users:
+            continue
+
+        text = comment.body.lower()
+        if keyword in text:
+            already = False
+            for r in comment.replies:
+                if str(r.author) == 'ReddcoinRewards':
+                    already = True
+                    break
+
+            if not already:
+                confo = '+/u/reddtipbot %s RDD' % amount
+                comment.reply(confo)
+                if db_progress[key] == 1:
+                    break
+                else:
+                    db_progress[key] -= 1
+
+
 if __name__ == '__main__':
     reddit = _login()
     stream = praw.helpers.comment_stream(reddit, 'rddtest', limit=None, verbosity=3)
     rg = _regex()
     for comment in stream:
         author = comment.author.name
-        if author in _ignored_users:
+        if author in ignored_users:
             continue
 
         text = comment.body.lower()
@@ -57,10 +89,11 @@ if __name__ == '__main__':
                     break
 
             if not already:
-                store = shelve.open('tipping_campaigns')
-                store['_'.join((author, subreddit, keyword))] = (number, amount)
-                print store
-                store.close()
-                confo = 'confirmed: %s giving %s people in /r/%s %s RDD for keyword %s' % (author, number, subreddit,
-                                                                                           amount, keyword)
+                key = '_'.join((author, subreddit, keyword))
+                db_campaign[key] = (number, amount)
+                fmt = 'confirmed: %s giving %s people in /r/%s %s RDD for keyword %s'
+                confo = fmt % (author, number, subreddit, amount, keyword)
                 comment.reply(confo)
+
+                db_progress[key] = int(number)
+                gevent.spawn(_campaign, author, subreddit, keyword, number, amount)
