@@ -1,7 +1,7 @@
 auth:
     user: 'tipreddcoin'
-    app_key: '9HDzugNwT22Xlcw0EGQfg'
-    app_secret: '8OjJWIdIpErtBd8RcYAhwt9kixoIfOPA1GiM6mf0M'
+    app_key: 'sOBsAjXrqHoz73BS1LqMOpL9z'
+    app_secret: 'QdYT8vvOpeaesqgCS00H6uhZzDy5vjL0oQ2V5jZBgOdmlEkQ6Q'
     oauth_token: '2357688096-NtaUt52rHmqCCX2hz9t1gEcTjMnEbsvdX0pRZqp'
     oauth_token_secret: 'TjUHsf68MWCRzCtjjhB05S6OEdCjPMQIU00rL8dH0SH5a'
 
