@@ -52,8 +52,8 @@ def _campaign(author, subreddit, keyword, number, amount):
         if author in ignored_users:
             continue
 
-        text = comment.body.lower()
-        if keyword in text:
+        text = comment.body
+        if keyword.lower() in text.lower():
             already = False
             for r in comment.replies:
                 if str(r.author) == 'ReddcoinRewards':
@@ -63,37 +63,85 @@ def _campaign(author, subreddit, keyword, number, amount):
             if not already:
                 confo = '+/u/reddtipbot %s RDD' % amount
                 comment.reply(confo)
-                if db_progress[key] == 1:
+                if db_progress[key] <= 1:
                     break
                 else:
                     db_progress[key] -= 1
 
 
+def _send_email(msg=None):
+    if not msg:
+        return
+
+    # Construct MIME message
+    msg = MIMEText(msg)
+    addr = 'tipreddcoin@gmail.com'
+    msg['Subject'] = 'Target Tipbot Error'
+    msg['From'] = addr
+    msg['To'] = addr
+
+    # Send MIME message
+    server = smtplib.SMTP('smtp.gmail.com:587')
+    server.starttls()
+    server.login(addr, 'phd51blognewstarttipg')
+    server.sendmail(addr, addr, msg.as_string())
+    server.quit()
+
+
+def _load():
+    print 'Loading campaigns:'
+
+    for key, val in db_campaign.iteritems():
+        author, subreddit, keyword = key.split('_')
+        number, amount = val
+        print author, subreddit, keyword, number, amount
+        gevent.spawn(_campaign, author, subreddit, keyword, number, amount)
+
+    print 'Finished loading campaigns.'
+
 if __name__ == '__main__':
+    _load()
+
     reddit = _login()
-    stream = praw.helpers.comment_stream(reddit, 'rddtest', limit=None, verbosity=3)
+    stream = praw.helpers.comment_stream(reddit, 'reddcoinVIP', limit=None, verbosity=3)
     rg = _regex()
     for comment in stream:
-        author = comment.author.name
-        if author in ignored_users:
-            continue
+        try:
+            author = comment.author.name
+            if author in ignored_users:
+                continue
 
-        text = comment.body.lower()
-        m = rg.search(text)
-        if m:
-            subreddit, keyword, number, amount = m.groups()[1:]
-            already = False
-            for r in comment.replies:
-                if str(r.author) == 'ReddcoinRewards':
-                    already = True
-                    break
+            text = comment.body
+            m = rg.search(text)
+            if m:
+                subreddit, keyword, number, amount = m.groups()[1:]
+                number = int(number)
+                amount = int(amount)
+                already = False
+                for r in comment.replies:
+                    if str(r.author) == 'ReddcoinRewards':
+                        already = True
+                        break
 
-            if not already:
-                key = '_'.join((author, subreddit, keyword))
-                db_campaign[key] = (number, amount)
-                fmt = 'confirmed: %s giving %s people in /r/%s %s RDD for keyword %s'
-                confo = fmt % (author, number, subreddit, amount, keyword)
-                comment.reply(confo)
+                if not already:
+                    key = '_'.join((author, subreddit, keyword))
+                    db_campaign[key] = (number, amount)
 
-                db_progress[key] = int(number)
-                gevent.spawn(_campaign, author, subreddit, keyword, number, amount)
+                    spawn = True
+                    if key in db_progress:
+                        spawn = False
+
+                    db_progress[key] = number
+                    if spawn:
+                        gevent.spawn(_campaign, author, subreddit, keyword, number, amount)
+
+                    fmt = 'confirmed: %s giving %s people in /r/%s %s RDD for keyword %s'
+                    confo = fmt % (author, number, subreddit, amount, keyword)
+                    comment.reply(confo)
+
+        except Exception as e:
+            tb = traceback.format_exc()
+            print tb
+            _send_email(msg=tb)
+            print '%s: Sleeping for 60s' % datetime.utcnow()
+            time.sleep(60)
