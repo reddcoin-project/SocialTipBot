@@ -61,8 +61,8 @@ def _campaign(author, subreddit, keyword, number, amount):
                     break
 
             if not already:
-                confo = '+/u/reddtipbot %s RDD' % amount
-                comment.reply(confo)
+                confo = '+/u/reddtipbot @%s %s RDD' % (author, amount)
+                reddit.send_message('reddtipbot', key, confo)
                 if db_progress[key] <= 1:
                     break
                 else:
@@ -100,7 +100,7 @@ def _load():
     print 'Finished loading campaigns.'
 
 if __name__ == '__main__':
-    _load()
+    # _load()
 
     reddit = _login()
     stream = praw.helpers.comment_stream(reddit, 'reddcoinVIP', limit=None, verbosity=3)
