@@ -156,6 +156,7 @@ class CtbAction(object):
                 val = self.ctb.conf.keywords[self.keyword].value
                 if type(val) == float or type(val) == int:
                     self.coinval = float(val)
+                    lg.debug("CtbAction::__init__(): coin value of '%s' = %s", self.keyword, self.coinval)
                 elif type(val) == str:
                     lg.debug("CtbAction::__init__(): evaluating '%s'", val)
                     self.coinval = eval(val)
