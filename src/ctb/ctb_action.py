@@ -154,8 +154,8 @@ class CtbAction(object):
                 # Determine coin value
                 lg.debug("CtbAction::__init__(): determining coin value given '%s'", self.keyword)
                 val = self.ctb.conf.keywords[self.keyword].value
-                if type(val) == float:
-                    self.coinval = val
+                if type(val) == float or type(val) == int:
+                    self.coinval = float(val)
                 elif type(val) == str:
                     lg.debug("CtbAction::__init__(): evaluating '%s'", val)
                     self.coinval = eval(val)
