@@ -6,217 +6,184 @@ all:
 
 flip:
     value: "float( (self.ctb.conf.coins[self.coin].txmin.givetip if bool(self.coin) else 0.01) * float(randint(1,2)) )"
-    for_fiat: true
+    for_fiat: false
     for_coin: true
     message: '{USER_FROM} flips the table (╯°□°）╯︵┻━┻ and {USER_TO} wins {AMOUNT}'
 
 megaflip:
     value: "float( (self.ctb.conf.coins[self.coin].txmin.givetip if bool(self.coin) else 0.01) * float(randint(1,20)) )"
-    for_fiat: true
+    for_fiat: false
     for_coin: true
     message: '{USER_FROM} flips 10 tables (╯°□°）╯︵┻━┻ and {USER_TO} wins {AMOUNT}'
 
 gigaflip:
     value: "float( (self.ctb.conf.coins[self.coin].txmin.givetip if bool(self.coin) else 0.01) * float(randint(1,200)) )"
-    for_fiat: true
+    for_fiat: false
     for_coin: true
     message: '{USER_FROM} flips 100 tables (╯°□°）╯︵┻━┻ and {USER_TO} wins {AMOUNT}'
 
 roll:
     value: "float( (self.ctb.conf.coins[self.coin].txmin.givetip if bool(self.coin) else 0.01) * float(randint(1,6)) )"
-    for_fiat: true
+    for_fiat: false
     for_coin: true
     message: '{USER_FROM} rolls around and {USER_TO} gets {AMOUNT}'
 
 megaroll:
     value: "float( (self.ctb.conf.coins[self.coin].txmin.givetip if bool(self.coin) else 0.01) * float(randint(1,60)) )"
-    for_fiat: true
+    for_fiat: false
     for_coin: true
     message: '{USER_FROM} rolls around and {USER_TO} gets {AMOUNT}'
 
 gigaroll:
     value: "float( (self.ctb.conf.coins[self.coin].txmin.givetip if bool(self.coin) else 0.01) * float(randint(1,600)) )"
-    for_fiat: true
+    for_fiat: false
     for_coin: true
     message: '{USER_FROM} rolls around and {USER_TO} gets {AMOUNT}'
 
-random01:
-    value: "float( randint(0,100) ) / 1000.0"
-    for_fiat: true
-    for_coin: true
-    message: "{USER_FROM} asks randomness to decide luck of {USER_TO} and result is {AMOUNT}"
-
-random05:
-    value: "float( randint(0,500) ) / 1000.0"
-    for_fiat: true
-    for_coin: true
-    message: "{USER_FROM} asks randomness to decide luck of {USER_TO} and result is {AMOUNT}"
-
-random1:
-    value: "float( randint(0,1000) ) / 1000.0"
-    for_fiat: true
-    for_coin: true
-    message: "{USER_FROM} asks randomness to decide luck of {USER_TO} and result is {AMOUNT}"
-
-random3:
-    value: "float( randint(0,3000) ) / 1000.0"
-    for_fiat: true
-    for_coin: true
-    message: "{USER_FROM} asks randomness to decide luck of {USER_TO} and result is {AMOUNT}"
-
-random5:
-    value: "float( randint(0,5000) ) / 1000.0"
-    for_fiat: true
-    for_coin: true
-    message: "{USER_FROM} asks randomness to decide luck of {USER_TO} and result is {AMOUNT}"
-
-random10:
-    value: "float( randint(0,10000) ) / 1000.0"
-    for_fiat: true
-    for_coin: true
-    message: "{USER_FROM} asks randomness to decide luck of {USER_TO} and result is {AMOUNT}"
-
-random15:
-    value: "float( randint(0,15000) ) / 1000.0"
-    for_fiat: true
-    for_coin: true
-    message: "{USER_FROM} asks randomness to decide luck of {USER_TO} and result is {AMOUNT}"
-
-random25:
-    value: "float( randint(0,25000) ) / 1000.0"
-    for_fiat: true
-    for_coin: true
-    message: "{USER_FROM} asks randomness to decide luck of {USER_TO} and result is {AMOUNT}"
-
-random50:
-    value: "float( randint(0,50000) ) / 1000.0"
-    for_fiat: true
-    for_coin: true
-    message: "{USER_FROM} asks randomness to decide luck of {USER_TO} and result is {AMOUNT}"
-
 random100:
     value: "float( randint(0,100000) ) / 1000.0"
-    for_fiat: true
+    for_fiat: false
     for_coin: true
     message: "{USER_FROM} asks randomness to decide luck of {USER_TO} and result is {AMOUNT}"
 
 random250:
     value: "float( randint(0,250000) ) / 1000.0"
-    for_fiat: true
+    for_fiat: false
     for_coin: true
     message: "{USER_FROM} asks randomness to decide luck of {USER_TO} and result is {AMOUNT}"
 
 random500:
     value: "float( randint(0,500000) ) / 1000.0"
-    for_fiat: true
+    for_fiat: false
     for_coin: true
     message: "{USER_FROM} asks randomness to decide luck of {USER_TO} and result is {AMOUNT}"
 
 random1000:
     value: "float( randint(0,1000000) ) / 1000.0"
-    for_fiat: true
+    for_fiat: false
     for_coin: true
     message: "{USER_FROM} asks randomness to decide luck of {USER_TO} and result is {AMOUNT}"
 
 upvote:
-    value: 0.1
-    for_fiat: true
+    value: 100
+    for_fiat: false
     for_coin: true
     message: '{USER_FROM} gives {USER_TO} an upvote with benefits **ヽ(*・ω・)ﾉ** worth {AMOUNT}'
 
 highfive:
-    value: 0.25
-    for_fiat: true
+    value: 250
+    for_fiat: false
     for_coin: true
     message: '{USER_FROM} gives {USER_TO} a high five ☆☆☆ worth {AMOUNT}'
 
 fart:
-    value: 0.05
-    for_fiat: true
+    value: 50
+    for_fiat: false
     for_coin: true
     message: '{USER_FROM} farts on {USER_TO} ⊙﹏⊙ worth {AMOUNT}'
 
 coffee:
-    value: 1.0
-    for_fiat: true
-    for_coin: false
+    value: 1000
+    for_fiat: false
+    for_coin: true
     message: '{USER_TO} gets a delicious cup of coffee from {USER_FROM} ´◠ω◠` worth {AMOUNT}'
 
 cookie:
-    value: 0.33
-    for_fiat: true
-    for_coin: false
+    value: 330
+    for_fiat: false
+    for_coin: true
     message: '{USER_FROM} gives {USER_TO} a yummy cookie ♪┏(・o･)┛♪ worth {AMOUNT}'
 
-sushi:
-    value: 3.0
-    for_fiat: true
-    for_coin: false
-    message: '{USER_FROM} serves {USER_TO} a roll of yummy sushi (っ˘ڡ˘ς) worth {AMOUNT}'
-
-nothing:
-    value: "float (self.ctb.conf.coins[self.coin].txmin.givetip if bool(self.coin) else 0.01)"
-    for_fiat: true
-    for_coin: true
-    message: '{USER_FROM} gives almost nothing (″･ิ_･ิ) to {USER_TO} {AMOUNT}'
-
 gum:
-    value: 1.5
-    for_fiat: true
-    for_coin: false
+    value: 150
+    for_fiat: false
+    for_coin: true
     message: '{USER_FROM} gives a pack of gum to {USER_TO} worth {AMOUNT}'
 
+burger:
+    value: 2000
+    for_fiat: false
+    for_coin: true
+    message: '{USER_FROM} gives a yummy burger to {USER_TO} worth {AMOUNT}'
+
+donut:
+    value: 400
+    for_fiat: false
+    for_coin: true
+    message: '{USER_FROM} gives a delicious donut to {USER_TO} worth {AMOUNT}'
+
+sushi:
+    value: 3000
+    for_fiat: false
+    for_coin: true
+    message: '{USER_FROM} serves {USER_TO} a plate of 12 delicate pieces of sushi (っ˘ڡ˘ς) worth {AMOUNT}'
+
+pizza:
+    value: 3000
+    for_fiat: false
+    for_coin: true
+    message: '{USER_FROM} serves {USER_TO} a freshly baked pizza worth {AMOUNT}'
+
+souffle:
+    value: 50000
+    for_fiat: false
+    for_coin: true
+    message: '{USER_FROM} serves {USER_TO} a beautiful and delicious souffle worth {AMOUNT}'
+
+caviar:
+    value: 100000
+    for_fiat: false
+    for_coin: true
+    message: '{USER_FROM} serves {USER_TO} a plate of beautifully presented caviar worth {AMOUNT}'
+
 beer:
-    value: 3.5
-    for_fiat: true
-    for_coin: false
+    value: 1000
+    for_fiat: false
+    for_coin: true
     message: '{USER_FROM} gives a beer to {USER_TO} worth {AMOUNT}'
 
 nicebeer:
-    value: 5.0
-    for_fiat: true
-    for_coin: false
+    value: 2000
+    for_fiat: false
+    for_coin: true
     message: '{USER_FROM} gives a nice beer to {USER_TO} worth {AMOUNT}) ƪ(˘▽˘ƪ)'
 
+coke:
+    value: 300
+    for_fiat: false
+    for_coin: true
+    message: '{USER_FROM} gives a can of coke to {USER_TO} worth {AMOUNT}'
+
+champagne:
+    value: 10000
+    for_fiat: false
+    for_coin: true
+    message: '{USER_FROM} gives a glass of champagne to {USER_TO} worth {AMOUNT} CHEERS!'
+
+wine:
+    value: 6000
+    for_fiat: false
+    for_coin: true
+    message: '{USER_FROM} gives a glass of wine to {USER_TO} worth {AMOUNT} CHEERS!'
+
 hug:
-    value: 0.5
-    for_fiat: true
+    value: 500
+    for_fiat: false
     for_coin: true
     message: '{USER_FROM} gives a nice hug ヽ(*⌒∇⌒*)ﾉ to {USER_TO} along with {AMOUNT}'
 
 kiss:
-    value: 1.0
-    for_fiat: true
+    value: 1000
+    for_fiat: false
     for_coin: true
     message: '{USER_TO} gets a kiss (˘⌣˘)ε˘`) from {USER_FROM} along with {AMOUNT}'
 
-nyan:
-    value: 1.111111
-    for_fiat: true
-    for_coin: true
-    message: '~(=\^‥\^)ノ {USER_FROM} nyan nyan にゃん {USER_TO} にゃん にゃん {AMOUNT}'
-
 pi:
-    value: 3.14159265
-    for_fiat: true
+    value: 3141.59265
+    for_fiat: false
     for_coin: true
 
 e:
-    value: 2.7182818
-    for_fiat: true
-    for_coin: true
-
-leet:
-    value: 1.337
-    for_fiat: true
-    for_coin: true
-
-quarter:
-    value: 0.25
-    for_fiat: true
-    for_coin: true
-
-half:
-    value: 0.5
-    for_fiat: true
+    value: 2718.2818
+    for_fiat: false
     for_coin: true

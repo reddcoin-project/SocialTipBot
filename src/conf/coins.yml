@@ -3,15 +3,15 @@ rdd:
     enabled: true
     unit: rdd
     name: Reddcoin
-    symbol: ''
+    symbol: 'Ɍ'
     config_file: '~/.reddcoin/reddcoin.conf'
     config_rpcserver: '127.0.0.1'
     minconf:
         givetip: 3
         withdraw: 3
     txmin:
-        givetip: 0.05
-        withdraw: 0.05
+        givetip: 10
+        withdraw: 10
     txfee: 0.01
     walletpassphrase: '^phd51blognewstartredd$'
     explorer:
@@ -19,7 +19,7 @@ rdd:
         transaction: 'http://blockexplorer.reddcoin.com/index.php?transaction='
     regex:
         address: '(R[1-9a-z]{20,40})'
-        units: '(rdd|reddcoin|reddcoins|R)'
+        units: '(rdd|reddcoin|reddcoins)'
 
 btc:
     enabled: false
