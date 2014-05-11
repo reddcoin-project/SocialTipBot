@@ -20,7 +20,7 @@
 {%   set coin_amount_fmt = " %s%.6g %ss" % (coin_symbol, coin_amount, coin_name) %}
 {% endif %}
 {% if to_unregistered: %}
-{%   set reminder = ". Please remind the recipient to follow me to claim it." %}
+{%   set reminder = ". Please remind the recipient to send me \"+accept\" to claim it." %}
 {% else %}
 {%   set reminder = "" %}
 {% endif %}
