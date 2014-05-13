@@ -98,7 +98,7 @@ class CointipBot(object):
                 lg.debug("CointipBot::parse_config(): reading %s", f)
                 conf[f.split('.')[0]] = yaml.load(open(path))
 
-            for folder in ['reddit', 'twitter', 'twitch']:
+            for folder in ['reddit', 'twitter', 'twitch', 'irc']:
                 conf[folder] = {}
                 for path in glob.glob(prefix + folder + '/*.yml'):
                     f = ntpath.basename(path)
