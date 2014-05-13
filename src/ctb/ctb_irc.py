@@ -262,15 +262,8 @@ class IRCNetwork(CtbNetwork):
 if __name__ == "__main__":
     server = 'gamma.elitebnc.org'
     port = 1338
-    ch = '#reddcoin-dev'
     nickname = 'tipreddcoin'
-    password = 'tipreddcoin:'
+    password = 'tipreddcoin:wgf01k68'
 
-    server = 'irc.freenode.net'
-    port = 6667
-    ch = '#reddcoin-dev'
-    nickname = 'tipreddcoin'
-    password = None
-
-    bot = IRCChatBot([(server, port, password)], [ch], nickname)
+    bot = IRCChatBot([(server, port, password)], [], nickname)
     bot.start()
