@@ -6,7 +6,8 @@ auth:
 
 channels:
     method: list
-    list: ['#tipreddcoin', '#dracothedot', '#arithes', '#dirtypawstest', '#pox_eeeeeeeeeee', '#GameroftheBeer', '#erratica', '#mwthink', '#gorgntv', '#gorgntv_2', '#toxiceuphoria', '#lastdesirelol', '#Slashstrike', '#sintorra', '#skcs91210']
+    list: ['#tipreddcoin', '#dracothedot', '#arithes', '#dirtypawstest', '#pox_eeeeeeeeeee', '#GameroftheBeer', '#erratica', '#mwthink', '#gorgntv', '#gorgntv_2', 
+'#toxiceuphoria', '#lastdesirelol', '#Slashstrike', '#sintorra', '#skcs91210', '#anxietygamers']
 
 help:
     enabled: true
