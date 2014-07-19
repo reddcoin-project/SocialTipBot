@@ -20,6 +20,7 @@ from ctb import ctb_action, ctb_coin, ctb_db, ctb_exchange, ctb_log, ctb_misc, c
 from ctb.ctb_network import RedditNetwork
 from ctb.ctb_twitter import TwitterNetwork
 from ctb.ctb_twitch import TwitchNetwork
+from ctb.ctb_irc import IRCNetwork
 
 import logging
 import smtplib
@@ -97,7 +98,7 @@ class CointipBot(object):
                 lg.debug("CointipBot::parse_config(): reading %s", f)
                 conf[f.split('.')[0]] = yaml.load(open(path))
 
-            for folder in ['reddit', 'twitter', 'twitch']:
+            for folder in ['reddit', 'twitter', 'twitch', 'irc']:
                 conf[folder] = {}
                 for path in glob.glob(prefix + folder + '/*.yml'):
                     f = ntpath.basename(path)
@@ -300,7 +301,7 @@ class CointipBot(object):
         server.quit()
 
     def __init__(self, self_checks=True, init_coins=True, init_db=True, init_logging=True, init_exchanges=True,
-                 init_reddit=False, init_twitter=True, init_twitch=False):
+                 init_reddit=False, init_twitter=True, init_twitch=False, init_irc=False):
         """
         Constructor. Parses configuration file and initializes bot.
         """
@@ -339,6 +340,10 @@ class CointipBot(object):
             self.conf.network = self.conf.twitch.twitch
             self.conf.regex = self.conf.twitch.regex
             self.network = TwitchNetwork(self.conf.network, self)
+        elif init_irc:
+            self.conf.network = self.conf.irc.irc
+            self.conf.regex = self.conf.irc.regex
+            self.network = IRCNetwork(self.conf.network, self)
 
         ctb_action.init_regex(self)
         self.network.connect()

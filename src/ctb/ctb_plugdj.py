@@ -2,10 +2,30 @@ __author__ = 'laudney'
 
 
 from lxml.html import fromstring
-from socketIO_client import SocketIO
+from socketIO_client import SocketIO, BaseNamespace
 import cookielib
 import urllib
 import urllib2
+
+
+class Namespace(BaseNamespace):
+
+    def initialize(self):
+        self.response = None
+        self.args_by_event = {}
+        self.called_on_disconnect = False
+
+    def on_disconnect(self):
+        print 'disconnected'
+        self.called_on_disconnect = True
+
+    def on_message(self, data):
+        print data
+        self.response = data
+
+    def on_event(self, event, *args):
+        print event
+        self.args_by_event[event] = args
 
 
 if __name__ == "__main__":
@@ -13,6 +33,7 @@ if __name__ == "__main__":
     port = 443
     twitter_user = 'itipyou'
     twitter_passwd = 'phd51blognewstarttipt'
+    room = 'reddcoin-com-r-reddcoin'
 
     # socketio = SocketIO(host, port)
 
@@ -48,8 +69,17 @@ if __name__ == "__main__":
     req3.add_header('User-agent', 'Chrome 36.0.1944.0')
     f3 = opener.open(req3)
 
-    cookie_val = None
     for cookie in jar:
         if cookie.name == 'usr':
-            cookie_val = cookie.value.split('"')[1]
             break
+
+    jar_plug = cookielib.CookieJar()
+    jar_plug.set_cookie(cookie)
+    plug_room_url = 'http://plug.dj/' + room
+
+    req4 = urllib2.Request(plug_room_url)
+    req4.add_header('User-agent', 'Chrome 36.0.1944.0')
+    jar_plug.add_cookie_header(req4)
+    f4 = opener.open(req4)
+    html = f4.read()
+    dom = fromstring(html)
