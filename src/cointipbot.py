@@ -408,4 +408,7 @@ class CointipBot(object):
                 lg.error("CointipBot::main(): traceback: %s", tb)
                 # Send a notification, if enabled
                 if self.conf.misc.notify.enabled:
-                    self.notify(_msg=tb)
+                    try:
+                        self.notify(_msg=tb)
+                    except Exception as ee:
+                        lg.error("CointipBot::main(): SMTP exception: %s", ee)
