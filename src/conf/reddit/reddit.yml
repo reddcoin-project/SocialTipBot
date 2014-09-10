@@ -24,7 +24,7 @@ messages:
 
 banned_users:
     method: list
-    list: ['reddtipbot', 'bitcointip', 'altcointip', 'dogetipbot', 'itipyou', 'TweetPoster', 'crikeylol', 'rapture_wraith', 'litecoin_messiah']
+    list: ['reddtipbot', 'tipreddcoin', 'bitcointip', 'altcointip', 'dogetipbot', 'itipyou', 'TweetPoster', 'crikeylol', 'rapture_wraith', 'litecoin_messiah']
     subreddit: 'mysubreddit'
 
 stats:
