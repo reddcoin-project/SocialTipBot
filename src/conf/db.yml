@@ -1,10 +1,5 @@
 auth:
-    user: 'tipreddcoin'
-    password: ''
-    host: localhost
-    port: 3306
     dbfile: db/twitter.db
-    dbname: tipreddcoin
 
 sql:
   globalstats:

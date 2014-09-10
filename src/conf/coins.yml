@@ -15,14 +15,8 @@ rdd:
     txfee: 0.01
     walletpassphrase: '^phd51blognewstartredd$'
     explorer:
-        address: 'http://blockexplorer.reddcoin.com/index.php?address='
-        transaction: 'http://blockexplorer.reddcoin.com/index.php?transaction='
+        address: 'http://bitinfocharts.com/reddcoin/address/'
+        transaction: 'http://bitinfocharts.com/reddcoin/tx/'
     regex:
         address: '(R[1-9a-z]{20,40})'
         units: '(rdd|reddcoin|reddcoins)'
-
-btc:
-    enabled: false
-    unit: btc
-    name: Bitcoin
-    symbol: 'B⃦'

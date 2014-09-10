@@ -1,5 +1,5 @@
 auth:
-    user: 'itipyou'
+    user: 'reddtipbot'
     password: ''
 
 scan:
@@ -24,7 +24,7 @@ messages:
 
 banned_users:
     method: list
-    list: ['reddtipbot', 'bitcointip', 'altcointip', 'dogetipbot', 'itipyou', 'TweetPoster']
+    list: ['reddtipbot', 'bitcointip', 'altcointip', 'dogetipbot', 'itipyou', 'TweetPoster', 'crikeylol', 'rapture_wraith', 'litecoin_messiah']
     subreddit: 'mysubreddit'
 
 stats:
