@@ -118,18 +118,18 @@ class RedditNetwork(CtbNetwork):
         lg.debug("> RedditNetwork::send_msg from %s to %s", self.user, user_to)
 
         if not subject or not body:
-            raise Exception("RedditNetwork::send_msg(%s): subject or body not set", self.user)
+            raise Exception("RedditNetwork::send_msg(%s): subject or body not set", user_to)
 
         if msgobj:
             lg.debug("RedditNetwork::send_msg(%s): replying to message", msgobj.id)
             self.praw_call(msgobj.reply, body)
         else:
-            lg.debug("RedditNetwork::send_msg(%s): sending message", self.user)
+            lg.debug("RedditNetwork::send_msg(%s): sending message", user_to)
             if editor is None:
-                editor = self.praw_call(self.conn.get_redditor, self.user)
+                editor = self.praw_call(self.conn.get_redditor, user_to)
             self.praw_call(editor.send_message, subject, body)
 
-        lg.debug("< RedditNetwork::send_msg(%s) DONE", self.name)
+        lg.debug("< RedditNetwork::send_msg(%s) DONE", user_to)
         return True
 
     def reply_msg(self, body, msgobj):
