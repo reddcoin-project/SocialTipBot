@@ -373,6 +373,10 @@ class CtbAction(object):
         sql_history = self.ctb.conf.db.sql.userhistory.sql
         limit = int(self.ctb.conf.db.sql.userhistory.limit)
 
+        # more history for reddit
+        if self.ctb.network.name == 'reddit':
+            limit *= 10
+
         sqlexec = self.ctb.db.execute(sql_history, [self.u_from.name.lower(), self.u_from.name.lower(), limit])
         for m in sqlexec:
             history_entry = []
