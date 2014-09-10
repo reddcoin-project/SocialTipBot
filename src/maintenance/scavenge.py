@@ -17,4 +17,4 @@ if __name__ == '__main__':
             if e.code == 404:
                 print name, accounts[name]
 
-        time.sleep(3)
+        time.sleep(5)

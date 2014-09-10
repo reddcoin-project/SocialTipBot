@@ -284,7 +284,7 @@ class RedditNetwork(CtbNetwork):
 
         except (HTTPError, RateLimitExceeded, timeout) as e:
             lg.warning("RedditNetwork::check_mentions(): Reddit is down (%s), sleeping", e)
-            time.sleep(self.conf.misc.times.sleep_seconds)
+            time.sleep(self.ctb.conf.misc.times.sleep_seconds)
             pass
         except Exception as e:
             lg.error("RedditNetwork::check_mentions(): coudln't fetch comments: %s", e)
@@ -356,7 +356,7 @@ class RedditNetwork(CtbNetwork):
                 else:
                     lg.info("RedditNetwork::check_inbox(): no match")
                     if self.conf.messages.sorry and not m.subject in ['post reply', 'comment reply']:
-                        tpl = ctb.jenv.get_template('didnt-understand.tpl')
+                        tpl = self.ctb.jenv.get_template('didnt-understand.tpl')
                         msg = tpl.render(user_from=m.author.name, what='comment' if m.was_comment else 'message',
                                          source_link=m.permalink if hasattr(m, 'permalink') else None, ctb=ctb)
                         lg.debug("RedditNetwork::check_inbox(): %s", msg)
@@ -367,7 +367,7 @@ class RedditNetwork(CtbNetwork):
                 self.praw_call(m.mark_as_read)
         except (HTTPError, ConnectionError, Timeout, timeout) as e:
             lg.warning("RedditNetwork::check_inbox(): Reddit is down (%s), sleeping", e)
-            time.sleep(self.conf.misc.times.sleep_seconds)
+            time.sleep(self.ctb.conf.misc.times.sleep_seconds)
             pass
         except RateLimitExceeded as e:
             lg.warning("RedditNetwork::check_inbox(): rate limit exceeded, sleeping for %s seconds", e.sleep_time)
