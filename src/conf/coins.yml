@@ -20,3 +20,5 @@ rdd:
     regex:
         address: '(R[1-9a-z]{20,40})'
         units: '(rdd|reddcoin|reddcoins)'
+    banned_users:
+        list: ['reddtipbot', 'bitcointip', 'altcointip', 'dogetipbot', 'itipyou', 'tipreddcoin', 'tweetposter', 'crikeylol', 'rapture_wraith', 'litecoin_messiah']

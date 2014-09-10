@@ -719,7 +719,7 @@ class CtbAction(object):
             res = False
             if is_pending:
                 # This is accept() of pending transaction, so move coins from pending account to receiver
-                lg.info("CtbAction::givetip(): moving %.9f %s from %s to %s...", self.coinval, self.coin.upper(),
+                lg.info("CtbAction::givetip(): moving pending %.9f %s from %s to %s...", self.coinval, self.coin.upper(),
                         self.ctb.network.conf.auth.user, self.u_to.name)
                 res = self.ctb.coins[self.coin].sendtouser(_userfrom=self.ctb.network.conf.auth.user,
                                                            _userto=self.u_to.name, _amount=self.coinval)

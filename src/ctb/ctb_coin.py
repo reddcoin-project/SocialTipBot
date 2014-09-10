@@ -90,9 +90,17 @@ class CtbCoin(object):
         userfrom = self.verify_user(_user=_userfrom)
         userto = self.verify_user(_user=_userto)
         amount = self.verify_amount(_amount=_amount)
+        minconf = self.verify_minconf(_minconf=self.conf.minconf.givetip)
 
-        # send request to coin daemon
         try:
+            # check balance
+            balance = self.getbalance(_user=userfrom, _minconf=minconf)
+            if balance < amount:
+                lg.error("CtbCoin::sendtouser(): error moving %.9f %s from %s to %s: insufficient balance %.9f",
+                         amount, self.conf.name, userfrom, userto, balance)
+                return False
+
+            # send request to coin daemon
             lg.info("CtbCoin::sendtouser(): moving %.9f %s from %s to %s", amount, self.conf.name, userfrom, userto)
             result = self.conn.move(userfrom, userto, amount)
             time.sleep(0.5)
@@ -117,8 +125,21 @@ class CtbCoin(object):
         minconf = self.verify_minconf(_minconf=self.conf.minconf.withdraw)
         txid = ""
 
-        # send request to coin daemon
         try:
+            # check banned user list
+            if userfrom in self.conf.banned_users.list:
+                lg.error("CtbCoin::sendtoaddr(): error sending %.9f %s from %s to %s: user is banned from withdrawing",
+                         amount, self.conf.name, userfrom, addrto)
+                raise
+
+            # check balance
+            balance = self.getbalance(_user=userfrom, _minconf=minconf)
+            if balance < amount:
+                lg.error("CtbCoin::sendtoaddr(): error sending %.9f %s from %s to %s: insufficient balance %.9f",
+                         amount, self.conf.name, userfrom, addrto, balance)
+                raise
+
+            # send request to coin daemon
             lg.info("CtbCoin::sendtoaddr(): sending %.9f %s from %s to %s", amount, self.conf.name, userfrom, addrto)
 
             # Unlock wallet, if applicable
@@ -173,7 +194,7 @@ class CtbCoin(object):
 
         while True:
             try:
-                # Unlock wallet for keypoolrefill
+                # Unlock wallet for keypool refill
                 lock_wallet = hasattr(self.conf, 'walletpassphrase') and self.conf.walletpassphrase != ''
                 if lock_wallet:
                     self.conn.walletpassphrase(self.conf.walletpassphrase, 1)
