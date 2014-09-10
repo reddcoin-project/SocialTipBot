@@ -130,8 +130,7 @@ class CointipBot(object):
             lg.error("CointipBot::connect_db(): error connecting to database: %s", e)
             sys.exit(1)
 
-        lg.info("CointipBot::connect_db(): connected to database %s as %s", self.conf.db.auth.dbname,
-                self.conf.db.auth.user)
+        lg.info("CointipBot::connect_db(): connected to database %s", dsn)
         return conn
 
     def self_checks(self):
