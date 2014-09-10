@@ -1298,7 +1298,7 @@ def get_actions(atype=None, state=None, coin=None, msg_id=None, created_utc=None
                 # Get PRAW message/comment pointer (msg)
                 msg = None
                 if m['msg_link']:
-                    submission = ctb.network.praw_call(ctb.network.get_submission, m['msg_link'])
+                    submission = ctb.network.praw_call(ctb.network.conn.get_submission, m['msg_link'])
                     if not len(submission.comments) > 0:
                         lg.warning("get_actions(): could not fetch msg (deleted?) from msg_link %s", m['msg_link'])
                     else:
