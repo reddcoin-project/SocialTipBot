@@ -163,7 +163,7 @@ class CtbUser(object):
             lg.warning("CtbUser::tell(%s): subj or msg not set", self.name)
             return False
 
-        if msgobj:
+        if self.ctb.network.name != "reddit" and msgobj:
             msgobj.author.name = self.name
             self.ctb.network.reply_msg(msg, msgobj)
         else:
