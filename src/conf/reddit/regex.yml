@@ -271,26 +271,23 @@ actions:
                 rg_to_user: 0
                 rg_coin: 9
                 rg_fiat: 6
+    help:
+        enabled: true
+        public: false
+        simple: true
+        regex: '(\+)(help)'
     history:
         enabled: true
         public: false
         simple: true
         regex: '(\+)(history)'
-    redeem:
+    summary:
         enabled: true
         public: false
-        simple: false
-        regex:
-            a:
-                value: '(\+)(redeem)(\s?){REGEX_COIN}'
-                rg_amount: 0
-                rg_keyword: 0
-                rg_address: 0
-                rg_to_user: 0
-                rg_coin: 4
-                rg_fiat: 0
+        simple: true
+        regex: '(\+)(summary)'
     rates:
-        enabled: true
+        enabled: false
         public: false
         simple: true
         regex: '(\+)(rates)'
