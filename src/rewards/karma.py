@@ -15,7 +15,7 @@ import pandas as pd
 import numpy as np
 
 
-_ignore_users = ['reddtipbot', 'ReddcoinRewards', 'bigreddgumbot']
+_ignore_users = ['reddtipbot', 'ReddcoinRewards', 'bigreddgumbot', 'RddCompanionTipper']
 _vote_threshold = 20
 
 
