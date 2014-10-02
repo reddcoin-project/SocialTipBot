@@ -15,8 +15,8 @@ rdd:
     txfee: 0.01
     walletpassphrase: '^phd51blognewstartredd$'
     explorer:
-        address: 'http://bitinfocharts.com/reddcoin/address/'
-        transaction: 'http://bitinfocharts.com/reddcoin/tx/'
+        address: 'http://live.reddcoin.com/address/'
+        transaction: 'http://live.reddcoin.com/tx/'
     regex:
         address: '(R[1-9a-z]{20,40})'
         units: '(rdd|reddcoin|reddcoins)?'
