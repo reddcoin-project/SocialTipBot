@@ -4,7 +4,7 @@ all:
     for_coin: true
     message: '{USER_FROM} gives {USER_TO} everything!.. (*・_・)ノ⌒ all {AMOUNT} now belong to {USER_TO}'
 
-dicature:
+dictature:
     value: "float( self.u_from.get_balance(coin=self.coin, kind=('withdraw' if bool(self.addr_to) else 'givetip')) - (self.ctb.conf.coins[self.coin].txfee if bool(self.addr_to) else 0.0) ) if self.u_from.is_registered() and bool(self.coin) else None"
     for_fiat: false
     for_coin: true
