@@ -4,6 +4,12 @@ all:
     for_coin: true
     message: '{USER_FROM} gives {USER_TO} everything!.. (*・_・)ノ⌒ all {AMOUNT} now belong to {USER_TO}'
 
+dicature:
+    value: "float( self.u_from.get_balance(coin=self.coin, kind=('withdraw' if bool(self.addr_to) else 'givetip')) - (self.ctb.conf.coins[self.coin].txfee if bool(self.addr_to) else 0.0) ) if self.u_from.is_registered() and bool(self.coin) else None"
+    for_fiat: false
+    for_coin: true
+    message: '{USER_FROM} prostrates in front of {USER_TO}!.. (*・_・)ノ⌒ all {AMOUNT} now belong to {USER_TO}'
+
 flip:
     value: "float( (self.ctb.conf.coins[self.coin].txmin.givetip if bool(self.coin) else 0.01) * float(randint(1,2)) )"
     for_fiat: false
@@ -69,6 +75,12 @@ upvote:
     for_fiat: false
     for_coin: true
     message: '{USER_FROM} gives {USER_TO} an upvote with benefits **ヽ(*・ω・)ﾉ** worth {AMOUNT}'
+
+smile:
+    value: 100
+    for_fiat: false
+    for_coin: true
+    message: '{USER_FROM} crosses the legs and gives {USER_TO} a suggestive smile **ヽ(*・ω・)ﾉ** worth {AMOUNT}'
 
 highfive:
     value: 250
