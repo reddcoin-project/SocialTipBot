@@ -203,18 +203,6 @@ class CtbAction(object):
                 # Couldn't determine coin, abort
                 raise CtbActionExc("CtbAction::__init__(): can't determine coin for user %s" % self.u_from.name)
 
-        # Calculate fiat or coin value with exchange rates
-        if self.type in ['givetip', 'withdraw']:
-            if not self.fiat:
-                # Set fiat to 'usd' if not specified
-                self.fiat = 'usd'
-            if not self.fiatval:
-                # Determine fiat value
-                self.fiatval = self.coinval * self.ctb.coin_value(self.ctb.conf.coins[self.coin].unit, self.fiat)
-            elif not self.coinval:
-                # Determine coin value
-                self.coinval = self.fiatval / self.ctb.coin_value(self.ctb.conf.coins[self.coin].unit, self.fiat)
-
         # Final check to make sure coin value is determined
         if self.type in ['givetip', 'withdraw']:
             if not self.coinval or not type(self.coinval) in [float, int]:
