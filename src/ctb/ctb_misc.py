@@ -39,7 +39,7 @@ def get_value(conn, param0=None):
             return None
         else:
             value = sqlrow['value0']
-    except Exception, e:
+    except Exception as e:
         lg.error("get_value(): error executing query <%s>: %s", sql % param0, e)
         raise
 
@@ -62,7 +62,7 @@ def set_value(conn, param0=None, value0=None):
         if sqlexec.rowcount <= 0:
             lg.error("set_value(): query <%s> didn't affect any rows", sql % (param0, value0))
             return False
-    except Exception, e:
+    except Exception as e:
         lg.error("set_value: error executing query <%s>: %s", sql % (param0, value0), e)
         raise
 
@@ -91,7 +91,7 @@ def add_coin(coin, db, coins):
                 raise Exception("add_coin(%s): rowcount <= 0 when executing <%s>", coin,
                                 sql_insert % (m['username'].lower(), coin, new_addr))
             time.sleep(1)
-    except Exception, e:
+    except Exception as e:
         lg.error("add_coin(%s): error: %s", coin, e)
         raise
 

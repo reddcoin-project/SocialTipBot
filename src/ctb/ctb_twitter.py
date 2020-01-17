@@ -11,9 +11,9 @@ from datetime import datetime
 from dateutil.parser import parse
 from twython import Twython, TwythonStreamer, TwythonRateLimitError, TwythonError
 
-from ctb_network import CtbNetwork
-import ctb_action
-import ctb_misc
+from ctb.ctb_network import CtbNetwork
+import ctb.ctb_action
+import ctb.ctb_misc
 
 
 lg = logging.getLogger('cointipbot')
@@ -109,7 +109,7 @@ class TwitterStreamer(TwythonStreamer):
 
         text = data['text']
         msg['body'] = text.replace('@' + self.username, '').strip()
-        print msg
+        print(msg)
 
         action = ctb_action.eval_message(ctb_misc.DotDict(msg), self.ctb)
         return action
@@ -127,7 +127,7 @@ class TwitterStreamer(TwythonStreamer):
 
         text = data['text']
         msg['body'] = text.replace('@' + self.username, '').strip()
-        print msg
+        print(msg)
 
         action = ctb_action.eval_message(ctb_misc.DotDict(msg), self.ctb)
         return action
@@ -158,7 +158,7 @@ class TwitterStreamer(TwythonStreamer):
                 action.do()
 
     def on_error(self, status_code, data):
-        print status_code
+        print(status_code)
 
     def on_timeout(self):
         actions = self.follow_followers()

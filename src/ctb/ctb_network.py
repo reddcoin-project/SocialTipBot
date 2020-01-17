@@ -2,11 +2,12 @@ import logging
 import praw
 import time
 from requests.exceptions import HTTPError, ConnectionError, Timeout
-from praw.errors import ExceptionList, APIException, InvalidCaptcha, InvalidUser, RateLimitExceeded
+# todo verify praw exception errors
+#from praw.errors import ExceptionList, APIException, InvalidCaptcha, InvalidUser, RateLimitExceeded
 from socket import timeout
 
-import ctb_action
-import ctb_misc
+import ctb.ctb_action
+import ctb.ctb_misc
 
 
 lg = logging.getLogger('cointipbot')
