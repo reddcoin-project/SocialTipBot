@@ -15,7 +15,7 @@
     along with ALTcointip.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import ctb.ctb_misc
+import ctb.ctb_misc as ctb_misc
 
 import logging
 import time

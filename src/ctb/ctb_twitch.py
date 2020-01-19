@@ -13,8 +13,8 @@ from irc.client import SimpleIRCClient, ServerConnectionError
 from irc.bot import Channel, ServerSpec
 
 from ctb.ctb_network import CtbNetwork
-import ctb.ctb_action
-import ctb.ctb_misc
+import ctb.ctb_action as ctb_action
+import ctb.ctb_misc as ctb_misc
 
 
 lg = logging.getLogger('cointipbot')

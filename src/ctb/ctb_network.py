@@ -6,8 +6,8 @@ from requests.exceptions import HTTPError, ConnectionError, Timeout
 #from praw.errors import ExceptionList, APIException, InvalidCaptcha, InvalidUser, RateLimitExceeded
 from socket import timeout
 
-import ctb.ctb_action
-import ctb.ctb_misc
+import ctb.ctb_action as ctb_action
+import ctb.ctb_misc as ctb_misc
 
 
 lg = logging.getLogger('cointipbot')
