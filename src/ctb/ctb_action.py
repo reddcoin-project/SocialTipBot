@@ -266,9 +266,13 @@ class CtbAction(object):
         lg.debug("> CtbAction::save(%s)", state)
 
         # Make sure no negative values exist
-        if self.coinval < 0.0:
+        if self.coinval is None:
             self.coinval = 0.0
-        if self.fiatval < 0.0:
+        elif self.coinval < 0.0:
+            self.coinval = 0.0
+        if self.fiatval is None:
+            self.fiatval = 0.0
+        elif self.fiatval < 0.0:
             self.fiatval = 0.0
 
         conn = self.ctb.db
