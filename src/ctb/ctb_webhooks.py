@@ -23,6 +23,8 @@ class TwitterWebHooks(object):
     events_adapter = None
     bot_id = None
     conn = None
+    port = '3000'
+    host = '0.0.0.0'
 
     @classmethod
     def _timestamp_utc(cls, dt):
@@ -298,5 +300,5 @@ class TwitterWebHooks(object):
             print("ERROR: " + str(err))
 
         lg.info("TwitterWebHooks::connecting(): Listening for Events")
-        self.events_adapter.start(port=3000)
+        self.events_adapter.start(port = self.port, host = self.host)
 
