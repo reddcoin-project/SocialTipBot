@@ -378,38 +378,4 @@ class CointipBot(object):
         Main loop
         """
 
-        while True:
-            try:
-                lg.debug("CointipBot::main(): beginning main() iteration")
-
-                # Refresh exchange rate values
-                self.refresh_ev()
-
-                # Check personal messages
-                self.network.check_inbox(self)
-
-                # Expire pending tips
-                self.expire_pending_tips()
-
-                # Check subreddit comments for tips
-                self.network.check_mentions(self)
-
-                # Sleep
-                if self.network.name == 'reddit':
-                    lg.debug("CointipBot::main(): sleeping for %s seconds...", self.conf.misc.times.sleep_seconds)
-                    time.sleep(self.conf.misc.times.sleep_seconds)
-
-            except KeyboardInterrupt as e:
-                sys.exit(1)
-            except Exception as e:
-                lg.error("CointipBot::main(): exception: %s", e)
-                tb = traceback.format_exc()
-                lg.error("CointipBot::main(): traceback: %s", tb)
-
-                # Send a notification, if enabled
-                if self.conf.misc.notify.enabled:
-                    try:
-                        self.notify(_msg=tb)
-                    except Exception as ee:
-                        lg.error("CointipBot::main(): SMTP exception: %s", ee)
-                        time.sleep(self.conf.misc.times.sleep_seconds)
+        self.network.run_webhooks()
