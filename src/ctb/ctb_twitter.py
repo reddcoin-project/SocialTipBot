@@ -205,7 +205,7 @@ class TwitterNetwork(CtbNetwork):
         self.conn.username = self.stream.username = self.webhooks.username = self.user
         self.stream.conn = self.conn
         self.stream.ctb = self.webhooks.ctb = self.ctb
-        self.stream.last_event = self.stream.last_expiry = datetime.utcnow()
+        self.stream.last_event = self.stream.last_expiry = self.webhooks.last_event = self.webhooks.last_expiry = datetime.utcnow()
 
     def run_webhooks(self):
         lg.info("TwitterWebhooks::starting(): Start init")
