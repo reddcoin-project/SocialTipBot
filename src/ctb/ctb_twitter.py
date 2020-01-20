@@ -7,6 +7,7 @@ import re
 import time
 import logging
 import random
+import json
 from datetime import datetime
 from dateutil.parser import parse
 from twython import Twython, TwythonStreamer, TwythonRateLimitError, TwythonError
@@ -14,6 +15,7 @@ from twython import Twython, TwythonStreamer, TwythonRateLimitError, TwythonErro
 from ctb.ctb_network import CtbNetwork
 import ctb.ctb_action as ctb_action
 import ctb.ctb_misc as ctb_misc
+from ctb.ctb_webhooks import TwitterWebHooks
 
 
 lg = logging.getLogger('cointipbot')
@@ -182,6 +184,13 @@ class TwitterNetwork(CtbNetwork):
         self.oauth_token_secret = conf.auth.oauth_token_secret
         self.conn = None
         self.stream = None
+        self.webhooks = None
+        self.account_id = None
+
+    def get_account_id(self):
+        # Function for fetching the bot's ID
+        credentials = self.conn.request('account/verify_credentials')
+        return credentials['id']
 
     def connect(self):
         """
@@ -191,12 +200,17 @@ class TwitterNetwork(CtbNetwork):
 
         self.conn = Twython(self.app_key, self.app_secret, self.oauth_token, self.oauth_token_secret)
         self.stream = TwitterStreamer(self.app_key, self.app_secret, self.oauth_token, self.oauth_token_secret, timeout=30)
-        self.conn.username = self.stream.username = self.user
+        self.account_id = self.get_account_id()
+        self.webhooks = TwitterWebHooks(self.conn, self.app_secret, self.account_id)
+        self.conn.username = self.stream.username = self.webhooks.username = self.user
         self.stream.conn = self.conn
-        self.stream.ctb = self.ctb
+        self.stream.ctb = self.webhooks.ctb = self.ctb
         self.stream.last_event = self.stream.last_expiry = datetime.utcnow()
 
-        lg.info("TwitterNetwork::connect(): logged in to Twitter")
+    def run_webhooks(self):
+        lg.info("TwitterWebhooks::starting(): Start init")
+        self.webhooks.run()
+
         return None
 
     def is_user_banned(self, user):
@@ -230,7 +244,21 @@ class TwitterNetwork(CtbNetwork):
                 lg.debug("< TwitterNetwork::reply_msg to %s DONE", msgobj.author.name)
             elif msgobj.type == 'direct_message':
                 lg.debug("< TwitterNetwork::reply_msg: sending direct message to %s: %s", msgobj.author.name, body)
-                self.conn.send_direct_message(screen_name=msgobj.author.name, text=body[:140])
+                event = {
+                    "event": {
+                        "type": "message_create",
+                        "message_create": {
+                            "target": {
+                                "recipient_id": msgobj.recipient_id
+                            },
+                            "message_data": {
+                                "text": body
+                            }
+                        }
+                    }
+                }
+                lg.debug(event)
+                self.conn.send_direct_message(**event)
                 lg.debug("< TwitterNetwork::reply_msg to %s DONE", msgobj.author.name)
 
         except TwythonError as e:
