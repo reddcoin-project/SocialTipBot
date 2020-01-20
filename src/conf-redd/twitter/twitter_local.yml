@@ -1,0 +1,34 @@
+auth:
+    user: 'tipreddcoin'
+    app_key: '9HDzugNwT22Xlcw0EGQfg'
+    app_secret: '8OjJWIdIpErtBd8RcYAhwt9kixoIfOPA1GiM6mf0M'
+    oauth_token: '2357688096-NtaUt52rHmqCCX2hz9t1gEcTjMnEbsvdX0pRZqp'
+    oauth_token_secret: 'TjUHsf68MWCRzCtjjhB05S6OEdCjPMQIU00rL8dH0SH5a'
+
+help:
+    enabled: true
+    url: 'http://www.reddit.com/r/reddCoin/'
+
+contact:
+    enabled: true
+    url: 'http://www.reddit.com/message/compose/?to=reddtipbot'
+
+messages:
+    verified: true
+    pending: false
+    expired: false
+    declined: false
+    sorry: true
+
+banned_users:
+    method: list
+    list: ['reddtipbot', 'bitcointip', 'altcointip', 'dogetipbot', 'itipyou', 'tipdoge']
+
+stats:
+    enabled: false
+    userflair: false
+    subreddit: 'reddcoin'
+    page: 'stats'
+    url: 'http://www.reddit.com/r/reddcoin/wiki/tipbot'
+    page_tips: 'tips'
+    url_tips: 'http://www.reddit.com/r/reddcoin/wiki/tipbot'
