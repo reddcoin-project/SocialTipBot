@@ -260,7 +260,7 @@ def format_value(m, k, username, ctb, compact=False):
     # Format state
     elif k.find("state") > -1:
         if m[k] == 'completed':
-            return unicode('✓', 'utf8')
+            return str('✓').encode('utf8')
         else:
             return m[k]
 
