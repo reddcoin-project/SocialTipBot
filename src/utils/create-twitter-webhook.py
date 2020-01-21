@@ -57,14 +57,14 @@ def parse_config():
         for path in glob.glob(prefix + '*.yml'):
             f = ntpath.basename(path)
             lg.debug("CointipBot::parse_config(): reading %s", f)
-            conf[f.split('.')[0]] = yaml.load(open(path))
+            conf[f.split('.')[0]] = yaml.load(open(path), Loader=yaml.FullLoader)
 
         for folder in ['reddit', 'twitter', 'twitch', 'irc']:
             conf[folder] = {}
             for path in glob.glob(prefix + folder + '/*.yml'):
                 f = ntpath.basename(path)
                 lg.debug("CointipBot::parse_config(): reading %s/%s", folder, f)
-                conf[folder][f.split('.')[0]] = yaml.load(open(path))
+                conf[folder][f.split('.')[0]] = yaml.load(open(path), Loader=yaml.FullLoader)
 
     except yaml.YAMLError as e:
         lg.error("CointipBot::parse_config(): error reading config file: %s", e)
