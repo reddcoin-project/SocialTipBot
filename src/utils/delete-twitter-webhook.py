@@ -97,13 +97,10 @@ ACCESS_TOKEN = twitter_conf.auth.oauth_token
 ACCESS_TOKEN_SECRET = twitter_conf.auth.oauth_token_secret
 
 ENVNAME = twitter_conf.auth.envname
-WEBHOOK_URL = twitter_conf.auth.webhook_url
+WEBHOOK_ID = twitter_conf.auth.webhook_id
 
 twitterconn = Twython(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
 
-params = {}
-params['url'] = WEBHOOK_URL
-
-resp = twitterconn.request('account_activity/all/webhooks')
+resp = resp = twitterconn.delete('account_activity/all/%s/webhooks/%s' % (ENVNAME, WEBHOOK_ID))
 print(json.dumps(resp, indent=4, sort_keys=True))
 

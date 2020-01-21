@@ -105,6 +105,6 @@ params['url'] = WEBHOOK_URL
 
 twitterconn = Twython(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
 
-resp = twitterconn.request('account_activity/all/%s/webhooks' % ENVNAME, 'POST', params)
+resp = twitterconn.request('account_activity/all/:%s/subscriptions' % ENVNAME, 'POST')
 
 print(json.dumps(resp, indent=4, sort_keys=True))
