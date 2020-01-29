@@ -42,4 +42,4 @@ doc/.ipynb_checkpoints/*.*
 src/logs
 venv
 venv3
-/src/ctb/python
+src/ctb/pifkoin
