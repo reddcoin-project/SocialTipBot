@@ -31,7 +31,7 @@ def get_value(conn, param0=None):
         raise Exception("get_value(): param0 is None")
 
     value = None
-    sql = "SELECT value0 FROM t_values WHERE param0 = ?"
+    sql = "SELECT value0 FROM t_values WHERE param0 = %s"
     try:
         sqlrow = conn.execute(sql, [param0]).fetchone()
         if sqlrow is None:
@@ -56,7 +56,7 @@ def set_value(conn, param0=None, value0=None):
     if param0 is None or value0 is None:
         raise Exception("set_value(): param0 is None or value0 is None")
 
-    sql = "REPLACE INTO t_values (param0, value0) VALUES (?, ?)"
+    sql = "REPLACE INTO t_values (param0, value0) VALUES (%s, %s)"
     try:
         sqlexec = conn.execute(sql, [param0, value0])
         if sqlexec.rowcount <= 0:
@@ -76,8 +76,8 @@ def add_coin(coin, db, coins):
     """
     lg.debug("> add_coin(%s)", coin)
 
-    sql_select = "SELECT username FROM t_users WHERE username NOT IN (SELECT username FROM t_addrs WHERE coin = ?) ORDER BY username"
-    sql_insert = "REPLACE INTO t_addrs (username, coin, address) VALUES (?, ?, ?)"
+    sql_select = "SELECT username FROM t_users WHERE username NOT IN (SELECT username FROM t_addrs WHERE coin = %s) ORDER BY username"
+    sql_insert = "REPLACE INTO t_addrs (username, coin, address) VALUES (%s, %s, %s)"
 
     try:
         sqlsel = db.execute(sql_select, [coin])

@@ -30,21 +30,21 @@ class Economy:
 
     def top_tippers(self, limit=100):
         sql = "SELECT from_user as user, sum(coin_val) AS amount FROM t_action WHERE type = 'givetip' "
-        sql += "AND state != 'failed' GROUP BY from_user ORDER BY amount DESC LIMIT ?"
+        sql += "AND state != 'failed' GROUP BY from_user ORDER BY amount DESC LIMIT %s"
         sqlexec = self.db.execute(sql, limit)
         results = pd.DataFrame(sqlexec.fetchall(), columns=sqlexec.keys())
         return results
 
     def top_receivers(self, limit=100):
         sql = "SELECT to_user as user, sum(coin_val) AS amount FROM t_action WHERE type = 'givetip' "
-        sql += "AND state = 'completed' GROUP BY to_user ORDER BY amount DESC LIMIT ?"
+        sql += "AND state = 'completed' GROUP BY to_user ORDER BY amount DESC LIMIT %s"
         sqlexec = self.db.execute(sql, limit)
         results = pd.DataFrame(sqlexec.fetchall(), columns=sqlexec.keys())
         return results
 
     def recent_transactions(self, state, limit=100):
         sql = "SELECT created_utc AS timestamp, from_user, to_user, coin_val AS amount, state FROM t_action "
-        sql += "WHERE type = 'givetip' AND state = ? ORDER BY timestamp DESC LIMIT ?"
+        sql += "WHERE type = 'givetip' AND state = %s ORDER BY timestamp DESC LIMIT %s"
         sqlexec = self.db.execute(sql, [state, limit])
         results = pd.DataFrame(sqlexec.fetchall(), columns=sqlexec.keys())
         dts = map(datetime.fromtimestamp, results['timestamp'])
@@ -53,7 +53,7 @@ class Economy:
 
     def recent_joiners(self, limit=100):
         sql = "SELECT created_utc AS timestamp, from_user, type FROM t_action where state ='completed' "
-        sql += "AND type = 'register' ORDER BY timestamp DESC LIMIT ?"
+        sql += "AND type = 'register' ORDER BY timestamp DESC LIMIT %s"
         sqlexec = self.db.execute(sql, limit)
         results = pd.DataFrame(sqlexec.fetchall(), columns=sqlexec.keys())
         dts = map(datetime.fromtimestamp, results['timestamp'])

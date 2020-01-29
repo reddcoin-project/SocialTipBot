@@ -245,7 +245,7 @@ class CtbAction(object):
             raise Exception("CtbAction::update(): type or msg_id missing")
 
         conn = self.ctb.db
-        sql = "UPDATE t_action SET state=? WHERE type=? AND msg_id=?"
+        sql = "UPDATE t_action SET state=%s WHERE type=%s AND msg_id=%s"
 
         try:
             sqlexec = conn.execute(sql, [state, self.type, self.msg_id])
@@ -276,7 +276,7 @@ class CtbAction(object):
             self.fiatval = 0.0
 
         conn = self.ctb.db
-        sql = "INSERT INTO t_action (type, state, created_utc, from_user, to_user, to_addr, coin_val, fiat_val, txid, coin, fiat, subreddit, msg_id, msg_link) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        sql = "INSERT INTO t_action (type, state, created_utc, from_user, to_user, to_addr, coin_val, fiat_val, txid, coin, fiat, subreddit, msg_id, msg_link) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
 
         try:
             sqlexec = conn.execute(sql,
