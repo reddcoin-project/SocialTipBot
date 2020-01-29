@@ -93,21 +93,29 @@ class TwitterWebHooks(object):
 
         return actions
 
+    def _parse_follow(self, event_data):
+        event = event_data['event']
+        source_id = event['source']['id']
+        source_name = event['source']['screen_name']
+
+        msg = {'id': source_id,
+               'created_utc': self._timestamp_utc_now(),
+               'author': {'name': source_name},
+               'body': '+register',
+               'type': 'mention'}
+        # make the msg id unique
+        msg['id'] += ('@' + str(msg['created_utc']))
+
+        lg.debug(msg)
+        action = ctb_action.eval_message(ctb_misc.DotDict(msg), self.ctb)
+        return action
+
     def _parse_event(self, event_data):
 
         # check pending tips
         if (datetime.utcnow() - self.last_expiry).seconds > 60 * 60:
             self.ctb.expire_pending_tips()
             self.last_expiry = datetime.utcnow()
-
-        # do not process event more than once per minute
-        if (datetime.utcnow() - self.last_event).seconds > 60:
-            # actions = self.follow_followers()
-            # self.ctb.last_event = datetime.utcnow()
-            # return actions
-            return None
-        else:
-            return None
 
     def _parse_mention(self, event_data):
 
@@ -272,6 +280,27 @@ class TwitterWebHooks(object):
             faved_by_screen_name = event['user']['screen_name']
             lg.info("@{} faved @{}'s tweet: {}".format(faved_by_screen_name, faved_status_screen_name, faved_status_id))
             # print(json.dumps(event_data, indent=4, sort_keys=True))
+
+        @self.events_adapter.on("follow_events")
+        def handle_message(event_data):
+
+            try:
+                actions = self._parse_follow(event_data)
+
+                if not actions:
+                    return
+
+                if not isinstance(actions, list):
+                    actions = [actions]
+
+                for action in actions:
+                    if action:
+                        lg.info("TwitterWebHook::on_success(): %s from %s", action.type, action.u_from.name)
+                        lg.debug("TwitterWebHook::on_success(): comment body: <%s>", action.msg.body)
+                        action.do()
+
+            except Exception as e:
+                lg.info("An error occurred responding to Mention: {}".format(e))
 
         @self.events_adapter.on("any")
         def handle_message(event_data):
