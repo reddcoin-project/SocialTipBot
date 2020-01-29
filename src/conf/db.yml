@@ -1,5 +1,9 @@
 auth:
-    dbfile: db/twitter.db
+  user: 'tipbot'
+  password: 'Tipb0tpassw0rd#'
+  host: localhost
+  port: 3306
+  dbname: tipbotdb
 
 sql:
   globalstats:
@@ -92,20 +96,20 @@ sql:
     users: "SELECT username FROM t_users WHERE username IN (SELECT from_user FROM t_action WHERE type = 'givetip') OR username in (SELECT to_user FROM t_action WHERE type = 'givetip') ORDER BY username"
     coins: 'SELECT DISTINCT coin FROM t_action WHERE coin IS NOT NULL ORDER BY coin'
     fiat: 'SELECT DISTINCT fiat FROM t_action WHERE fiat IS NOT NULL ORDER BY fiat'
-    history: "SELECT from_user, to_user, created_utc, to_addr, coin_val, coin, fiat_val, fiat, state, subreddit, msg_link FROM t_action WHERE type='givetip' AND (from_user=? OR to_user=?) ORDER BY created_utc DESC"
-    total_tipped_fiat: "SELECT SUM(fiat_val) AS total_fiat FROM t_action WHERE type='givetip' AND state='completed' AND from_user=? AND fiat=?"
-    total_tipped_coin: "SELECT SUM(coin_val) AS total_coin FROM t_action WHERE type='givetip' AND state='completed' AND from_user=? AND coin=?"
-    total_received_fiat: "SELECT SUM(fiat_val) AS total_fiat FROM t_action WHERE type='givetip' AND state='completed' AND to_user=? AND fiat=?"
-    total_received_coin: "SELECT SUM(coin_val) AS total_coin FROM t_action WHERE type='givetip' AND state='completed' AND to_user=? AND coin=?"
+    history: "SELECT from_user, to_user, created_utc, to_addr, coin_val, coin, fiat_val, fiat, state, subreddit, msg_link FROM t_action WHERE type='givetip' AND (from_user=%s OR to_user=%s) ORDER BY created_utc DESC"
+    total_tipped_fiat: "SELECT SUM(fiat_val) AS total_fiat FROM t_action WHERE type='givetip' AND state='completed' AND from_user=%s AND fiat=%s"
+    total_tipped_coin: "SELECT SUM(coin_val) AS total_coin FROM t_action WHERE type='givetip' AND state='completed' AND from_user=%s AND coin=%s"
+    total_received_fiat: "SELECT SUM(fiat_val) AS total_fiat FROM t_action WHERE type='givetip' AND state='completed' AND to_user=%s AND fiat=%s"
+    total_received_coin: "SELECT SUM(coin_val) AS total_coin FROM t_action WHERE type='givetip' AND state='completed' AND to_user=%s AND coin=%s"
   userhistory: 
-    sql: "SELECT created_utc, type, state, from_user, to_user, to_addr, coin_val, coin, txid FROM t_action WHERE type IN ('givetip', 'redeem', 'withdraw') AND (from_user=? OR to_user=?) ORDER BY created_utc DESC LIMIT ?"
-    limit: 1
+    sql: "SELECT created_utc, type, state, from_user, to_user, to_addr, coin_val, coin, txid FROM t_action WHERE type IN ('givetip', 'redeem', 'withdraw') AND (from_user=%s OR to_user=%s) ORDER BY created_utc DESC LIMIT %s"
+    limit: 10
   usersent:
-    sql: "SELECT sum(coin_val) AS sent, count(*) as count FROM t_action WHERE type = 'givetip' AND state != 'failed' and from_user=?"
+    sql: "SELECT sum(coin_val) AS sent, count(*) as count FROM t_action WHERE type = 'givetip' AND state != 'failed' and from_user=%s"
   userreceived:
-    sql: "SELECT sum(coin_val) AS received, count(*) as count FROM t_action WHERE type = 'givetip' AND state = 'completed' and to_user=?"
+    sql: "SELECT sum(coin_val) AS received, count(*) as count FROM t_action WHERE type = 'givetip' AND state = 'completed' and to_user=%s"
   tips:
     sql_set: "SET @rank=0"
-    sql_list: "SELECT @rank :=@rank+1 AS num, created_utc, from_user, to_user, coin_val, coin, fiat_val, fiat, subreddit FROM t_action WHERE type='givetip' AND state='completed' ORDER BY created_utc ASC LIMIT ?"
+    sql_list: "SELECT @rank :=@rank+1 AS num, created_utc, from_user, to_user, coin_val, coin, fiat_val, fiat, subreddit FROM t_action WHERE type='givetip' AND state='completed' ORDER BY created_utc ASC LIMIT %s"
     limit: 10000
 
