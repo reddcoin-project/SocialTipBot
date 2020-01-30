@@ -260,7 +260,7 @@ class TwitterNetwork(CtbNetwork):
             elif msgobj.type == 'mention':
                 body += ' #ReddCoin'
                 lg.debug("< TwitterNetwork::reply_msg: sending tweet to %s: %s", msgobj.author.name, body)
-                self.conn.update_status(status=body[:140])
+                self.conn.update_status(status=body[:280])
                 lg.debug("< TwitterNetwork::reply_msg to %s DONE", msgobj.author.name)
             elif msgobj.type == 'direct_message':
                 lg.debug("< TwitterNetwork::reply_msg: sending direct message to %s: %s", msgobj.author.name, body)
