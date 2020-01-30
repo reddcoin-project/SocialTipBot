@@ -192,6 +192,11 @@ class TwitterNetwork(CtbNetwork):
         credentials = self.conn.request('account/verify_credentials')
         return credentials['id']
 
+    def get_user_id(self, name):
+        # Function for fetching a users ID
+        credentials = self.conn.lookup_user(screen_name=name)
+        return credentials[0]['id']
+
     def connect(self):
         """
         Returns a Twitter stream object
@@ -222,7 +227,22 @@ class TwitterNetwork(CtbNetwork):
                 self.reply_msg(body, msgobj)
             else:
                 lg.debug("< TwitterNetwork::send_msg: sending direct message to %s: %s", user_to, body)
-                self.conn.send_direct_message(screen_name=user_to, text=body[:140])
+                id = self.get_user_id(user_to)
+                event = {
+                    "event": {
+                        "type": "message_create",
+                        "message_create": {
+                            "target": {
+                                "recipient_id": id
+                            },
+                            "message_data": {
+                                "text": body
+                            }
+                        }
+                    }
+                }
+                lg.debug(event)
+                self.conn.send_direct_message(**event)
                 lg.debug("< TwitterNetwork::send_msg to %s DONE", user_to)
 
         except TwythonError as e:
