@@ -209,6 +209,11 @@ class TwitterNetwork(CtbNetwork):
         credentials = self.conn.lookup_user(screen_name=name)
         return credentials[0]['id']
 
+    def get_user_name(self, id):
+        # Function for fetching a users ID
+        credentials = self.conn.lookup_user(user_id=id)
+        return credentials[0]['screen_name']
+
     def get_last_msg_id(self):
         # Function to get last msg_id saved in DB
         sql = "SELECT msg_id FROM t_action WHERE created_utc=(SELECT MAX(created_utc) FROM t_action)"
@@ -361,6 +366,71 @@ class TwitterNetwork(CtbNetwork):
         except TwythonRateLimitError:
             lg.error('TwitterNetwork::check_mentions(): Twitter API Rate Limit Breached. Sleep 15m30s')
             time.sleep(15*60+30)
+
+    def _parse_direct_message(self, event_data):
+
+        recipient_id = event_data['message_create']['target']['recipient_id']
+        sender_id = event_data['message_create']['sender_id']
+        sender_screen_name = self.get_user_name(sender_id)
+        message_text = event_data['message_create']['message_data']['text']
+
+        msg = {'created_utc': self._timestamp_utc_now(),
+               'author': {'name': sender_screen_name},
+               'recipient_id': sender_id,
+               'type': 'direct_message'}
+        msg['id'] = event_data['id'] + str(msg['created_utc'])[(30-len(event_data['id'])):]
+
+        text = event_data['message_create']['message_data']['text']
+        msg['body'] = text.replace('@' + self.user, '').strip()
+        lg.debug(msg)
+
+        action = ctb_action.eval_message(ctb_misc.DotDict(msg), self.ctb)
+
+        return action
+
+    def check_inbox(self, ctb):
+        """
+        Evaluate new messages in inbox
+        """
+        lg.debug('> TwitterNetwork::check_inbox()')
+
+        try:
+            #since_id = int(self.get_last_msg_id())
+            since_id = 0
+
+            resp = self.conn.get_direct_messages(count=200)
+            for msg in resp['events']:
+                if int(msg['id']) > since_id:
+                    if self.account_id != int(msg['message_create']['sender_id']):
+                        # received a direct message
+                        actions = self._parse_direct_message(msg)
+
+                        if not actions:
+                            continue
+
+                        if not isinstance(actions, list):
+                            actions = [actions]
+
+                        for action in actions:
+                            if action:
+                                lg.info("TwitterNetwork::check_inbox(): %s from %s", action.type, action.u_from.name)
+                                lg.debug("TwitterNetwork::check_inbox(): comment body: <%s>", action.msg.body)
+                                action.do()
+
+        except TwythonError as e:
+            lg.error("TwitterNetwork::check_inbox(): exception: %s", e)
+            pass
+        except TwythonRateLimitError:
+            lg.warning("TwitterNetwork::check_inbox(): Twitter API rate limit exceeded, sleeping for 15m30s seconds")
+            time.sleep(15*60+30)
+            pass
+        except Exception as e:
+            lg.error("TwitterNetwork::check_inbox(): %s", e)
+            raise
+
+        lg.debug("< TwitterNetwork::check_inbox() DONE")
+        return True
+
 
     def invite(self, user):
         try:
