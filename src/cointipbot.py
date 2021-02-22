@@ -169,7 +169,8 @@ class CointipBot(object):
         for sqlrow in self.db.execute(sql):
             u = ctb_user.CtbUser(name=sqlrow['username'], ctb=self)
             if not u.is_registered():
-                raise Exception("CointipBot::self_checks(): user %s is_registered() failed" % sqlrow['username'])
+                lg.info("CointipBot::self_checks(): %s cleaned" % (u.name))
+                # raise Exception("CointipBot::self_checks(): user %s is_registered() failed" % sqlrow['username'])
                 #    for c in vars(self.coins):
                 #        if u.get_balance(coin=c, kind='givetip') < 0:
                 #            raise Exception("CointipBot::self_checks(): user %s %s balance is negative" % (sqlrow['username'], c))
@@ -361,7 +362,7 @@ class CointipBot(object):
 
         # Self-checks
         if self_checks:
-            self.self_checks()
+           self.self_checks()
 
         lg.info("< CointipBot::__init__(): DONE, sleep-seconds = %s", self.conf.misc.times.sleep_seconds)
 
@@ -378,4 +379,42 @@ class CointipBot(object):
         Main loop
         """
 
-        self.network.run_webhooks()
+        while True:
+            try:
+                lg.debug("CointipBot::main(): beginning main() iteration")
+
+                # Refresh exchange rate values
+                self.refresh_ev()
+
+                # Check personal messages
+                self.network.check_inbox(self)
+
+                # Expire pending tips
+                self.expire_pending_tips()
+
+                # Check subreddit comments for tips
+                self.network.check_mentions(self)
+
+                # Connect to Twitter webhooks
+                self.network.run_webhooks()
+
+                # Sleep
+                if self.network.name == 'reddit':
+                    lg.debug("CointipBot::main(): sleeping for %s seconds...", self.conf.misc.times.sleep_seconds)
+                    time.sleep(self.conf.misc.times.sleep_seconds)
+
+            except KeyboardInterrupt as e:
+                sys.exit(1)
+            except Exception as e:
+                lg.error("CointipBot::main(): exception: %s", e)
+                tb = traceback.format_exc()
+                lg.error("CointipBot::main(): traceback: %s", tb)
+
+                # Send a notification, if enabled
+                if self.conf.misc.notify.enabled:
+                    try:
+                        self.notify(_msg=tb)
+                    except Exception as ee:
+                        lg.error("CointipBot::main(): SMTP exception: %s", ee)
+                        time.sleep(self.conf.misc.times.sleep_seconds)
+
