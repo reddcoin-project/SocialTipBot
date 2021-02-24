@@ -342,7 +342,6 @@ class TwitterNetwork(CtbNetwork):
         try:
             # Read the last timeline mentions from twitter since the last recorded event
             since_id = self.get_last_msg_id()
-            since_id = int(since_id)
             resp = self.conn.get_mentions_timeline(count=200, since_id=since_id)
 
             for tweet in resp:
