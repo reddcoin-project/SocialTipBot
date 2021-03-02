@@ -64,7 +64,7 @@ if __name__ == '__main__':
             continue
 
         try:
-            print("Trying to follow: ", screen_name)
+            print("Requesting to follow: ", screen_name)
             twitter.create_friendship(screen_name=screen_name)
         except TwythonError as e:
             # either really failed (e.g. sent request before) or already friends
