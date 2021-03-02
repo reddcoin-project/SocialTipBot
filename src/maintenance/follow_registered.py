@@ -36,34 +36,35 @@ if __name__ == '__main__':
     for fid in twitter.cursor(twitter.get_followers_ids, count=5000):
         followers.append(fid)
 
-    print len(followers)
+    print("Followers Count: ", len(followers))
 
     friends = []
     for fid in twitter.cursor(twitter.get_friends_ids, count=5000):
         friends.append(fid)
 
-    print len(friends)
+    print("Friends Count: ",len(friends))
 
     pending = []
     for fid in twitter.cursor(twitter.get_outgoing_friendship_ids):
         pending.append(fid)
 
-    print len(pending)
+    print("Pending Count: ",len(pending))
 
     to_follow = [f for f in registered if f not in friends and f not in pending]
 
-    # for screen_name in to_follow:
-    #     if screen_name == 'tipreddcoin':
-    #         continue
-    #
-    #     try:
-    #         print screen_name
-    #         twitter.create_friendship(screen_name=screen_name)
-    #     except TwythonError as e:
-    #         # either really failed (e.g. sent request before) or already friends
-    #         print "failed to follow user %s: %s" % (user, e.msg)
-    #         tb = traceback.format_exc()
-    #         print tb
-    #
-    #     # random interval
-    #     time.sleep(random.randrange(5, 15))
+    for screen_name in to_follow:
+        if screen_name == 'tipreddcoin':
+            continue
+
+        try:
+            print("Trying to follow: ", screen_name)
+            twitter.create_friendship(screen_name=screen_name)
+        except TwythonError as e:
+            # either really failed (e.g. sent request before) or already friends
+            print("failed to follow user %s: %s" % (screen_name, e.msg))
+            # tb = traceback.format_exc()
+            # print(tb)
+
+        # random interval
+        time.sleep(random.randrange(5, 15))
+
