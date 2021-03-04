@@ -107,4 +107,3 @@ twitterconn = Twython(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_
 
 resp = twitterconn.request('account_activity/all/%s/subscriptions' % ENVNAME, 'POST')
 
-print(json.dumps(resp, indent=4, sort_keys=True))

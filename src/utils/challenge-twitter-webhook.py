@@ -100,8 +100,7 @@ ACCESS_TOKEN_SECRET = twitter_conf.auth.oauth_token_secret
 ENVNAME = twitter_conf.auth.envname
 WEBHOOK_ID = twitter_conf.auth.webhook_id
 
-
 twitterconn = Twython(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
 
 resp = twitterconn.request('account_activity/all/%s/webhooks/%s' % (ENVNAME, WEBHOOK_ID), 'PUT')
-print(json.dumps(resp, indent=4, sort_keys=True))
+# print(json.dumps(resp, indent=4, sort_keys=True))
