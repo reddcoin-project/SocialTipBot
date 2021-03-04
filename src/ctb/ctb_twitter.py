@@ -287,12 +287,13 @@ class TwitterNetwork(CtbNetwork):
                 lg.debug("< TwitterNetwork::reply_msg to %s DONE", msgobj.author.name)
             elif msgobj.type == 'direct_message':
                 lg.debug("< TwitterNetwork::reply_msg: sending direct message to %s: %s", msgobj.author.name, body)
+                id = self.get_user_id(msgobj.author.name)
                 event = {
                     "event": {
                         "type": "message_create",
                         "message_create": {
                             "target": {
-                                "recipient_id": msgobj.recipient_id
+                                "recipient_id": id
                             },
                             "message_data": {
                                 "text": body

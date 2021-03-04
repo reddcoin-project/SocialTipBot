@@ -102,7 +102,7 @@ class TwitterWebHooks(object):
                'created_utc': self._timestamp_utc_now(),
                'author': {'name': source_name},
                'body': '+register',
-               'type': 'mention'}
+               'type': 'direct_message'}
         # make the msg id unique
         msg['id'] += ('@' + str(msg['created_utc']))
 
