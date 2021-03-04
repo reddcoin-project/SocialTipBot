@@ -285,6 +285,16 @@ class TwitterWebHooks(object):
         def handle_message(event_data):
 
             try:
+                # if unfollow, do nothing
+                if event_data['event']['type'] == 'unfollow':
+                    lg.info("TwitterWebHook::on_success(): %s received for %s", event_data['event']['type'], event_data['event']['target']['name'])
+                    return
+
+                # if follow event from tipbot, ignore. we are just following back
+                if event_data['event']['source']['id'] == str(self.bot_id):
+                    lg.info("TwitterWebHook::on_success(): %s received for %s, from %s. ignoring", event_data['event']['type'], event_data['event']['target']['screen_name'], event_data['event']['source']['screen_name'])
+                    return
+
                 actions = self._parse_follow(event_data)
 
                 if not actions:
