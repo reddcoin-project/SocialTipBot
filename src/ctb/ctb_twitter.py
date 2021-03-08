@@ -186,6 +186,8 @@ class TwitterNetwork(CtbNetwork):
         self.stream = None
         self.webhooks = None
         self.account_id = None
+        self.last_db_msg_id = None
+        self.last_db_msg_time = None
 
     @classmethod
     def _timestamp_utc(cls, dt):
@@ -219,6 +221,12 @@ class TwitterNetwork(CtbNetwork):
         sql = "SELECT msg_id FROM t_action WHERE created_utc=(SELECT MAX(created_utc) FROM t_action)"
         sqlrow = self.db.execute(sql).fetchone()
         return sqlrow['msg_id']
+
+    def get_last_db_action_time(self):
+        # Function to get last action saved in DB
+        sql = "SELECT created_utc, msg_id FROM t_action WHERE created_utc=(SELECT MAX(created_utc) FROM t_action)"
+        sqlrow = self.db.execute(sql).fetchone()
+        return sqlrow['created_utc'], sqlrow['msg_id']
 
     def connect(self):
         """
@@ -342,7 +350,7 @@ class TwitterNetwork(CtbNetwork):
         lg.debug('> TwitterNetwork::check_mentions()')
         try:
             # Read the last timeline mentions from twitter since the last recorded event
-            since_id = self.get_last_msg_id()
+            since_id = self.last_db_msg_id
             resp = self.conn.get_mentions_timeline(count=200, since_id=since_id)
 
             for tweet in resp:
@@ -395,27 +403,32 @@ class TwitterNetwork(CtbNetwork):
         lg.debug('> TwitterNetwork::check_inbox()')
 
         try:
-            #since_id = int(self.get_last_msg_id())
-            since_id = 0
+            if self.last_db_msg_time is None:
+                self.last_db_msg_time, self.last_db_msg_id = self.get_last_db_action_time()
+                #[self.last_db_msg_time, self.last_db_msg_id]
+
+            since_time = self.last_db_msg_time
 
             resp = self.conn.get_direct_messages(count=200)
             for msg in resp['events']:
-                if int(msg['id']) > since_id:
-                    if self.account_id != int(msg['message_create']['sender_id']):
-                        # received a direct message
-                        actions = self._parse_direct_message(msg)
+                msg_timestamp = int(msg['created_timestamp']) / 1000 # twitter timestamps in milliseconds
+                if msg_timestamp > since_time:
+                    if msg['id'] != self.last_db_msg_id:
+                        if self.account_id != int(msg['message_create']['sender_id']):
+                            # received a direct message
+                            actions = self._parse_direct_message(msg)
 
-                        if not actions:
-                            continue
+                            if not actions:
+                                continue
 
-                        if not isinstance(actions, list):
-                            actions = [actions]
+                            if not isinstance(actions, list):
+                                actions = [actions]
 
-                        for action in actions:
-                            if action:
-                                lg.info("TwitterNetwork::check_inbox(): %s from %s", action.type, action.u_from.name)
-                                lg.debug("TwitterNetwork::check_inbox(): comment body: <%s>", action.msg.body)
-                                action.do()
+                            for action in actions:
+                                if action:
+                                    lg.info("TwitterNetwork::check_inbox(): %s from %s", action.type, action.u_from.name)
+                                    lg.debug("TwitterNetwork::check_inbox(): comment body: <%s>", action.msg.body)
+                                    action.do()
 
         except TwythonError as e:
             lg.error("TwitterNetwork::check_inbox(): exception: %s", e)
