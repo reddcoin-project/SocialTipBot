@@ -1,5 +1,5 @@
 {% set user_from_fmt = '@' + a.u_from.name %}
-{% set arrow_fmt = " -->>" %}
+{% set arrow_fmt = " -->> " %}
 {% if a.u_to: %}
 {%   if to_unregistered: %}
 {%     set user_to_fmt = a.u_to.name %}
