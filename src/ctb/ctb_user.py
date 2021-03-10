@@ -84,7 +84,7 @@ class CtbUser(object):
         if coin in self.addr:
             return self.addr[coin]
 
-        sql = "SELECT address FROM t_addrs WHERE username = ? AND network = ? AND coin = ?"
+        sql = "SELECT address FROM t_addrs WHERE username = %s AND network = %s AND coin = %s"
         sqlrow = self.ctb.db.execute(sql, [self.name.lower(), self.network.lower(), coin.lower()]).fetchone()
         if not sqlrow:
             lg.debug("< CtbUser::get_addr(%s on %s, %s) DONE (no)", self.name, self.network, coin)
@@ -110,7 +110,7 @@ class CtbUser(object):
         """
         lg.debug("> CtbUser::is_registered(%s on %s)", self.name, self.network)
 
-        sql = "SELECT * FROM t_users WHERE username = ? AND network = ?"
+        sql = "SELECT * FROM t_users WHERE username = %s AND network = %s"
         try:
             # First, check t_users table
             sqlrow = self.ctb.db.execute(sql, [self.name.lower(), self.network.lower()]).fetchone()
@@ -121,7 +121,7 @@ class CtbUser(object):
 
             else:
                 # Next, check t_addrs table for whether  user has correct number of coin addresses
-                sql_coins = "SELECT COUNT(*) AS count FROM t_addrs WHERE username = ? AND network = ?"
+                sql_coins = "SELECT COUNT(*) AS count FROM t_addrs WHERE username = %s AND network = %s"
                 sqlrow_coins = self.ctb.db.execute(sql_coins, [self.name.lower(), self.network.lower()]).fetchone()
 
                 if int(sqlrow_coins['count']) != len(self.ctb.coins):
@@ -130,7 +130,7 @@ class CtbUser(object):
                         # Delete user
                         lg.warning("CtbUser::is_registered(%s on %s): deleting user, incomplete registration",
                                    self.name, self.network)
-                        sql_delete = "DELETE FROM t_users WHERE username = ? AND network = ?"
+                        sql_delete = "DELETE FROM t_users WHERE username = %s AND network = %s"
                         sql_res = self.ctb.db.execute(sql_delete, [self.name.lower(), self.network.lower()])
                         # User is not registered
                         return False
@@ -197,7 +197,7 @@ class CtbUser(object):
 
         # Add coin addresses to database
         # sql_addr = "UPDATE t_addrs SET username=:u, network=:n, coin=:c, address=:a"
-        sql_addr = "INSERT OR REPLACE INTO t_addrs (username, network, coin, address) VALUES (?, ?, ?, ?)"
+        sql_addr = "INSERT OR REPLACE INTO t_addrs (username, network, coin, address) VALUES (%s, %s, %s, %s)"
         for c, a in new_addrs.iteritems():
             try:
                 sqlexec = self.ctb.db.execute(sql_addr, [self.name.lower(), self.network.lower(), c, a])
@@ -221,8 +221,8 @@ class CtbUser(object):
         lg.debug("> CtbUser::delete(%s on %s)", self.name, self.network)
 
         try:
-            sql_arr = ["DELETE FROM t_users WHERE username = ? AND network = ?",
-                       "DELETE FROM t_addrs WHERE username = ? AND network = ?"]
+            sql_arr = ["DELETE FROM t_users WHERE username = %s AND network = %s",
+                       "DELETE FROM t_addrs WHERE username = %s AND network = %s"]
             for sql in sql_arr:
                 sqlexec = _db.execute(sql, [self.name.lower(), self.network.lower()])
                 if sqlexec.rowcount <= 0:
