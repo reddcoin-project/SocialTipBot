@@ -180,7 +180,7 @@ class CtbUser(object):
         lg.debug("> CtbUser::register(%s on %s)", self.name, self.network)
 
         # Add user to database
-        sql_adduser = "INSERT INTO t_users (username, network) VALUES (:u, :n)"
+        sql_adduser = "INSERT INTO t_users (username, network) VALUES (%(u)s, %(n)s)"
         try:
             sqlexec = self.ctb.db.execute(sql_adduser, {'u': self.name.lower(), 'n': self.network.lower()})
             if sqlexec.rowcount <= 0:
