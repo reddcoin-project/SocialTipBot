@@ -224,7 +224,7 @@ class CtbUser(object):
             sql_arr = ["DELETE FROM t_users WHERE username = %s AND network = %s",
                        "DELETE FROM t_addrs WHERE username = %s AND network = %s"]
             for sql in sql_arr:
-                sqlexec = _db.execute(sql, [self.name.lower(), self.network.lower()])
+                sqlexec = self.ctb.execute(sql, [self.name.lower(), self.network.lower()])
                 if sqlexec.rowcount <= 0:
                     lg.warning("delete_user(%s on %s): rowcount <= 0 while executing <%s>",
                                self.name, self.network, sql)
