@@ -19,7 +19,7 @@ import logging
 import re
 import time
 from pifkoin.bitcoind import Bitcoind, BitcoindException
-from httplib import CannotSendRequest
+from http.client import CannotSendRequest
 
 lg = logging.getLogger('cointipbot')
 
@@ -238,7 +238,7 @@ class CtbCoin(object):
         Verify and return a username
         """
 
-        if not _user or not type(_user) in [str, unicode]:
+        if not _user or not type(_user) in [str]:
             raise Exception("CtbCoin::verify_user(): _user wrong type (%s) or empty (%s)", type(_user), _user)
 
         return str(_user.lower())
@@ -248,7 +248,7 @@ class CtbCoin(object):
         Verify and return coin address
         """
 
-        if not _addr or not type(_addr) in [str, unicode]:
+        if not _addr or not type(_addr) in [str]:
             raise Exception("CtbCoin::verify_addr(): _addr wrong type (%s) or empty (%s)", type(_addr), _addr)
 
         return re.escape(str(_addr))
