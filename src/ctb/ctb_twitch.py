@@ -12,9 +12,9 @@ from irc.dict import IRCDict
 from irc.client import SimpleIRCClient, ServerConnectionError
 from irc.bot import Channel, ServerSpec
 
-from ctb_network import CtbNetwork
-import ctb_action
-import ctb_misc
+from ctb.ctb_network import CtbNetwork
+import ctb.ctb_action
+import ctb.ctb_misc
 
 
 lg = logging.getLogger('cointipbot')
@@ -102,7 +102,7 @@ class TwitchChatBot(SimpleIRCClient):
         for ch in self.channels.values():
             if ch.has_user(before):
                 ch.change_nick(before, after)
-                print '%s changed nickname to %s' % (before, after)
+                print('%s changed nickname to %s' % (before, after))
 
     def on_nicknameinuse(self, c, e):
         c.nick(c.get_nickname() + "_")
@@ -112,7 +112,7 @@ class TwitchChatBot(SimpleIRCClient):
             c.join(ch)
 
     def on_privmsg(self, c, e):
-        print 'privmsg: %s' % ' '.join(e.arguments)
+        print('privmsg: %s' % ' '.join(e.arguments))
 
     def on_pubmsg(self, c, e):
         ch = e.target
@@ -137,7 +137,7 @@ class TwitchChatBot(SimpleIRCClient):
         msg = {'created_utc': calendar.timegm(now.utctimetuple()), 'author': {'name': nick}, 'channel': e.target}
         msg['id'] = str(msg['created_utc'])
         msg['body'] = text
-        print msg
+        print(msg)
 
         action = ctb_action.eval_message(ctb_misc.DotDict(msg), self.ctb)
         if action:

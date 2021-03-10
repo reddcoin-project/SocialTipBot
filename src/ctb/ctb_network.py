@@ -2,11 +2,12 @@ import logging
 import praw
 import time
 from requests.exceptions import HTTPError, ConnectionError, Timeout
-from praw.errors import ExceptionList, APIException, InvalidCaptcha, InvalidUser, RateLimitExceeded
+# todo verify praw exception errors
+#from praw.errors import ExceptionList, APIException, InvalidCaptcha, InvalidUser, RateLimitExceeded
 from socket import timeout
 
-import ctb_action
-import ctb_misc
+import ctb.ctb_action
+import ctb.ctb_misc
 
 
 lg = logging.getLogger('cointipbot')
@@ -127,7 +128,9 @@ class RedditNetwork(CtbNetwork):
             lg.debug("RedditNetwork::send_msg(%s): sending message", user_to)
             if editor is None:
                 editor = self.praw_call(self.conn.get_redditor, user_to)
-            self.praw_call(editor.send_message, subject, body)
+
+            if not isinstance(editor, bool):
+                self.praw_call(editor.send_message, subject, body)
 
         lg.debug("< RedditNetwork::send_msg(%s) DONE", user_to)
         return True

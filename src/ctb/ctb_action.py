@@ -15,9 +15,9 @@
     along with ALTcointip.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import ctb_user
-import ctb_misc
-import ctb_stats
+import ctb.ctb_user
+import ctb.ctb_misc
+import ctb.ctb_stats
 
 import logging
 import re
@@ -1290,7 +1290,12 @@ def get_actions(atype=None, state=None, coin=None, msg_id=None, created_utc=None
                 # Get PRAW message/comment pointer (msg)
                 msg = None
                 if m['msg_link']:
-                    submission = ctb.network.praw_call(ctb.network.conn.get_submission, m['msg_link'])
+                    lg.debug("get_actions(): get praw message %s", m['msg_id'])
+                    try:
+                        submission = ctb.network.praw_call(ctb.network.conn.get_submission, m['msg_link'])
+                        lg.debug("get_actions(): recieved praw message %s", submission)
+                    except Exception as e:
+                        lg.debug("get_actions(): error recieving praw message %s", e)
                     if not len(submission.comments) > 0:
                         lg.warning("get_actions(): could not fetch msg (deleted?) from msg_link %s", m['msg_link'])
                     else:
@@ -1302,7 +1307,7 @@ def get_actions(atype=None, state=None, coin=None, msg_id=None, created_utc=None
                                        m['msg_link'])
                             #elif m['msg_id']:
                             #    msg = praw.objects.Message(ctb.reddit, {'id': m['msg_id']})
-
+                lg.debug("get_actions(): start append")
                 r.append(CtbAction(atype=atype,
                                    msg=msg,
                                    from_user=m['from_user'],
