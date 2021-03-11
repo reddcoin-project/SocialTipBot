@@ -15,9 +15,9 @@
     along with ALTcointip.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import ctb.ctb_user
-import ctb.ctb_misc
-import ctb.ctb_stats
+import ctb.ctb_user as ctb_user
+import ctb.ctb_misc as ctb_misc
+import ctb.ctb_stats as ctb_stats
 
 import logging
 import re

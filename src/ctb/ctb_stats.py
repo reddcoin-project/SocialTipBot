@@ -21,7 +21,7 @@
 import logging
 import re
 import time
-import ctb.ctb_misc
+import ctb.ctb_misc as ctb_misc
 
 
 lg = logging.getLogger('cointipbot')
