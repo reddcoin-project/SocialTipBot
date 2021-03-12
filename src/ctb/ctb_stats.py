@@ -71,7 +71,7 @@ def update_stats(ctb=None):
 
     lg.debug("update_stats(): updating subreddit '%s', page '%s'" % (
         ctb.conf.network.stats.subreddit, ctb.conf.network.stats.page))
-    return ctb_misc.praw_call(ctb.reddit.edit_wiki_page, ctb.conf.network.stats.subreddit, ctb.conf.network.stats.page,
+    return ctb_misc.praw_call(ctb.reddit.wikipage.edit, ctb.conf.network.stats.subreddit, ctb.conf.network.stats.page,
                               stats, "Update by ALTcointip bot")
 
 
@@ -100,7 +100,7 @@ def update_tips(ctb=None):
 
     lg.debug("update_tips(): updating subreddit '%s', page '%s'" % (
         ctb.conf.network.stats.subreddit, ctb.conf.network.stats.page_tips))
-    ctb_misc.praw_call(ctb.reddit.edit_wiki_page, ctb.conf.network.stats.subreddit, ctb.conf.network.stats.page_tips,
+    ctb_misc.praw_call(ctb.reddit.wikipage.edit, ctb.conf.network.stats.subreddit, ctb.conf.network.stats.page_tips,
                        tip_list, "Update by ALTcointip bot")
 
     return True
@@ -208,7 +208,7 @@ def update_user_stats(ctb=None, username=None):
 
     # Submit changes
     lg.debug("update_user_stats(): updating subreddit '%s', page '%s'" % (ctb.conf.network.stats.subreddit, page))
-    ctb_misc.praw_call(ctb.reddit.edit_wiki_page, ctb.conf.network.stats.subreddit, page, user_stats,
+    ctb_misc.praw_call(ctb.reddit.wikipage.edit, ctb.conf.network.stats.subreddit, page, user_stats,
                        "Update by ALTcointip bot")
 
     # Update user flair on subreddit
@@ -223,8 +223,8 @@ def update_user_stats(ctb=None, username=None):
             flair += "received[" + '|'.join(total_received) + "]"
             flair += " (%d)" % num_received
         lg.debug("update_user_stats(): updating flair for %s (%s)", username, flair)
-        r = ctb_misc.praw_call(ctb.reddit.get_subreddit, ctb.conf.network.stats.subreddit)
-        res = ctb_misc.praw_call(r.set_flair, username, flair, '')
+        r = ctb_misc.praw_call(ctb.reddit.subreddit, ctb.conf.network.stats.subreddit)
+        res = ctb_misc.praw_call(r.flair.set, username, flair, '')
         lg.debug(res)
 
     return True

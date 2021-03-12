@@ -1292,7 +1292,7 @@ def get_actions(atype=None, state=None, coin=None, msg_id=None, created_utc=None
                 if m['msg_link']:
                     lg.debug("get_actions(): get praw message %s", m['msg_id'])
                     try:
-                        submission = ctb.network.praw_call(ctb.network.conn.get_submission, m['msg_link'])
+                        submission = ctb.network.praw_call(ctb.network.conn.submission, m['msg_link'])
                         lg.debug("get_actions(): recieved praw message %s", submission)
                     except Exception as e:
                         lg.debug("get_actions(): error recieving praw message %s", e)

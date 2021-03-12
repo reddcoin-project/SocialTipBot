@@ -1,6 +1,11 @@
 auth:
     user: 'reddtipbot'
     password: ''
+    client_id: ''
+    client_secret: ''
+    callback: ''
+    user_agent: ''
+    refresh_token: ''
 
 scan:
     batch_limit: 1000
