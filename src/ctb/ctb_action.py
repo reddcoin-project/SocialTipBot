@@ -106,9 +106,9 @@ class CtbAction(object):
                         self.type, self.u_from, self.u_to))
 
         # Convert coinval and fiat to float, if necessary
-        if self.coinval and type(self.coinval) == unicode and self.coinval.replace('.', '').isnumeric():
+        if self.coinval and type(self.coinval) == str and self.coinval.replace('.', '').isnumeric():
             self.coinval = float(self.coinval)
-        if self.fiatval and type(self.fiatval) == unicode and self.fiatval.replace('.', '').isnumeric():
+        if self.fiatval and type(self.fiatval) == str and self.fiatval.replace('.', '').isnumeric():
             self.fiatval = float(self.fiatval)
 
         lg.debug("CtbAction::__init__(): %s", self)
