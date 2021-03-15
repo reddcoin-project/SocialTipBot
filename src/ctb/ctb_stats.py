@@ -21,7 +21,7 @@
 import logging
 import re
 import time
-import ctb_misc
+import ctb.ctb_misc as ctb_misc
 
 
 lg = logging.getLogger('cointipbot')
@@ -250,7 +250,7 @@ def format_value(m, k, username, ctb, compact=False):
         return "%s%.2f" % (fiat_symbol, m[k])
 
     # Format username
-    elif k.find("user") > -1 and type(m[k]) in [str, unicode]:
+    elif k.find("user") > -1 and type(m[k]) in [str]:
         return '@%s' % m[k]
 
     # Format address
@@ -260,7 +260,7 @@ def format_value(m, k, username, ctb, compact=False):
     # Format state
     elif k.find("state") > -1:
         if m[k] == 'completed':
-            return unicode('✓', 'utf8')
+            return (u'\N{check mark}')
         else:
             return m[k]
 

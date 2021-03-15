@@ -15,7 +15,7 @@
     along with ALTcointip.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import json, logging, urllib2, httplib
+import json, logging, urllib, http.client
 
 lg = logging.getLogger('cointipbot')
 
@@ -50,7 +50,7 @@ class CtbExchange(object):
         Return True if exchange supports given coin/fiat _name
         """
 
-        if not _name or not type(_name) in [str, unicode]:
+        if not _name or not type(_name) in [str]:
             raise Exception("CtbExchange::supports(): _name is empty or wrong type")
 
         name = str(_name).lower()

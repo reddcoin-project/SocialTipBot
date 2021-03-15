@@ -40,3 +40,5 @@ db
 doc/.ipynb_checkpoints/*.*
 *.csv
 src/logs
+/venv/
+/src/ctb/pifkoin

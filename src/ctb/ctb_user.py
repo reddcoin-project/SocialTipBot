@@ -15,7 +15,7 @@
     along with ALTcointip.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import ctb_misc
+import ctb.ctb_misc as ctb_misc
 
 import logging
 import time
@@ -145,7 +145,7 @@ class CtbUser(object):
                 lg.debug("< CtbUser::is_registered(%s on %s) DONE (yes)", self.name, self.network)
                 return True
 
-        except Exception, e:
+        except Exception as e:
             lg.error("CtbUser::is_registered(%s on %s): error while executing <%s>: %s",
                      self.name, self.network, sql, e)
             raise
@@ -185,7 +185,7 @@ class CtbUser(object):
             sqlexec = self.ctb.db.execute(sql_adduser, {'u': self.name.lower(), 'n': self.network.lower()})
             if sqlexec.rowcount <= 0:
                 raise Exception("CtbUser::register(%s): rowcount <= 0 while executing <%s>" % (self.name, sql_adduser))
-        except Exception, e:
+        except Exception as e:
             lg.error("CtbUser::register(%s): exception while executing <%s>: %s", self.name, sql_adduser, e)
             raise
 
@@ -229,7 +229,7 @@ class CtbUser(object):
                     lg.warning("delete_user(%s on %s): rowcount <= 0 while executing <%s>",
                                self.name, self.network, sql)
 
-        except Exception, e:
+        except Exception as e:
             lg.error("delete_user(%s on %s): error while executing <%s>: %s", self.name, self.network, sql, e)
             return False
 

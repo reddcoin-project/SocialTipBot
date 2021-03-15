@@ -6,6 +6,7 @@ rdd:
     symbol: 'Ɍ'
     config_file: '~/.reddcoin/reddcoin.conf'
     config_rpcserver: '127.0.0.1'
+    config_rpcport: 45443
     minconf:
         givetip: 3
         withdraw: 3
