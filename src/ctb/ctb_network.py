@@ -93,6 +93,7 @@ class RedditNetwork(CtbNetwork):
         self.callback = conf.auth.callback
         self.user_agent = conf.auth.user_agent
         self.refresh_token = conf.auth.refresh_token
+        self.port = conf.auth.port
         self.conn = None
 
     def connect(self):
@@ -107,7 +108,7 @@ class RedditNetwork(CtbNetwork):
             """
             server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            server.bind(("localhost", 65010))
+            server.bind(("localhost", self.port))
             server.listen(1)
             client = server.accept()[0]
             server.close()

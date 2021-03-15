@@ -6,6 +6,7 @@ auth:
     callback: ''
     user_agent: ''
     refresh_token: ''
+    port: 3000
 
 scan:
     batch_limit: 1000
