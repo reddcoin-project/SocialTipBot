@@ -197,19 +197,7 @@ class RedditNetwork(CtbNetwork):
 
         while True:
             try:
-                parentpermalink = comment.permalink.replace(comment.id, comment.parent_id[3:])
-                if hasattr(comment, 'link_id'):
-                    commentlinkid = comment.link_id[3:]
-                else:
-                    comment2 = self.conn.submission(comment.permalink).comments[0]
-                    commentlinkid = comment2.link_id[3:]
-                parentid = comment.parent_id[3:]
-
-                if commentlinkid == parentid:
-                    parentcomment = self.conn.submission(parentpermalink)
-                else:
-                    parentcomment = self.conn.submission(parentpermalink).comments[0]
-
+                parentcomment = comment.parent()
                 if parentcomment and hasattr(parentcomment, 'author') and parentcomment.author:
                     lg.debug("< RedditNetwork::get_parent_author(%s) -> %s", comment.id, parentcomment.author.name)
                     return parentcomment.author.name
