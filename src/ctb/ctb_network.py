@@ -201,14 +201,14 @@ class RedditNetwork(CtbNetwork):
                 if hasattr(comment, 'link_id'):
                     commentlinkid = comment.link_id[3:]
                 else:
-                    comment2 = self.conn.get_submission(comment.permalink).comments[0]
+                    comment2 = self.conn.submission(comment.permalink).comments[0]
                     commentlinkid = comment2.link_id[3:]
                 parentid = comment.parent_id[3:]
 
                 if commentlinkid == parentid:
-                    parentcomment = self.conn.get_submission(parentpermalink)
+                    parentcomment = self.conn.submission(parentpermalink)
                 else:
-                    parentcomment = self.conn.get_submission(parentpermalink).comments[0]
+                    parentcomment = self.conn.submission(parentpermalink).comments[0]
 
                 if parentcomment and hasattr(parentcomment, 'author') and parentcomment.author:
                     lg.debug("< RedditNetwork::get_parent_author(%s) -> %s", comment.id, parentcomment.author.name)
