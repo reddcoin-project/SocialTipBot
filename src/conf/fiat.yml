@@ -51,3 +51,12 @@ rub:
     name: Russian Ruble
     regex:
         units: '(r|rur)'
+
+# EUR
+eur:
+    enabled: true
+    unit: eur
+    symbol: '€'
+    name: European Euro
+    regex:
+        units: '(€|eur)'
