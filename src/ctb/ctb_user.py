@@ -198,7 +198,7 @@ class CtbUser(object):
         # Add coin addresses to database
         # sql_addr = "UPDATE t_addrs SET username=:u, network=:n, coin=:c, address=:a"
         sql_addr = "REPLACE INTO t_addrs (username, network, coin, address) VALUES (%s, %s, %s, %s)"
-        for c, a in new_addrs.iteritems():
+        for c, a in iter(new_addrs.items()):
             try:
                 sqlexec = self.ctb.db.execute(sql_addr, [self.name.lower(), self.network.lower(), c, a])
                 if sqlexec.rowcount <= 0:

@@ -76,7 +76,7 @@ def _top_posts(subreddit):
         if not s.stickied and s.score >= _vote_threshold:
             submission_rewards[s.name] = s
 
-    for k, s in submission_rewards.iteritems():
+    for k, s in iter(submission_rewards.items()):
         comment_authors = []
         s.replace_more_comments(limit=None)
         comments = praw.helpers.flatten_tree(s.comments)
