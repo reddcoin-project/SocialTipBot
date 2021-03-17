@@ -91,7 +91,7 @@ def _send_email(msg=None):
 def _load():
     print 'Loading campaigns:'
 
-    for key, val in db_campaign.iteritems():
+    for key, val in iter(db_campaign.items()):
         author, subreddit, keyword = key.split('_')
         number, amount = val
         print author, subreddit, keyword, number, amount
