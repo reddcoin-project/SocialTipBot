@@ -1088,9 +1088,15 @@ def eval_message(msg, ctb):
             # Match found
             lg.debug("eval_message(): match found")
 
+            user_mention_prefix = ['@', 'u/'] # reddit has 2 methods for user mention @ and u/
             # Extract matched fields into variables
             u_from = msg.author
-            u_to = m.group(r.rg_to_user)[1:] if r.rg_to_user > 0 else None
+            if r.rg_to_user > 0:
+                for prefix in user_mention_prefix:
+                    if m.group(r.rg_to_user).find(prefix) != -1:
+                        u_to = m.group(r.rg_to_user)[len(prefix):]
+            else:
+                u_to = None
             to_addr = m.group(r.rg_address) if r.rg_address > 0 else None
             amount = m.group(r.rg_amount) if r.rg_amount > 0 else None
             keyword = m.group(r.rg_keyword) if r.rg_keyword > 0 else None
