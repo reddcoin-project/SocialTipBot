@@ -17,3 +17,13 @@ cryptocoincharts:
     coinlist: ['btc','rdd']
     fiatlist: ['usd','eur']
     uppercase: false
+
+bittrex:
+    enabled: true
+    domain: 'api.bittrex.com'
+    https: true
+    urlpaths: ['/v3/markets/{THING_FROM}-{THING_TO}/ticker']
+    jsonpaths: ['lastTradeRate']
+    coinlist: ['btc','rdd']
+    fiatlist: ['usd','eur']
+    uppercase: false

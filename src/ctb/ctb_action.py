@@ -254,9 +254,13 @@ class CtbAction(object):
         lg.debug("> CtbAction::save(%s)", state)
 
         # Make sure no negative values exist
-        if self.coinval < 0.0:
+        if self.coinval is None:
             self.coinval = 0.0
-        if self.fiatval < 0.0:
+        elif self.coinval < 0.0:
+            self.coinval = 0.0
+        if self.fiatval is None:
+            self.fiatval = 0.0
+        elif self.fiatval < 0.0:
             self.fiatval = 0.0
 
         conn = self.ctb.db
@@ -1084,9 +1088,15 @@ def eval_message(msg, ctb):
             # Match found
             lg.debug("eval_message(): match found")
 
+            user_mention_prefix = ['@', 'u/'] # reddit has 2 methods for user mention @ and u/
             # Extract matched fields into variables
             u_from = msg.author
-            u_to = m.group(r.rg_to_user)[1:] if r.rg_to_user > 0 else None
+            if r.rg_to_user > 0:
+                for prefix in user_mention_prefix:
+                    if m.group(r.rg_to_user).find(prefix) != -1:
+                        u_to = m.group(r.rg_to_user)[len(prefix):]
+            else:
+                u_to = None
             to_addr = m.group(r.rg_address) if r.rg_address > 0 else None
             amount = m.group(r.rg_amount) if r.rg_amount > 0 else None
             keyword = m.group(r.rg_keyword) if r.rg_keyword > 0 else None
@@ -1292,7 +1302,7 @@ def get_actions(atype=None, state=None, coin=None, msg_id=None, created_utc=None
                 if m['msg_link']:
                     lg.debug("get_actions(): get praw message %s", m['msg_id'])
                     try:
-                        submission = ctb.network.praw_call(ctb.network.conn.get_submission, m['msg_link'])
+                        submission = ctb.network.praw_call(ctb.network.conn.submission, m['msg_link'])
                         lg.debug("get_actions(): recieved praw message %s", submission)
                     except Exception as e:
                         lg.debug("get_actions(): error recieving praw message %s", e)

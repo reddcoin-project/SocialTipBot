@@ -1,10 +1,11 @@
 import logging
 import praw
 import time
+import random
 from requests.exceptions import HTTPError, ConnectionError, Timeout
-# todo verify praw exception errors
-#from praw.errors import ExceptionList, APIException, InvalidCaptcha, InvalidUser, RateLimitExceeded
-from socket import timeout
+from praw.exceptions import RedditAPIException, ClientException
+
+import socket
 
 import ctb.ctb_action as ctb_action
 import ctb.ctb_misc as ctb_misc
@@ -54,7 +55,7 @@ class RedditNetwork(CtbNetwork):
                 res = praw_func(*extra_args, **extra_kwargs)
                 return res
 
-            except (HTTPError, ConnectionError, Timeout, timeout) as e:
+            except (HTTPError, ConnectionError, Timeout, socket.timeout) as e:
                 if str(e) in ["400 Client Error: Bad Request",
                               "403 Client Error: Forbidden",
                               "404 Client Error: Not Found"]:
@@ -64,12 +65,12 @@ class RedditNetwork(CtbNetwork):
                     lg.warning("praw_call(): Reddit returned error (%s), sleeping...", e)
                     time.sleep(30)
                     pass
-            except RateLimitExceeded as e:
+            except ClientException as e:
                 lg.warning("praw_call(): rate limit exceeded, sleeping for %s seconds", e.sleep_time)
                 time.sleep(e.sleep_time)
                 time.sleep(1)
                 pass
-            except APIException as e:
+            except RedditAPIException as e:
                 if str(e) == "(DELETED_COMMENT) `that comment has been deleted` on field `parent`":
                     lg.warning("praw_call(): deleted comment: %s", e)
                     return False
@@ -87,17 +88,66 @@ class RedditNetwork(CtbNetwork):
         self.db = ctb.db
         self.user = conf.auth.user
         self.password = conf.auth.password
+        self.client_id = conf.auth.client_id
+        self.client_secret = conf.auth.client_secret
+        self.callback = conf.auth.callback
+        self.user_agent = conf.auth.user_agent
+        self.refresh_token = conf.auth.refresh_token
+        self.port = conf.auth.port
         self.conn = None
 
     def connect(self):
         """
         Returns a praw connection object
         """
+        def receive_connection():
+            """Wait for and then return a connected socket..
+
+            Opens a TCP connection on port 65010, and waits for a single client.
+
+            """
+            server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            server.bind(("localhost", self.port))
+            server.listen(1)
+            client = server.accept()[0]
+            server.close()
+            return client
+
+        def send_message(client, message):
+            """Send message to client and close the connection."""
+            print(message)
+            client.send(f"HTTP/1.1 200 OK\r\n\r\n{message}".encode("utf-8"))
+            client.close()
+
         lg.debug('RedditNetwork::connect(): connecting to Reddit...')
-        conn = praw.Reddit(user_agent=self.user)
-        conn.login(self.user, self.password)
+        conn = praw.Reddit(client_id=self.client_id, client_secret=self.client_secret, redirect_uri=self.callback, user_agent=self.user_agent, refresh_token=self.refresh_token)
+        # state = str(random.randint(0, 65000))
+
+        # print("Use this url to authenticate bot on reddit: ", conn.auth.url(['*'], state, duration="permanent"))
+        # # print auth url and wait for connection
+        # client = receive_connection()
+        # data = client.recv(1024).decode("utf-8")
+        # param_tokens = data.split(" ", 2)[1].split("?", 1)[1].split("&")
+        # params = {
+        #     key: value for (key, value) in [token.split("=") for token in param_tokens]
+        # }
+        # if state != params["state"]:
+        #     send_message(
+        #         client,
+        #         f"State mismatch. Expected: {state} Received: {params['state']}",
+        #     )
+        #     return 1
+        # elif "error" in params:
+        #     send_message(client, params["error"])
+        #     return 1
+        #
+        # self.refresh_token = conn.auth.authorize(params["code"])
+        # lg.info("RedditNetwork::connect(): Received token %s", self.refresh_token)
+        # send_message(client, f"Refresh token: {self.refresh_token}")
+
         self.conn = conn
-        lg.info("RedditNetwork::connect(): logged in to Reddit as %s", self.user)
+        lg.info("RedditNetwork::connect(): logged in to Reddit as %s", conn.user.me())
         return conn
 
     def is_user_banned(self, user):
@@ -127,10 +177,10 @@ class RedditNetwork(CtbNetwork):
         else:
             lg.debug("RedditNetwork::send_msg(%s): sending message", user_to)
             if editor is None:
-                editor = self.praw_call(self.conn.get_redditor, user_to)
+                editor = self.praw_call(self.conn.redditor, user_to)
 
             if not isinstance(editor, bool):
-                self.praw_call(editor.send_message, subject, body)
+                self.praw_call(editor.message, subject, body)
 
         lg.debug("< RedditNetwork::send_msg(%s) DONE", user_to)
         return True
@@ -147,29 +197,17 @@ class RedditNetwork(CtbNetwork):
 
         while True:
             try:
-                parentpermalink = comment.permalink.replace(comment.id, comment.parent_id[3:])
-                if hasattr(comment, 'link_id'):
-                    commentlinkid = comment.link_id[3:]
-                else:
-                    comment2 = self.conn.get_submission(comment.permalink).comments[0]
-                    commentlinkid = comment2.link_id[3:]
-                parentid = comment.parent_id[3:]
-
-                if commentlinkid == parentid:
-                    parentcomment = self.conn.get_submission(parentpermalink)
-                else:
-                    parentcomment = self.conn.get_submission(parentpermalink).comments[0]
-
+                parentcomment = comment.parent()
                 if parentcomment and hasattr(parentcomment, 'author') and parentcomment.author:
                     lg.debug("< RedditNetwork::get_parent_author(%s) -> %s", comment.id, parentcomment.author.name)
                     return parentcomment.author.name
                 else:
                     lg.warning("< RedditNetwork::get_parent_author(%s) -> NONE", comment.id)
                     return None
-            except (IndexError, APIException) as e:
+            except (IndexError, RedditAPIException) as e:
                 lg.warning("RedditNetwork::get_parent_author(): couldn't get author: %s", e)
                 return None
-            except (HTTPError, RateLimitExceeded, timeout) as e:
+            except (HTTPError, ClientException, socket.timeout) as e:
                 if str(e) in ["400 Client Error: Bad Request", "403 Client Error: Forbidden",
                               "404 Client Error: Not Found"]:
                     lg.warning("RedditNetwork::get_parent_author(): Reddit returned error (%s)", e)
@@ -198,7 +236,7 @@ class RedditNetwork(CtbNetwork):
 
                 elif self.conf.scan.my_subreddits:
                     # Subreddits are subscribed to by bot user
-                    my_reddits = self.praw_call(self.conn.get_my_subreddits, limit=None)
+                    my_reddits = self.praw_call(self.conn.subreddits, limit=None)
                     my_reddits_list = []
                     for my_reddit in my_reddits:
                         my_reddits_list.append(my_reddit.display_name.lower())
@@ -214,7 +252,7 @@ class RedditNetwork(CtbNetwork):
 
                 # Get multi-reddit PRAW object
                 lg.debug("RedditNetwork::init_subreddits(): multi-reddit string: %s", my_reddits_string)
-                self.conf.subreddits = self.praw_call(self.conn.get_subreddit, my_reddits_string)
+                self.conf.subreddits = self.praw_call(self.conn.subreddit, my_reddits_string)
         except Exception as e:
             lg.error("RedditNetwork::init_subreddits(): couldn't get subreddits: %s", e)
             raise
@@ -241,7 +279,7 @@ class RedditNetwork(CtbNetwork):
                                                                            param0='last_processed_comment_time')
 
             # Fetch comments from subreddits
-            my_comments = self.praw_call(self.conf.subreddits.get_comments, limit=self.conf.scan.batch_limit)
+            my_comments = self.praw_call(self.conf.subreddits.comments, limit=self.conf.scan.batch_limit)
 
             # Match each comment against regex
             counter = 0
@@ -285,7 +323,7 @@ class RedditNetwork(CtbNetwork):
                     "RedditNetwork::check_mentions(): conf.network.scan.batch_limit (%s) was not " +
                     "large enough to process all comments", self.conf.scan.batch_limit)
 
-        except (HTTPError, RateLimitExceeded, timeout) as e:
+        except (HTTPError, ClientException, socket.timeout) as e:
             lg.warning("RedditNetwork::check_mentions(): Reddit is down (%s), sleeping", e)
             time.sleep(self.ctb.conf.misc.times.sleep_seconds)
             pass
@@ -310,7 +348,7 @@ class RedditNetwork(CtbNetwork):
 
         try:
             # Try to fetch some messages
-            messages = list(self.praw_call(self.conn.get_unread, limit=self.conf.scan.batch_limit))
+            messages = list(self.praw_call(self.conn.inbox.unread, limit=self.conf.scan.batch_limit))
             messages.reverse()
 
             # Process messages
@@ -318,7 +356,7 @@ class RedditNetwork(CtbNetwork):
                 # Sometimes messages don't have an author (such as 'you are banned from' message)
                 if not m.author:
                     lg.info("RedditNetwork::check_inbox(): ignoring msg with no author")
-                    self.praw_call(m.mark_as_read)
+                    self.praw_call(m.mark_read)
                     continue
 
                 lg.info("RedditNetwork::check_inbox(): %s from %s", "comment" if m.was_comment else "message",
@@ -327,13 +365,13 @@ class RedditNetwork(CtbNetwork):
                 # Ignore duplicate messages (sometimes Reddit fails to mark messages as read)
                 if ctb_action.check_action(msg_id=m.id, ctb=ctb):
                     lg.warning("RedditNetwork::check_inbox(): duplicate action detected (msg.id %s), ignoring", m.id)
-                    self.praw_call(m.mark_as_read)
+                    self.praw_call(m.mark_read)
                     continue
 
                 # Ignore self messages
                 if m.author and m.author.name.lower() == self.user.lower():
                     lg.debug("RedditNetwork::check_inbox(): ignoring message from self")
-                    self.praw_call(m.mark_as_read)
+                    self.praw_call(m.mark_read)
                     continue
 
                 # Ignore messages from banned users
@@ -341,7 +379,7 @@ class RedditNetwork(CtbNetwork):
                     lg.debug("RedditNetwork::check_inbox(): checking whether user '%s' is banned..." % m.author)
                     if self.is_user_banned(m.author.name):
                         lg.info("RedditNetwork::check_inbox(): ignoring banned user '%s'" % m.author)
-                        self.praw_call(m.mark_as_read)
+                        self.praw_call(m.mark_read)
                         continue
 
                 if m.was_comment:
@@ -367,12 +405,12 @@ class RedditNetwork(CtbNetwork):
                                       msgobj=m if not m.was_comment else None)
 
                 # Mark message as read
-                self.praw_call(m.mark_as_read)
-        except (HTTPError, ConnectionError, Timeout, timeout) as e:
+                self.praw_call(m.mark_read)
+        except (HTTPError, ConnectionError, Timeout, socket.timeout) as e:
             lg.warning("RedditNetwork::check_inbox(): Reddit is down (%s), sleeping", e)
             time.sleep(self.ctb.conf.misc.times.sleep_seconds)
             pass
-        except RateLimitExceeded as e:
+        except ClientException as e:
             lg.warning("RedditNetwork::check_inbox(): rate limit exceeded, sleeping for %s seconds", e.sleep_time)
             time.sleep(e.sleep_time)
             time.sleep(1)
