@@ -7,6 +7,7 @@ import re
 import time
 import logging
 import random
+import json
 from datetime import datetime
 from dateutil.parser import parse
 from twython import Twython, TwythonStreamer, TwythonRateLimitError, TwythonError
@@ -14,6 +15,7 @@ from twython import Twython, TwythonStreamer, TwythonRateLimitError, TwythonErro
 from ctb.ctb_network import CtbNetwork
 import ctb.ctb_action as ctb_action
 import ctb.ctb_misc as ctb_misc
+from ctb.ctb_webhooks import TwitterWebHooks
 
 
 lg = logging.getLogger('cointipbot')
@@ -182,6 +184,49 @@ class TwitterNetwork(CtbNetwork):
         self.oauth_token_secret = conf.auth.oauth_token_secret
         self.conn = None
         self.stream = None
+        self.webhooks = None
+        self.account_id = None
+        self.last_db_msg_id = None
+        self.last_db_msg_time = None
+
+    @classmethod
+    def _timestamp_utc(cls, dt):
+        if isinstance(dt, basestring):
+            dt = parse(dt)
+
+        return calendar.timegm(dt.utctimetuple())
+
+    @classmethod
+    def _timestamp_utc_now(cls):
+        dt = datetime.utcnow()
+        return calendar.timegm(dt.utctimetuple())
+
+    def get_account_id(self):
+        # Function for fetching the bot's ID
+        credentials = self.conn.request('account/verify_credentials')
+        return credentials['id']
+
+    def get_user_id(self, name):
+        # Function for fetching a users ID
+        credentials = self.conn.lookup_user(screen_name=name)
+        return credentials[0]['id']
+
+    def get_user_name(self, id):
+        # Function for fetching a users ID
+        credentials = self.conn.lookup_user(user_id=id)
+        return credentials[0]['screen_name']
+
+    def get_last_msg_id(self):
+        # Function to get last msg_id saved in DB
+        sql = "SELECT msg_id FROM t_action WHERE created_utc=(SELECT MAX(created_utc) FROM t_action)"
+        sqlrow = self.db.execute(sql).fetchone()
+        return sqlrow['msg_id']
+
+    def get_last_db_action_time(self):
+        # Function to get last action saved in DB
+        sql = "SELECT created_utc, msg_id FROM t_action WHERE created_utc=(SELECT MAX(created_utc) FROM t_action)"
+        sqlrow = self.db.execute(sql).fetchone()
+        return sqlrow['created_utc'], sqlrow['msg_id']
 
     def connect(self):
         """
@@ -191,12 +236,17 @@ class TwitterNetwork(CtbNetwork):
 
         self.conn = Twython(self.app_key, self.app_secret, self.oauth_token, self.oauth_token_secret)
         self.stream = TwitterStreamer(self.app_key, self.app_secret, self.oauth_token, self.oauth_token_secret, timeout=30)
-        self.conn.username = self.stream.username = self.user
+        self.account_id = self.get_account_id()
+        self.webhooks = TwitterWebHooks(self.conn, self.app_secret, self.account_id)
+        self.conn.username = self.stream.username = self.webhooks.username = self.user
         self.stream.conn = self.conn
-        self.stream.ctb = self.ctb
-        self.stream.last_event = self.stream.last_expiry = datetime.utcnow()
+        self.stream.ctb = self.webhooks.ctb = self.ctb
+        self.stream.last_event = self.stream.last_expiry = self.webhooks.last_event = self.webhooks.last_expiry = datetime.utcnow()
 
-        lg.info("TwitterNetwork::connect(): logged in to Twitter")
+    def run_webhooks(self):
+        lg.info("TwitterWebhooks::starting(): Start init")
+        self.webhooks.run()
+
         return None
 
     def is_user_banned(self, user):
@@ -208,7 +258,22 @@ class TwitterNetwork(CtbNetwork):
                 self.reply_msg(body, msgobj)
             else:
                 lg.debug("< TwitterNetwork::send_msg: sending direct message to %s: %s", user_to, body)
-                self.conn.send_direct_message(screen_name=user_to, text=body[:140])
+                id = self.get_user_id(user_to)
+                event = {
+                    "event": {
+                        "type": "message_create",
+                        "message_create": {
+                            "target": {
+                                "recipient_id": id
+                            },
+                            "message_data": {
+                                "text": body
+                            }
+                        }
+                    }
+                }
+                lg.debug(event)
+                self.conn.send_direct_message(**event)
                 lg.debug("< TwitterNetwork::send_msg to %s DONE", user_to)
 
         except TwythonError as e:
@@ -226,11 +291,26 @@ class TwitterNetwork(CtbNetwork):
             elif msgobj.type == 'mention':
                 body += ' #ReddCoin'
                 lg.debug("< TwitterNetwork::reply_msg: sending tweet to %s: %s", msgobj.author.name, body)
-                self.conn.update_status(status=body[:140])
+                self.conn.update_status(status=body[:280])
                 lg.debug("< TwitterNetwork::reply_msg to %s DONE", msgobj.author.name)
             elif msgobj.type == 'direct_message':
                 lg.debug("< TwitterNetwork::reply_msg: sending direct message to %s: %s", msgobj.author.name, body)
-                self.conn.send_direct_message(screen_name=msgobj.author.name, text=body[:140])
+                id = self.get_user_id(msgobj.author.name)
+                event = {
+                    "event": {
+                        "type": "message_create",
+                        "message_create": {
+                            "target": {
+                                "recipient_id": id
+                            },
+                            "message_data": {
+                                "text": body
+                            }
+                        }
+                    }
+                }
+                lg.debug(event)
+                self.conn.send_direct_message(**event)
                 lg.debug("< TwitterNetwork::reply_msg to %s DONE", msgobj.author.name)
 
         except TwythonError as e:
@@ -241,12 +321,129 @@ class TwitterNetwork(CtbNetwork):
         else:
             return True
 
+    def _parse_mention(self, data):
+        # ignore retweets
+        if 'retweeted_status' in data:
+            return None
+
+        author_name = data['user']['screen_name']
+        if author_name == self.user or '@' + self.user not in data['text']:
+            return None
+
+        # we do allow the bot to issue commands
+        msg = {'created_utc': self._timestamp_utc_now(),
+               'author': {'name': author_name},
+               'type': 'mention'}
+        msg['id'] = data['id_str'] + str(msg['created_utc'])[(30-len(data['id_str'])):]
+
+        text = data['text']
+        msg['body'] = text.replace('@' + self.user, '').strip()
+        print(msg)
+
+        action = ctb_action.eval_message(ctb_misc.DotDict(msg), self.ctb)
+        return action
+
     def check_mentions(self, ctb):
+        """
+        Evaluate new mentions in timeline
+        """
+        lg.debug('> TwitterNetwork::check_mentions()')
         try:
-            self.stream.user()
+            # Read the last timeline mentions from twitter since the last recorded event
+            since_id = self.last_db_msg_id
+            resp = self.conn.get_mentions_timeline(count=200, since_id=since_id)
+
+            for tweet in resp:
+                fields = ['created_at', 'id', 'user', 'entities', 'text']
+                if all(field in tweet for field in fields):
+                    # received a mention
+                    actions = self._parse_mention(tweet)
+
+                    if not actions:
+                        continue
+
+                    if not isinstance(actions, list):
+                        actions = [actions]
+
+                    for action in actions:
+                        if action:
+                            lg.info("TwitterNetwork::check_mentions(): %s from %s", action.type, action.u_from.name)
+                            lg.debug("TwitterNetwork::check_mentions(): comment body: <%s>", action.msg.body)
+                            action.do()
+
         except TwythonRateLimitError:
             lg.error('TwitterNetwork::check_mentions(): Twitter API Rate Limit Breached. Sleep 15m30s')
             time.sleep(15*60+30)
+
+    def _parse_direct_message(self, event_data):
+
+        recipient_id = event_data['message_create']['target']['recipient_id']
+        sender_id = event_data['message_create']['sender_id']
+        sender_screen_name = self.get_user_name(sender_id)
+        message_text = event_data['message_create']['message_data']['text']
+
+        msg = {'created_utc': self._timestamp_utc_now(),
+               'author': {'name': sender_screen_name},
+               'recipient_id': sender_id,
+               'type': 'direct_message'}
+        msg['id'] = event_data['id'] + str(msg['created_utc'])[(30-len(event_data['id'])):]
+
+        text = event_data['message_create']['message_data']['text']
+        msg['body'] = text.replace('@' + self.user, '').strip()
+        lg.debug(msg)
+
+        action = ctb_action.eval_message(ctb_misc.DotDict(msg), self.ctb)
+
+        return action
+
+    def check_inbox(self, ctb):
+        """
+        Evaluate new messages in inbox
+        """
+        lg.debug('> TwitterNetwork::check_inbox()')
+
+        try:
+            if self.last_db_msg_time is None:
+                self.last_db_msg_time, self.last_db_msg_id = self.get_last_db_action_time()
+                #[self.last_db_msg_time, self.last_db_msg_id]
+
+            since_time = self.last_db_msg_time
+
+            resp = self.conn.get_direct_messages(count=200)
+            for msg in resp['events']:
+                msg_timestamp = int(msg['created_timestamp']) / 1000 # twitter timestamps in milliseconds
+                if msg_timestamp > since_time:
+                    if msg['id'] != self.last_db_msg_id:
+                        if self.account_id != int(msg['message_create']['sender_id']):
+                            # received a direct message
+                            actions = self._parse_direct_message(msg)
+
+                            if not actions:
+                                continue
+
+                            if not isinstance(actions, list):
+                                actions = [actions]
+
+                            for action in actions:
+                                if action:
+                                    lg.info("TwitterNetwork::check_inbox(): %s from %s", action.type, action.u_from.name)
+                                    lg.debug("TwitterNetwork::check_inbox(): comment body: <%s>", action.msg.body)
+                                    action.do()
+
+        except TwythonError as e:
+            lg.error("TwitterNetwork::check_inbox(): exception: %s", e)
+            pass
+        except TwythonRateLimitError:
+            lg.warning("TwitterNetwork::check_inbox(): Twitter API rate limit exceeded, sleeping for 15m30s seconds")
+            time.sleep(15*60+30)
+            pass
+        except Exception as e:
+            lg.error("TwitterNetwork::check_inbox(): %s", e)
+            raise
+
+        lg.debug("< TwitterNetwork::check_inbox() DONE")
+        return True
+
 
     def invite(self, user):
         try:

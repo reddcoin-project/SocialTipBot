@@ -880,7 +880,7 @@ class CtbAction(object):
 
             self.save('completed')
             # send follow request
-            # self.ctb.network.invite(self.u_from.name)
+            self.ctb.network.invite(self.u_from.name)
             # Send welcome message to user
             msg = self.ctb.jenv.get_template('welcome.tpl').render(a=self, ctb=self.ctb)
             self.ctb.network.reply_msg(msg, self.msg)

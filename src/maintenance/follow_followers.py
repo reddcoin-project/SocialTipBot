@@ -44,31 +44,45 @@ if __name__ == '__main__':
         followers.append(fid)
 
     print("Followers Count: ", len(followers))
+    limit1 = twitter.get_lastfunction_header('x-rate-limit-remaining')
+    print("x-rate-limit-remaining: ", limit1)
 
     friends = []
     for fid in twitter.cursor(twitter.get_friends_ids, count=5000):
         friends.append(fid)
 
     print("Friends Count: ",len(friends))
+    limit2 = twitter.get_lastfunction_header('x-rate-limit-remaining')
+    print("x-rate-limit-remaining: ", limit2)
+
 
     pending = []
     for fid in twitter.cursor(twitter.get_outgoing_friendship_ids):
         pending.append(fid)
 
     print("Pending Count: ",len(pending))
+    limit3 = twitter.get_lastfunction_header('x-rate-limit-remaining')
+    print("x-rate-limit-remaining: ", limit3)
 
-    to_follow = [f for f in registered if f not in friends and f not in pending]
+    to_follow = [f for f in followers[:500] if f not in friends and f not in pending]
 
-    for screen_name in to_follow:
-        if screen_name == 'tipreddcoin':
-            continue
+    print("To Follow Count: ",len(to_follow))
+
+    userids = ','.join(map(str, to_follow[:100]))
+
+    friendships = twitter.lookup_friendships(user_id=to_follow[:100])
+
+    for user_id in to_follow[:10]:
+        # if screen_name == 'tipreddcoin':
+        #     continue
 
         try:
-            print("Requesting to follow: ", screen_name)
-            twitter.create_friendship(screen_name=screen_name)
+            print("Requesting to follow: ", user_id)
+            twitter.create_friendship(user_id=user_id)
+            time.sleep(1)
         except TwythonError as e:
             # either really failed (e.g. sent request before) or already friends
-            print("failed to follow user %s: %s" % (screen_name, e.msg))
+            print("failed to follow user %s: %s" % (user_id, e.msg))
             # tb = traceback.format_exc()
             # print(tb)
 

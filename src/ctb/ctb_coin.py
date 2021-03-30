@@ -197,7 +197,7 @@ class CtbCoin(object):
                 # Unlock wallet for keypool refill
                 lock_wallet = hasattr(self.conf, 'walletpassphrase') and self.conf.walletpassphrase != ''
                 if lock_wallet:
-                    self.conn.walletpassphrase(self.conf.walletpassphrase, 1)
+                    self.conn.walletpassphrase(self.conf.walletpassphrase, 10)
 
                 # Generate new address
                 addr = self.conn.getnewaddress(user)
