@@ -1,13 +1,22 @@
 __author__ = 'gnasher'
 
-from twython import Twython, TwythonStreamer, TwythonRateLimitError, TwythonError
-from ctb import ctb_log, ctb_misc
 import os
+import sys
+
 import logging
 import yaml
 import glob
 import ntpath
 import json
+from twython import Twython, TwythonStreamer, TwythonRateLimitError, TwythonError
+
+# Hack around absolute paths
+current_dir = os.path.abspath(os.path.dirname(__file__))
+parent_dir = os.path.abspath(current_dir + "/../")
+
+sys.path.insert(0, parent_dir)
+
+from ctb import ctb_log, ctb_misc
 
 # Configure logger
 logging.basicConfig()
@@ -44,6 +53,7 @@ def init_logging():
 
     lg.info('CointipBot::init_logging(): -------------------- logging initialized --------------------')
     return True
+
 
 def parse_config():
     """
@@ -97,4 +107,3 @@ params['url'] = WEBHOOK_URL
 
 resp = twitterconn.request('account_activity/all/webhooks')
 print(json.dumps(resp, indent=4, sort_keys=True))
-

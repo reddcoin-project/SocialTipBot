@@ -1,12 +1,22 @@
 __author__ = 'gnasher'
 
-from twython import Twython, TwythonStreamer, TwythonRateLimitError, TwythonError
-from ctb import ctb_log, ctb_misc
 import os
+import sys
+
 import logging
 import yaml
 import glob
 import ntpath
+import json
+from twython import Twython, TwythonStreamer, TwythonRateLimitError, TwythonError
+
+# Hack around absolute paths
+current_dir = os.path.abspath(os.path.dirname(__file__))
+parent_dir = os.path.abspath(current_dir + "/../")
+
+sys.path.insert(0, parent_dir)
+
+from ctb import ctb_log, ctb_misc
 
 # Configure logger
 logging.basicConfig()
@@ -89,10 +99,12 @@ ACCESS_TOKEN_SECRET = twitter_conf.auth.oauth_token_secret
 
 ENVNAME = twitter_conf.auth.envname
 WEBHOOK_URL = twitter_conf.auth.webhook_url
-WEBHOOK_ID = twitter_conf.auth.webhook_id
 
-if WEBHOOK_ID is not None:
-    twitterconn = Twython(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+params = {}
+params['url'] = WEBHOOK_URL
 
-    resp = twitterconn.delete('account_activity/all/%s/webhooks/%s' % ENVNAME, WEBHOOK_ID)
-    print(json.dumps(resp, indent=4, sort_keys=True))
+twitterconn = Twython(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+
+resp = twitterconn.request('account_activity/all/%s/webhooks' % ENVNAME, 'POST', params)
+
+print(json.dumps(resp, indent=4, sort_keys=True))

@@ -54,6 +54,7 @@ def init_logging():
     lg.info('CointipBot::init_logging(): -------------------- logging initialized --------------------')
     return True
 
+
 def parse_config():
     """
     Returns a Python object with CointipBot configuration
@@ -66,14 +67,14 @@ def parse_config():
         for path in glob.glob(prefix + '*.yml'):
             f = ntpath.basename(path)
             lg.debug("CointipBot::parse_config(): reading %s", f)
-            conf[f.split('.')[0]] = yaml.load(open(path))
+            conf[f.split('.')[0]] = yaml.load(open(path), Loader=yaml.FullLoader)
 
         for folder in ['reddit', 'twitter', 'twitch', 'irc']:
             conf[folder] = {}
             for path in glob.glob(prefix + folder + '/*.yml'):
                 f = ntpath.basename(path)
                 lg.debug("CointipBot::parse_config(): reading %s/%s", folder, f)
-                conf[folder][f.split('.')[0]] = yaml.load(open(path))
+                conf[folder][f.split('.')[0]] = yaml.load(open(path), Loader=yaml.FullLoader)
 
     except yaml.YAMLError as e:
         lg.error("CointipBot::parse_config(): error reading config file: %s", e)
@@ -97,10 +98,13 @@ ACCESS_TOKEN = twitter_conf.auth.oauth_token
 ACCESS_TOKEN_SECRET = twitter_conf.auth.oauth_token_secret
 
 ENVNAME = twitter_conf.auth.envname
-WEBHOOK_ID = twitter_conf.auth.webhook_id
+WEBHOOK_URL = twitter_conf.auth.webhook_url
+
+params = {}
+params['url'] = WEBHOOK_URL
 
 twitterconn = Twython(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
 
-resp = resp = twitterconn.delete('account_activity/all/%s/webhooks/%s' % (ENVNAME, WEBHOOK_ID))
-print(json.dumps(resp, indent=4, sort_keys=True))
+resp = twitterconn.request('account_activity/all/%s/subscriptions' % ENVNAME, 'POST')
 
+print(json.dumps(resp, indent=4, sort_keys=True))
