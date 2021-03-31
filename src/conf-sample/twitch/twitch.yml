@@ -1,0 +1,37 @@
+auth:
+    user: 'mybotuser'
+    password: 'mybotpass'
+    server: 'irc.twitch.tv'
+    port: 6667
+
+channels:
+    method: list
+    list: ['#tipreddcoin', '#dracothedot', '#arithes', '#dirtypawstest', '#pox_eeeeeeeeeee', '#GameroftheBeer', '#erratica', '#mwthink', '#gorgntv', '#gorgntv_2', 
+'#toxiceuphoria', '#lastdesirelol', '#Slashstrike', '#sintorra', '#skcs91210', '#anxietygamers']
+
+help:
+    enabled: false
+    url: 'http://www.reddit.com/r/mysubreddit/wiki/index'
+
+contact:
+    enabled: false
+
+messages:
+    verified: true
+    pending: false
+    expired: false
+    declined: false
+    sorry: true
+
+banned_users:
+    method: list
+    list: ['reddtipbot', 'tipreddcoin', 'bitcointip', 'altcointip', 'dogetipbot', 'itipyou', 'tipdoge']
+
+stats:
+    enabled: false
+    userflair: false
+    subreddit: 'mysubreddit'
+    page: 'stats'
+    url: 'http://www.reddit.com/r/mysubreddit/wiki/stats'
+    page_tips: 'tips'
+    url_tips: 'http://www.reddit.com/r/mysubreddit/wiki/tips'

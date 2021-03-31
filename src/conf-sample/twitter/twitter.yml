@@ -1,0 +1,36 @@
+auth:
+    user: 'mybotuser'
+    app_key: ''
+    app_secret: ''
+    oauth_token: ''
+    oauth_token_secret: ''
+    envname: 'production'
+    webhook_url: 'https://webhooks.yourserver.com/webhooks/twitter'
+    webhook_id:
+
+help:
+    enabled: false
+    url: 'http://www.reddit.com/r/mysubreddit/wiki/index'
+
+contact:
+    enabled: false
+
+messages:
+    verified: true
+    pending: false
+    expired: false
+    declined: false
+    sorry: true
+
+banned_users:
+    method: list
+    list: ['reddtipbot', 'tipreddcoin', 'bitcointip', 'altcointip', 'dogetipbot', 'itipyou', 'tipdoge', 'spamtip']
+
+stats:
+    enabled: false
+    userflair: false
+    subreddit: 'mysubreddit'
+    page: 'stats'
+    url: 'http://www.reddit.com/r/mysubreddit/wiki/stats'
+    page_tips: 'tips'
+    url_tips: 'http://www.reddit.com/r/mysubreddit/wiki/tips'
