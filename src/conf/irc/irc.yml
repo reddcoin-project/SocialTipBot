@@ -1,6 +1,6 @@
 auth:
     user: 'tipreddcoin'
-    password: 'tipreddcoin:wgf01k68'
+    password: ''
     server: 'gamma.elitebnc.org'
     port: 1338
 
