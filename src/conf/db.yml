@@ -3,7 +3,7 @@ auth:
   password: 'Tipb0tpassw0rd#'
   host: localhost
   port: 3306
-  dbname: reddittipbotdb
+  dbname: tipbotdb
 
 sql:
   globalstats:
