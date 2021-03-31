@@ -301,7 +301,7 @@ class CointipBot(object):
         server.quit()
 
     def __init__(self, self_checks=True, init_coins=True, init_db=True, init_logging=True, init_exchanges=True,
-                 init_reddit=False, init_twitter=True, init_twitch=False, init_irc=False):
+                 init_reddit=False, init_twitter=False, init_twitch=False, init_irc=False):
         """
         Constructor. Parses configuration file and initializes bot.
         """
