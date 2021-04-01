@@ -1,12 +1,12 @@
 auth:
-    user: 'tipreddcoin'
-    password: 'oauth:pi5oz89kcioi5650yo1qeo5xwppawq3'
+    user: ''
+    password: ''
     server: 'irc.twitch.tv'
     port: 6667
 
 channels:
     method: list
-    list: ['#tipreddcoin', '#dracothedot', '#arithes', '#dirtypawstest', '#pox_eeeeeeeeeee', '#GameroftheBeer', '#erratica', '#mwthink', '#gorgntv', '#gorgntv_2', 
+    list: ['#tipreddcoin', '#dracothedot', '#arithes', '#dirtypawstest', '#pox_eeeeeeeeeee', '#GameroftheBeer', '#erratica', '#mwthink', '#gorgntv', '#gorgntv_2',
 '#toxiceuphoria', '#lastdesirelol', '#Slashstrike', '#sintorra', '#skcs91210', '#anxietygamers']
 
 help:

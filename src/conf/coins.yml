@@ -14,7 +14,7 @@ rdd:
         givetip: 10
         withdraw: 10
     txfee: 0.01
-    walletpassphrase: '^phd51blognewstartredd$'
+    walletpassphrase: ''
     explorer:
         address: 'http://live.reddcoin.com/address/'
         transaction: 'http://live.reddcoin.com/tx/'
