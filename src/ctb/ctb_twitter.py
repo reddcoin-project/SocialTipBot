@@ -247,8 +247,6 @@ class TwitterNetwork(CtbNetwork):
         lg.info("TwitterWebhooks::starting(): Start init")
         self.webhooks.run()
 
-        return None
-
     def is_user_banned(self, user):
         return False
 
@@ -374,6 +372,9 @@ class TwitterNetwork(CtbNetwork):
         except TwythonRateLimitError:
             lg.error('TwitterNetwork::check_mentions(): Twitter API Rate Limit Breached. Sleep 15m30s')
             time.sleep(15*60+30)
+
+        lg.info("TwitterNetwork::check_mentions(): Web Hook endpoint starting")
+        self.webhooks.run()
 
     def _parse_direct_message(self, event_data):
 

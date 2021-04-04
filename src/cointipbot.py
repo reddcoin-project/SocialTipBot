@@ -395,9 +395,6 @@ class CointipBot(object):
                 # Check subreddit comments for tips
                 self.network.check_mentions(self)
 
-                # Connect to Twitter webhooks
-                self.network.run_webhooks()
-
                 # Sleep
                 if self.network.name == 'reddit':
                     lg.debug("CointipBot::main(): sleeping for %s seconds...", self.conf.misc.times.sleep_seconds)
