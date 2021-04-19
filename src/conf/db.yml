@@ -1,7 +1,7 @@
 auth:
   user: 'tipbot'
   password: 'Tipb0tpassw0rd#'
-  host: localhost
+  host: reddcoin-mysql
   port: 3306
   dbname: tipbotdb
 
