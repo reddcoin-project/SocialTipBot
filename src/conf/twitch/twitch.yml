@@ -6,8 +6,11 @@ auth:
 
 channels:
     method: list
-    list: ['#tipreddcoin', '#dracothedot', '#arithes', '#dirtypawstest', '#pox_eeeeeeeeeee', '#GameroftheBeer', '#erratica', '#mwthink', '#gorgntv', '#gorgntv_2',
-'#toxiceuphoria', '#lastdesirelol', '#Slashstrike', '#sintorra', '#skcs91210', '#anxietygamers']
+    list: ['#heyreddcoin', '#cryptognasher', '#lizzvega', '#glostikwilly', '#theunclejoeshow',
+           '#goatvsfish', '#andrewshaman', '#MattSuarezMusic', '#DylanCottle', '#GlassMoonman',
+           '#GeneHoglan', '#Daniel_Dekay', '#OneMancBanned', '#OrtoPilot', '#RiskyBiscuitBand',
+           '#LunaLyrik', '#CousinCoyAdrift', '#FlippinEyelids', '#TheFeverishLemons', '#WeirdPaul',
+           '#FantasticPlastics']
 
 help:
     enabled: true
