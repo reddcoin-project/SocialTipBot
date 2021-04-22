@@ -109,6 +109,8 @@ class TwitchChatBot(SimpleIRCClient):
 
     def on_welcome(self, c, e):
         for ch in self.channel_list:
+            c.cap('REQ', ':twitch.tv/tags')
+            c.cap('REQ', ':twitch.tv/commands')
             c.join(ch)
 
     def on_privmsg(self, c, e):
@@ -144,6 +146,11 @@ class TwitchChatBot(SimpleIRCClient):
             lg.info("TwitchChatBot::on_pubmsg(): %s from %s", action.type, action.u_from.name)
             lg.debug("TwitchChatBot::on_pubmsg(): comment body: <%s>", action.msg.body)
             action.do()
+
+    def on_whisper(self, c, e):
+        lg.info('TwitchChatBot::on_whisper():: %s from %s' % (e.arguments, e.source.nick))
+        # twitch prevents bots from sending whispers
+        # self.send_msg('#%s' % e.target, '.w tipredd copy that (%s)' % e.arguments)
 
     def disconnect(self, msg="disconnecting"):
         self.connection.disconnect(msg)
