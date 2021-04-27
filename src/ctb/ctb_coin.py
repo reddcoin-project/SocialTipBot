@@ -18,7 +18,7 @@
 import logging
 import re
 import time
-from pifkoin.bitcoind import Bitcoind, BitcoindException
+from reddcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
 from http.client import CannotSendRequest
 
 lg = logging.getLogger('cointipbot')
@@ -46,8 +46,8 @@ class CtbCoin(object):
         # connect to coin daemon
         try:
             lg.debug("CtbCoin::__init__(): connecting to %s...", self.conf.name)
-            self.conn = Bitcoind(self.conf.config_file, rpcserver=self.conf.config_rpcserver, rpcport=self.conf.config_rpcport)
-        except BitcoindException as e:
+            self.conn = AuthServiceProxy(config_filename=self.conf.config_file, rpcserver=self.conf.config_rpcserver, rpcport=self.conf.config_rpcport)
+        except JSONRPCException as e:
             lg.error("CtbCoin::__init__(): error connecting to %s using %s: %s", self.conf.name, self.conf.config_file,
                      e)
             raise
@@ -72,7 +72,7 @@ class CtbCoin(object):
 
         try:
             balance = self.conn.getbalance(user, minconf)
-        except BitcoindException as e:
+        except JSONRPCException as e:
             lg.error("CtbCoin.getbalance(): error getting %s (minconf=%s) balance for %s: %s", self.conf.name, minconf,
                      user, e)
             raise
@@ -212,8 +212,8 @@ class CtbCoin(object):
                 time.sleep(0.1)
                 return str(addr)
 
-            except BitcoindException as e:
-                lg.error("CtbCoin::getnewaddr(%s): BitcoindException: %s", user, e)
+            except JSONRPCException as e:
+                lg.error("CtbCoin::getnewaddr(%s): JSONRPCException: %s", user, e)
                 raise
             except CannotSendRequest as e:
                 if counter < 3:
