@@ -62,7 +62,7 @@ class TwitchChatBot(SimpleIRCClient):
 
     def _connected_checker(self):
         if not self.connection.is_connected():
-            self.connection.execute_delayed(self.reconnection_interval,
+            self.reactor.scheduler.execute_after(self.reconnection_interval,
                                             self._connected_checker)
             self.jump_server()
 
@@ -76,7 +76,7 @@ class TwitchChatBot(SimpleIRCClient):
 
     def on_disconnect(self, c, e):
         self.channels = IRCDict()
-        self.connection.execute_delayed(self.reconnection_interval,
+        self.reactor.scheduler.execute_after(self.reconnection_interval,
                                         self._connected_checker)
 
     def on_join(self, c, e):
