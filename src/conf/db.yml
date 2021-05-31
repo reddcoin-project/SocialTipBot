@@ -21,7 +21,7 @@ sql:
       name: "Total Expired and Declined Tips (USD)"
       desc: "Total value of all tips given that weren't accepted (expired or declined) in USD (default) fiat"
       type: line
-      query: "SELECT SUM(fiat_val) AS total_usd, fiat FROM t_action WHERE type = 'givetip' AND state = 'expired' OR state = 'declined' AND fiat = 'usd'"
+      query: "SELECT SUM(fiat_val) AS total_usd, fiat FROM t_action WHERE type = 'givetip' AND fiat = 'usd' AND state IN ('expired', 'declined')"
     03_total_users_registered:
       name: "Total Users Registered"
       desc: "Number of registered users"
@@ -51,38 +51,43 @@ sql:
       name: "Top 10 Tippers"
       desc: "Top 10 all-time tippers as determined by total USD/EUR (fiat) value of their tips."
       type: table
-      query: "SELECT from_user, SUM(fiat_val) AS total_fiat, fiat FROM t_action WHERE type = 'givetip' AND state = 'completed' AND fiat IN ('usd', 'eur') GROUP BY from_user ORDER BY total_fiat DESC LIMIT 10"
+      query: "SELECT from_user, SUM(fiat_val) AS total_fiat, fiat FROM t_action WHERE type = 'givetip' AND state = 'completed' AND fiat IN ('usd', 'eur') GROUP BY from_user, fiat ORDER BY total_fiat DESC LIMIT 10"
     07_top_10_tips:
       name: "Top 10 Tips"
       desc: "Top 10 all-time tips as determined by their USD/EUR (fiat) value."
       type: table
       query: "SELECT from_user, to_user, coin_val, coin, fiat_val, fiat, msg_link FROM t_action WHERE type ='givetip' AND state = 'completed' AND fiat IN ('usd', 'eur') ORDER BY fiat_val DESC LIMIT 10"
-    07a_top_5_tips_btc:
+    07a_top_5_tips_rdd:
+      name: "Top 5 Tips (RDD)"
+      desc: "Top 5 all-time RDD tips as determined by coin amount"
+      type: table
+      query: "SELECT from_user, to_user, coin_val, coin, fiat_val, fiat, msg_link FROM t_action WHERE type ='givetip' AND state = 'completed' AND coin = 'rdd' ORDER BY coin_val DESC LIMIT 5"
+    07b_top_5_tips_btc:
       name: "Top 5 Tips (BTC)"
       desc: "Top 5 all-time BTC tips as determined by coin amount"
       type: table
       query: "SELECT from_user, to_user, coin_val, coin, fiat_val, fiat, msg_link FROM t_action WHERE type ='givetip' AND state = 'completed' AND coin = 'btc' ORDER BY coin_val DESC LIMIT 5"
-    07b_top_5_tips_ltc:
+    07c_top_5_tips_ltc:
       name: "Top 5 Tips (LTC)"
       desc: "Top 5 all-time LTC tips as determined by coin amount"
       type: table
       query: "SELECT from_user, to_user, coin_val, coin, fiat_val, fiat, msg_link FROM t_action WHERE type ='givetip' AND state = 'completed' AND coin = 'ltc' ORDER BY coin_val DESC LIMIT 5"
-    07c_top_5_tips_ppc:
+    07d_top_5_tips_ppc:
       name: "Top 5 Tips (PPC)"
       desc: "Top 5 all-time PPC tips as determined by coin amount"
       type: table
       query: "SELECT from_user, to_user, coin_val, coin, fiat_val, fiat, msg_link FROM t_action WHERE type ='givetip' AND state = 'completed' AND coin = 'ppc' ORDER BY coin_val DESC LIMIT 5"
-    07d_top_5_tips_nmc:
+    07e_top_5_tips_nmc:
       name: "Top 5 Tips (NMC)"
       desc: "Top 5 all-time NMC tips as determined by coin amount"
       type: table
       query: "SELECT from_user, to_user, coin_val, coin, fiat_val, fiat, msg_link FROM t_action WHERE type ='givetip' AND state = 'completed' AND coin = 'nmc' ORDER BY coin_val DESC LIMIT 5"
-    07e_top_5_tips_xpm:
+    07f_top_5_tips_xpm:
       name: "Top 5 Tips (XPM)"
       desc: "Top 5 all-time XPM tips as determined by coin amount"
       type: table
       query: "SELECT from_user, to_user, coin_val, coin, fiat_val, fiat, msg_link FROM t_action WHERE type ='givetip' AND state = 'completed' AND coin = 'xpm' ORDER BY coin_val DESC LIMIT 5"
-    07f_top_5_tips_mec:
+    07g_top_5_tips_mec:
       name: "Top 5 Tips (MEC)"
       desc: "Top 5 all-time MEC tips as determined by coin amount"
       type: table
@@ -91,7 +96,7 @@ sql:
       name: "Top 10 Receivers"
       desc: "Top 10 all-time tip receivers as determined by total USD/EUR (fiat) value of their received tips."
       type: table
-      query: "SELECT to_user, SUM(fiat_val) AS total_fiat, fiat FROM t_action WHERE type = 'givetip' AND state = 'completed' AND fiat IN ('usd', 'eur') AND to_user IS NOT NULL GROUP BY to_user ORDER BY total_fiat DESC LIMIT 10"
+      query: "SELECT to_user, SUM(fiat_val) AS total_fiat, fiat FROM t_action WHERE type = 'givetip' AND state = 'completed' AND fiat IN ('usd', 'eur') AND to_user IS NOT NULL GROUP BY to_user, fiat ORDER BY total_fiat DESC LIMIT 10"
   userstats:
     users: "SELECT username FROM t_users WHERE username IN (SELECT from_user FROM t_action WHERE type = 'givetip') OR username in (SELECT to_user FROM t_action WHERE type = 'givetip') ORDER BY username"
     coins: 'SELECT DISTINCT coin FROM t_action WHERE coin IS NOT NULL ORDER BY coin'
