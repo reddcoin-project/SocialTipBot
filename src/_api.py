@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
     This file is part of SocialTipBot.
 
@@ -16,9 +17,12 @@
 """
 
 from flask import Flask, jsonify
+import json
 
 import cointipbot, logging
 from ctb import ctb_stats
+from pymemcache.client import base
+
 
 logging.basicConfig()
 lg = logging.getLogger('cointipbot')
@@ -28,14 +32,55 @@ ctb = cointipbot.CointipBot(self_checks=False, init_reddit=False, init_twitch=Tr
 
 app = Flask(__name__)
 
+class JsonSerde(object):
+    def serialize(self, key, value):
+        if isinstance(value, str):
+            return value.encode('utf-8'), 1
+        return json.dumps(value).encode('utf-8'), 2
+
+    def deserialize(self, key, value, flags):
+        if flags == 1:
+            return value.decode('utf-8')
+        if flags == 2:
+            return json.loads(value.decode('utf-8'))
+        raise Exception("Unknown serialization format")
+
+
+# connect to memcached
+memclient = base.Client(('reddcoin-memcached', 11211), serde=JsonSerde(),timeout=60)
+
+# start with cold cache
+memclient.delete('stats')
+memclient.delete('tips')
+
+def get_stats_data():
+    result = memclient.get('stats')
+    if result is None:
+        # Cache is empty, retrieve from db
+        result = ctb_stats.update_stats_json(ctb=ctb)
+        # Cache result
+        memclient.set('stats', result, expire=60)
+
+    return result
+
+def get_tips_data():
+    result = memclient.get('tips')
+    if result is None:
+        # Cache is empty, retrieve from db
+        result = ctb_stats.update_tips_json(ctb=ctb)
+        # Cache result
+        memclient.set('tips', result, expire=60)
+
+    return result
+
 @app.route("/stats", methods=["GET"])
 def getstats():
-    result = ctb_stats.update_stats_json(ctb=ctb)
+    result = get_stats_data()
     return jsonify({"result": result})
 
 @app.route("/tips", methods=["GET"])
 def gettips():
-    result = ctb_stats.update_tips_json(ctb=ctb)
+    result = get_tips_data()
     return jsonify({"result": result})
 
 if __name__ == "__main__":
