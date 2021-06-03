@@ -10,7 +10,7 @@ channels:
            '#goatvsfish', '#andrewshaman', '#MattSuarezMusic', '#DylanCottle', '#GlassMoonman',
            '#GeneHoglan', '#Daniel_Dekay', '#OneMancBanned', '#OrtoPilot', '#RiskyBiscuitBand',
            '#LunaLyrik', '#CousinCoyAdrift', '#FlippinEyelids', '#TheFeverishLemons', '#WeirdPaul',
-           '#FantasticPlastics']
+           '#FantasticPlastics', '#Wrenchstallion']
 
 help:
     enabled: true
