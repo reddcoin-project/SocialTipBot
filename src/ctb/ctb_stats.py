@@ -75,6 +75,54 @@ def update_stats(ctb=None):
                               stats, "Update by ALTcointip bot")
 
 
+def update_stats_json(ctb=None):
+    """
+    Update stats json
+    """
+    stats ={}
+
+    if not ctb.conf.network.stats.enabled:
+        return None
+
+    for s in sorted(vars(ctb.conf.db.sql.globalstats)):
+        lg.debug("update_stats_json(): getting stats for '%s'" % s)
+        sql = ctb.conf.db.sql.globalstats[s].query
+        item = {}
+        item["name"] = ctb.conf.db.sql.globalstats[s].name
+        item["description"] = ctb.conf.db.sql.globalstats[s].desc
+
+        sqlexec = ctb.db.execute(sql)
+        if sqlexec.rowcount <= 0:
+            lg.warning("update_stats_json(): query <%s> returned nothing" % ctb.conf.db.sql.globalstats[s].query)
+            continue
+
+        if ctb.conf.db.sql.globalstats[s].type == "line":
+            m = sqlexec.fetchone()
+            k = sqlexec.keys()[0]
+            value = format_value(m, k, '', ctb)
+            item[k] = value
+
+        elif ctb.conf.db.sql.globalstats[s].type == "table":
+            table = []
+            row = {}
+
+            for m in sqlexec:
+                for k in sqlexec.keys():
+                    row[k] = format_value(m, k, '', ctb)
+                table.append(row.copy())
+
+            item["value"] = table
+
+        else:
+            lg.error("update_stats_json(): don't know what to do with type '%s'" % ctb.conf.db.sql.globalstats[s].type)
+            return False
+
+        stats[s] = item
+
+    lg.debug("update_stats_json(): updating stats json")
+    return stats
+
+
 def update_tips(ctb=None):
     """
     Update page listing all tips
@@ -104,6 +152,32 @@ def update_tips(ctb=None):
                        tip_list, "Update by ALTcointip bot")
 
     return True
+
+def update_tips_json(ctb=None):
+    """
+    Update page listing all tips
+    """
+
+    if not ctb.conf.network.stats.enabled:
+        return None
+
+    # Start building stats page
+    table = []
+    row = {}
+
+    q = ctb.db.execute(ctb.conf.db.sql.tips.sql_set)
+    tips = ctb.db.execute(ctb.conf.db.sql.tips.sql_list, [ctb.conf.db.sql.tips.limit])
+
+    # Build tips table
+    for t in tips:
+        values = []
+        for k in tips.keys():
+            row[k] = format_value(t, k, '', ctb, compact=True)
+
+        table.append(row.copy())
+
+    lg.debug("update_tips_json(): updating user json")
+    return table
 
 
 def update_all_user_stats(ctb=None):
