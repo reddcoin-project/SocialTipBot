@@ -115,6 +115,6 @@ sql:
     sql: "SELECT sum(coin_val) AS received, count(*) as count FROM t_action WHERE type = 'givetip' AND state = 'completed' and to_user=%s"
   tips:
     sql_set: "SET @rank=0"
-    sql_list: "SELECT @rank :=@rank+1 AS num, created_utc, from_user, to_user, coin_val, coin, fiat_val, fiat, subreddit FROM t_action WHERE type='givetip' AND state='completed' ORDER BY created_utc ASC LIMIT %s"
+    sql_list: "SELECT * FROM ( SELECT @rank :=@rank+1 AS num, created_utc, from_user, to_user, coin_val, coin, fiat_val, fiat, subreddit FROM t_action WHERE type='givetip' AND state='completed' ORDER BY created_utc desc LIMIT %s) as A ORDER BY created_utc asc"
     limit: 5000
 
