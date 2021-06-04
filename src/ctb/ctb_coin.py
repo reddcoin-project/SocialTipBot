@@ -52,7 +52,7 @@ class CtbCoin(object):
                      e)
             raise
 
-        lg.info("CtbCoin::__init__():: connected to %s", self.conf.name)
+        lg.info("CtbCoin::__init__():: connected to %s. %s:%s", self.conf.name, self.conf.config_rpcserver, self.conf.config_rpcport)
         time.sleep(0.5)
 
         # set transaction fee
