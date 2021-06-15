@@ -2,7 +2,7 @@ values:
     username:
         regex: '(@[\w-]{3,20}|u/[\w-]{3,20})'
     amount:
-        regex: '([0-9]{2,9})'
+        regex: '([0-9]{1,9})'
     keywords:
         regex: '(all|dictature|flip|megaflip|gigaflip|roll|megaroll|gigaroll|random100|random250|random500|random1000|upvote|smile|highfive|fart|coffee|cookie|gum|burger|donut|sushi|pizza|souffle|caviar|beer|nicebeer|coke|champagne|wine|hug|kiss|pi|e)'
     tip_init:
