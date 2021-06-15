@@ -81,8 +81,8 @@ def update_stats_json(ctb=None):
     """
     stats ={}
 
-    if not ctb.conf.network.stats.enabled:
-        return None
+    # if not ctb.conf.network.stats.enabled:
+    #     return None
 
     for s in sorted(vars(ctb.conf.db.sql.globalstats)):
         lg.debug("update_stats_json(): getting stats for '%s'" % s)
@@ -158,8 +158,8 @@ def update_tips_json(ctb=None):
     Update page listing all tips
     """
 
-    if not ctb.conf.network.stats.enabled:
-        return None
+    # if not ctb.conf.network.stats.enabled:
+    #     return None
 
     # Start building stats page
     table = []
