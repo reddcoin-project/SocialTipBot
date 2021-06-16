@@ -813,6 +813,12 @@ class CtbAction(object):
         """
         lg.debug("> CtbAction::info()")
 
+        # Check if action has been processed
+        if check_action(atype=self.type, msg_id=self.msg_id, ctb=self.ctb):
+            # Found action in database, returning
+            lg.warning("CtbAction::info(): duplicate action %s (msg.id %s), ignoring", self.type, self.msg.id)
+            return False
+
         # Check if user exists
         if not self.u_from.is_registered():
             msg = self.ctb.jenv.get_template('not-registered.tpl').render(a=self, ctb=self.ctb)
