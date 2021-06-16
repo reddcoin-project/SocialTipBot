@@ -881,6 +881,12 @@ class CtbAction(object):
         """
         lg.debug("> CtbAction::register()")
 
+        # Check if action has been processed
+        if check_action(atype=self.type, msg_id=self.msg_id, ctb=self.ctb):
+            # Found action in database, returning
+            lg.warning("CtbAction::info(): duplicate action %s (msg.id %s), ignoring", self.type, self.msg.id)
+            return False
+
         # If user exists, do nothing
         if self.u_from.is_registered():
             lg.debug("CtbAction::register(%s): user already exists", self.u_from.name)
