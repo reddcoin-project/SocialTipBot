@@ -372,6 +372,12 @@ class CtbAction(object):
         """
         lg.debug("> CtbAction::history()")
 
+        # Check if action has been processed
+        if check_action(atype=self.type, msg_id=self.msg_id, ctb=self.ctb):
+            # Found action in database, returning
+            lg.warning("CtbAction::history(): duplicate action %s (msg.id %s), ignoring", self.type, self.msg.id)
+            return False
+
         # Generate history array
         history = []
         sql_history = self.ctb.conf.db.sql.userhistory.sql
