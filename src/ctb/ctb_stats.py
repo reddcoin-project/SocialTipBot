@@ -122,6 +122,52 @@ def update_stats_json(ctb=None):
     lg.debug("update_stats_json(): updating stats json")
     return stats
 
+def update_history_json(ctb=None):
+    """
+    Update history json
+    """
+    stats ={}
+
+    # if not ctb.conf.network.stats.enabled:
+    #     return None
+
+    for s in sorted(vars(ctb.conf.db.sql.history)):
+        lg.debug("update_stats_json(): getting stats for '%s'" % s)
+        sql = ctb.conf.db.sql.history[s].query
+        item = {}
+        item["name"] = ctb.conf.db.sql.history[s].name
+        item["description"] = ctb.conf.db.sql.history[s].desc
+
+        sqlexec = ctb.db.execute(sql)
+        if sqlexec.rowcount <= 0:
+            lg.warning("update_history_json(): query <%s> returned nothing" % ctb.conf.db.sql.history[s].query)
+            continue
+
+        if ctb.conf.db.sql.history[s].type == "line":
+            m = sqlexec.fetchone()
+            k = sqlexec.keys()[0]
+            value = format_value(m, k, '', ctb)
+            item[k] = value
+
+        elif ctb.conf.db.sql.history[s].type == "table":
+            table = []
+            row = {}
+
+            for m in sqlexec:
+                for k in sqlexec.keys():
+                    row[k] = format_value(m, k, '', ctb)
+                table.append(row.copy())
+
+            item["value"] = table
+
+        else:
+            lg.error("update_history_json(): don't know what to do with type '%s'" % ctb.conf.db.sql.history[s].type)
+            return False
+
+        stats[s] = item
+
+    lg.debug("update_history_json(): updating stats json")
+    return stats
 
 def update_tips(ctb=None):
     """

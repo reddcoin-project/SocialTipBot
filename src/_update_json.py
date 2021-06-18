@@ -27,6 +27,11 @@ ctb = cointipbot.CointipBot(self_checks=False, init_reddit=False, init_twitch=Tr
 
 # Update stats json
 result = {}
+result["result"] = ctb_stats.update_history_json(ctb=ctb)
+lg.debug(json.dumps(result))
+
+# Update stats json
+result = {}
 result["result"] = ctb_stats.update_stats_json(ctb=ctb)
 lg.debug(json.dumps(result))
 

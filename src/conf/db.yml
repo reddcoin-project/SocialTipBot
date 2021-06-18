@@ -117,4 +117,25 @@ sql:
     sql_set: "SET @rank=0"
     sql_list: "SELECT * FROM ( SELECT @rank :=@rank+1 AS num, created_utc, from_user, to_user, coin_val, coin, fiat_val, fiat, subreddit FROM t_action WHERE type='givetip' AND state='completed' ORDER BY created_utc desc LIMIT %s) as A ORDER BY created_utc asc"
     limit: 5000
+  history:
+    01_daily:
+      name: "Daily tips"
+      desc: "Total value of daily tips"
+      type: table
+      query: "SELECT FROM_UNIXTIME(created_utc, '%%Y-%%m-%%d') AS closing_date, state, count(state) AS count, sum(coin_val), coin, sum(fiat_val), fiat FROM t_action WHERE type = 'givetip' AND fiat = 'usd' group by closing_date, state, coin order by closing_date"
+    02_weekly:
+      name: "Weekly tips"
+      desc: "Total value of weekly (weeks of the year) tips"
+      type: table
+      query: "SELECT CONCAT(YEAR(FROM_UNIXTIME(created_utc)), '/', LPAD(WEEK(FROM_UNIXTIME(created_utc)), 2, 0))  AS closing_date, state, count(state) AS count, sum(coin_val), coin, sum(fiat_val), fiat FROM t_action WHERE type = 'givetip' AND fiat = 'usd' group by closing_date, state, coin order by closing_date"
+    03_monthly:
+      name: "Monthly tips"
+      desc: "Total value of monthly tips"
+      type: table
+      query: "SELECT FROM_UNIXTIME(created_utc, '%%Y-%%m') AS closing_date, state, count(state) AS count, sum(coin_val), coin, sum(fiat_val), fiat FROM t_action WHERE type = 'givetip' AND fiat = 'usd' group by closing_date, state, coin order by closing_date"
+    04_yearly:
+      name: "Yearly tips"
+      desc: "Total value of yearly tips"
+      type: table
+      query: "SELECT FROM_UNIXTIME(created_utc, '%%Y') AS closing_date, state, count(state) AS count, sum(coin_val), coin, sum(fiat_val), fiat FROM t_action WHERE type = 'givetip' AND fiat = 'usd' group by closing_date, state, coin order by closing_date"
 
