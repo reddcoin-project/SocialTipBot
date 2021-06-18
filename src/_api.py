@@ -95,7 +95,7 @@ def gettips():
     return jsonify({"result": result})
 
 @app.route("/history", methods=["GET"])
-def gettips():
+def gethistory():
     result = get_history_data()
     return jsonify({"result": result})
 
