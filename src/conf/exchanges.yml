@@ -27,3 +27,13 @@ bittrex:
     coinlist: ['btc','rdd']
     fiatlist: ['usd','eur']
     uppercase: false
+
+bitcoincom:
+    enabled: true
+    domain: 'api.exchange.bitcoin.com'
+    https: true
+    urlpaths: ['/api/2/public/ticker/{THING_FROM}{THING_TO}']
+    jsonpaths: ['last']
+    coinlist: ['btc','rdd']
+    fiatlist: ['usd']
+    uppercase: true
