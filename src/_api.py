@@ -52,6 +52,7 @@ memclient = base.Client(('reddcoin-memcached', 11211), serde=JsonSerde(),timeout
 # start with cold cache
 memclient.delete('stats')
 memclient.delete('tips')
+memclient.delete('history')
 
 def get_stats_data():
     result = memclient.get('stats')
@@ -73,6 +74,16 @@ def get_tips_data():
 
     return result
 
+def get_history_data():
+    result = memclient.get('history')
+    if result is None:
+        # Cache is empty, retrieve from db
+        result = ctb_stats.update_history_json(ctb=ctb)
+        # Cache result
+        memclient.set('history', result, expire=60)
+
+    return result
+
 @app.route("/stats", methods=["GET"])
 def getstats():
     result = get_stats_data()
@@ -81,6 +92,11 @@ def getstats():
 @app.route("/tips", methods=["GET"])
 def gettips():
     result = get_tips_data()
+    return jsonify({"result": result})
+
+@app.route("/history", methods=["GET"])
+def gettips():
+    result = get_history_data()
     return jsonify({"result": result})
 
 if __name__ == "__main__":
