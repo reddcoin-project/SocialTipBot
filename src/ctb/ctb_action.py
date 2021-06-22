@@ -1155,6 +1155,7 @@ def eval_message(msg, ctb):
                     fiat=r.fiat,
                     fiat_val=amount if r.fiat else None,
                     keyword=keyword,
+                    subr=msg.channel[1:] if hasattr(msg,'channel') else None,
                     ctb=ctb)
                 return action
             except CtbActionExc as e:
