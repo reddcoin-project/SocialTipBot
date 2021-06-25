@@ -145,7 +145,7 @@ class CtbCoin(object):
             # Unlock wallet, if applicable
             if hasattr(self.conf, 'walletpassphrase'):
                 lg.debug("CtbCoin::sendtoaddr(): unlocking wallet...")
-                self.conn.walletpassphrase(self.conf.walletpassphrase, 1)
+                self.conn.walletpassphrase(self.conf.walletpassphrase, self.conf.walletunlocktimeout)
 
             # Perform transaction
             lg.debug("CtbCoin::sendtoaddr(): calling sendfrom()...")
