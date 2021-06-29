@@ -17,11 +17,21 @@ sql:
       desc: "Total value of all tips given and accepted in USD (default) fiat grouped by coin"
       type: table
       query: "SELECT coin, SUM(fiat_val) AS total_usd, fiat FROM t_action WHERE type = 'givetip' AND state = 'completed' AND fiat = 'usd' GROUP BY coin ORDER BY coin"
+    01b_total_tipped_rdd:
+      name: "Total Accepted Tips By Coin (RDD)"
+      desc: "Total value of all tips given and accepted in RDD"
+      type: line
+      query: "SELECT SUM(coin_val) AS total_coin, coin FROM t_action WHERE type = 'givetip' AND state = 'completed' AND coin = 'rdd'"
     02_total_tips_expired_and_declined:
       name: "Total Expired and Declined Tips (USD)"
       desc: "Total value of all tips given that weren't accepted (expired or declined) in USD (default) fiat"
       type: line
       query: "SELECT SUM(fiat_val) AS total_usd, fiat FROM t_action WHERE type = 'givetip' AND fiat = 'usd' AND state IN ('expired', 'declined')"
+    02a_total_tips_expired_and_declined_rdd:
+      name: "Total Expired and Declined Tips (RDD)"
+      desc: "Total value of all tips given that weren't accepted (expired or declined) in RDD"
+      type: line
+      query: "SELECT SUM(coin_val) AS total_coin, coin FROM t_action WHERE type = 'givetip' AND coin = 'rdd' AND state IN ('expired', 'declined')"
     03_total_users_registered:
       name: "Total Users Registered"
       desc: "Number of registered users"
