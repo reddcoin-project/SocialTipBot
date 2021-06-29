@@ -84,7 +84,7 @@ def get_history_data():
 
     return result
 
-@app.route("/")
+@app.route("/leaderboard", methods=["GET"])
 def index():
     result = get_stats_data()
     return render_template('template.html', my_stats=result)
