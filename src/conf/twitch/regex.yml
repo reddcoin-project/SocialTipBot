@@ -1,6 +1,6 @@
 values:
     username:
-        regex: '(@[A-Za-z0-9_]{1,25})'
+        regex: '(@[A-Za-z0-9_]{4,25})'
     amount:
         regex: '([0-9]{1,9})'
     keywords:
