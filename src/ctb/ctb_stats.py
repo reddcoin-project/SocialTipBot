@@ -362,7 +362,7 @@ def format_value(m, k, username, ctb, compact=False):
     # Format cryptocoin
     if type(m[k]) == float and k.find("coin") > -1:
         coin_symbol = ctb.conf.coins[m['coin']].symbol
-        return "%s%.5g" % (coin_symbol, m[k])
+        return "%s%.5f" % (coin_symbol, m[k])
 
     # Format fiat
     elif type(m[k]) == float and ( k.find("fiat") > -1 or k.find("usd") > -1):
