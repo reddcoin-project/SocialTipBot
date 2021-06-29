@@ -16,7 +16,7 @@
     along with SocialTipBot.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
 import json
 
 import cointipbot, logging
@@ -83,6 +83,11 @@ def get_history_data():
         memclient.set('history', result, expire=60)
 
     return result
+
+@app.route("/")
+def index():
+    result = get_stats_data()
+    return render_template('template.html', my_stats=result)
 
 @app.route("/stats", methods=["GET"])
 def getstats():

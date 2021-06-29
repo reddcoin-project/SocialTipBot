@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Basic Tipbot Leaderboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <style type="text/css">
+        .container {
+            max-width: 500px;
+            padding-top: 50px;
+        }
+        .tab {
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Tipbot Leaderboard</h1>
+    <p>{{my_stats['01_total_tipped_usd'].name}}: {{my_stats['01_total_tipped_usd'].total_usd}}</p>
+    <p>{{my_stats['01a_total_tipped_usd_by_coin'].name}}:</p>
+    {% for dict in my_stats['01a_total_tipped_usd_by_coin']['value'] %}
+        <p><span class="tab">{{dict['coin']}}: {{dict['fiat']}} {{dict['total_usd']}}</p>
+    {% endfor %}
+    <p>{{my_stats['01b_total_tipped_rdd'].name}}: {{my_stats['01b_total_tipped_rdd'].total_coin}}</p>
+    <p>{{my_stats['02_total_tips_expired_and_declined'].name}}: {{my_stats['02_total_tips_expired_and_declined'].total_usd}}</p>
+    <p>{{my_stats['02a_total_tips_expired_and_declined_rdd'].name}}: {{my_stats['02a_total_tips_expired_and_declined_rdd'].total_coin}}</p>
+    <p>{{my_stats['03_total_users_registered'].name}}: {{my_stats['03_total_users_registered'].total_users}}</p>
+    <p>{{my_stats['04_total_tippers'].name}}: {{my_stats['04_total_tippers'].total_tippers}}</p>
+    <p>{{my_stats['05_total_tips'].name}}: {{my_stats['05_total_tips'].total_tips}}</p>
+    <p>{{my_stats['05a_total_tips_by_coin'].name}}:</p>
+    {% for dict in my_stats['05a_total_tips_by_coin']['value'] %}
+        <p><span class="tab">{{dict['coin']}}: {{dict['total_tips']}}</p>
+    {% endfor %}
+    <p>{{my_stats['06_top_10_tippers'].name}}:</p>
+    {% for dict in my_stats['06_top_10_tippers']['value'] %}
+        <p><span class="tab">{{dict['from_user']}}: {{dict['fiat']}} {{dict['total_fiat']}}</p>
+    {% endfor %}
+    <p>{{my_stats['07_top_10_tips'].name}}:</p>
+    {% for dict in my_stats['07_top_10_tips']['value'] %}
+        <p><span class="tab">{{dict['from_user']}} -> {{dict['to_user']}}: {{dict['coin_val']}} ({{dict['fiat']}} {{dict['fiat_val']}})</p>
+    {% endfor %}
+    <p>{{my_stats['07a_top_5_tips_rdd'].name}}:</p>
+    {% for dict in my_stats['07a_top_5_tips_rdd']['value'] %}
+        <p><span class="tab">{{dict['from_user']}} -> {{dict['to_user']}}: {{dict['coin_val']}} ({{dict['fiat']}} {{dict['fiat_val']}})</p>
+    {% endfor %}
+    <p>{{my_stats['08_top_10_receivers'].name}}:</p>
+    {% for dict in my_stats['08_top_10_receivers']['value'] %}
+        <p><span class="tab">{{dict['to_user']}}: ({{dict['fiat']}} {{dict['total_fiat']}})</p>
+    {% endfor %}
+</div>
+<script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+<script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+</body>
+</html>
