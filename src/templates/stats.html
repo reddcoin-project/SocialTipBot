@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Tipbot Stats</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <h1>Tipbot Stats</h1>
+    <p><a href="#" data-toggle="tooltip" title="{{my_stats['03_total_users_registered'].description}}">{{my_stats['03_total_users_registered'].name}}: </a>{{my_stats['03_total_users_registered'].total_users}}</p>
+    <p><a href="#" data-toggle="tooltip" title="{{my_stats['04_total_tippers'].description}}">{{my_stats['04_total_tippers'].name}}: </a>{{my_stats['04_total_tippers'].total_tippers}}</p>
+    <p><a href="#" data-toggle="tooltip" title="{{my_stats['05_total_tips'].description}}">{{my_stats['05_total_tips'].name}}: </a>{{my_stats['05_total_tips'].total_tips}}</p>
+    <p><a href="#" data-toggle="tooltip" title="{{my_stats['01_total_tipped_usd'].description}}">{{my_stats['01_total_tipped_usd'].name}}: </a>{{my_stats['01_total_tipped_usd'].total_usd}}</p>
+    <p><a href="#" data-toggle="tooltip" title="{{my_stats['01b_total_tipped_rdd'].description}}">{{my_stats['01b_total_tipped_rdd'].name}}: </a>{{my_stats['01b_total_tipped_rdd'].total_coin}}</p>
+</div>
+
+<script>
+  $(document).ready(function(){
+    $('[data-toggle="tooltip"]').tooltip();
+  });
+</script>
+
+</body>
+</html>
