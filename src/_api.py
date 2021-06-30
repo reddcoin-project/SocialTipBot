@@ -85,9 +85,9 @@ def get_history_data():
     return result
 
 @app.route("/leaderboard", methods=["GET"])
-def index():
+def getleaderboardpage():
     result = get_stats_data()
-    return render_template('template.html', my_stats=result)
+    return render_template('leaderboard.html', my_stats=result)
 
 @app.route("/stats", methods=["GET"])
 def getstats():
