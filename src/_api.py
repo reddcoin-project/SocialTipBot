@@ -89,7 +89,7 @@ def getleaderboardpage():
     result = get_stats_data()
     return render_template('leaderboard.html', my_stats=result)
 
-@app.route("/stats", methods=["GET"])
+@app.route("/tipstats", methods=["GET"])
 def getstatspage():
     result = get_stats_data()
     return render_template('stats.html', my_stats=result)
