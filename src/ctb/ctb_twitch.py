@@ -150,7 +150,18 @@ class TwitchChatBot(SimpleIRCClient):
     def on_whisper(self, c, e):
         lg.info('TwitchChatBot::on_whisper():: %s from %s' % (e.arguments, e.source.nick))
         # twitch prevents bots from sending whispers
-        # self.send_msg('#%s' % e.target, '.w tipredd copy that (%s)' % e.arguments)
+        msg = '@%s copy that (%s)' % (e.source.nick, e.arguments)
+        lg.info('TwitchChatBot::on_whisper():: Sending %s to %s' % (msg, e.source.nick))
+        # self.send_msg('#%s' % e.target, msg)
+
+    def on_pubnotice(self, c, e):
+        lg.info('TwitchChatBot::on_pubnotice():: %s from %s' % (e.arguments, e.source))
+
+    def on_privnotice(self, c, e):
+        lg.info('TwitchChatBot::on_privnotice():: %s from %s' % (e.arguments, e.source))
+
+    # def on_all_raw_messages(self, c, e):
+    #     lg.info('TwitchChatBot::on_all_raw_messages():: %s from %s' % (e.arguments, e.source))
 
     def disconnect(self, msg="disconnecting"):
         self.connection.disconnect(msg)
