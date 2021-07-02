@@ -150,7 +150,7 @@ class TwitchChatBot(SimpleIRCClient):
     def on_whisper(self, c, e):
         lg.info('TwitchChatBot::on_whisper():: %s from %s' % (e.arguments, e.source.nick))
         # twitch prevents bots from sending whispers
-        msg = '@%s copy that (%s)' % (e.source.nick, e.arguments)
+        msg = '@%s copy that (%s)' % (e.source.nick, e.arguments[0])
         lg.info('TwitchChatBot::on_whisper():: Sending %s to %s' % (msg, e.source.nick))
         # self.send_msg('#%s' % e.target, msg)
 
